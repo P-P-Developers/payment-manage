@@ -152,82 +152,94 @@ export default function PanelLedger() {
         <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">Client Account Code: #{panel?._id?.substring(18)}</span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Side: Client Info Card */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="rounded-2xl glass-card border border-slate-800 p-6 shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-indigo-500/5 blur-xl"></div>
-
-            <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-800/80">
-              <div className="h-12 w-12 rounded-xl bg-indigo-600/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-                <Layers className="h-6 w-6" />
+      {/* Top Balances & Client Info Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Card 1: Client Info */}
+        <div className="rounded-2xl glass-card border border-slate-800 p-6 shadow-xl relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-indigo-500/5 blur-xl"></div>
+          <div>
+            <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-800/80">
+              <div className="h-10 w-10 rounded-xl bg-indigo-600/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20 shrink-0">
+                <Layers className="h-5 w-5" />
               </div>
-              <div>
-                <h3 className="font-bold text-white text-lg leading-tight">{panel?.panelName}</h3>
-                <p className="text-xs text-slate-500 mt-1 uppercase font-medium">Software Panel Owner</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 text-slate-300">
-                <UserIcon className="h-4.5 w-4.5 text-slate-500" />
-                <span className="text-sm font-medium">{panel?.ownerName}</span>
-              </div>
-              <div className="flex items-center gap-3 text-slate-300">
-                <Mail className="h-4.5 w-4.5 text-slate-500" />
-                <span className="text-sm truncate">{panel?.ownerEmail}</span>
-              </div>
-              <div className="flex items-center gap-3 text-slate-300">
-                <Phone className="h-4.5 w-4.5 text-slate-500" />
-                <span className="text-sm">{panel?.phoneNumber}</span>
+              <div className="min-w-0">
+                <h3 className="font-bold text-white text-base leading-tight truncate">{panel?.panelName}</h3>
+                <p className="text-[10px] text-slate-500 mt-0.5 uppercase font-medium">Panel Client</p>
               </div>
             </div>
-          </div>
-
-          {/* Dues & Rate Configuration */}
-          <div className="rounded-2xl glass-card border border-slate-800 p-6 shadow-xl">
-            <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider text-slate-400">Default Client Rates</h4>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between py-1.5 border-b border-slate-800/40 text-slate-300">
-                <span>Opening Balance:</span>
-                <span className="font-semibold text-white">₹{panel?.openingBalance?.toLocaleString()}</span>
+            <div className="space-y-2.5 text-xs">
+              <div className="flex items-center gap-2.5 text-slate-300">
+                <UserIcon className="h-4 w-4 text-slate-500 shrink-0" />
+                <span className="truncate">{panel?.ownerName}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-800/40 text-slate-300">
-                <span>Default License Rate:</span>
-                <span className="font-semibold text-slate-400">₹{panel?.licenseCharges?.toLocaleString()} / unit</span>
+              <div className="flex items-center gap-2.5 text-slate-300">
+                <Mail className="h-4 w-4 text-slate-500 shrink-0" />
+                <span className="truncate" title={panel?.ownerEmail}>{panel?.ownerEmail}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-800/40 text-slate-300">
-                <span>Default IP routing Rate:</span>
-                <span className="font-semibold text-slate-400">₹{panel?.ipCharges?.toLocaleString()} / unit</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-800/40 text-slate-300">
-                <span>Default Maintenance Rate:</span>
-                <span className="font-semibold text-slate-400">₹{panel?.maintenanceCharges?.toLocaleString()} / unit</span>
-              </div>
-              <div className="flex justify-between pt-3 font-bold text-base text-white border-t border-slate-800">
-                <span>Total Generated Bills:</span>
-                <span className="text-emerald-400">₹{calculatedTotalBill?.toLocaleString()}</span>
+              <div className="flex items-center gap-2.5 text-slate-300">
+                <Phone className="h-4 w-4 text-slate-500 shrink-0" />
+                <span>{panel?.phoneNumber}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Ledger history list & dynamic balance cards */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Top balances row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/20 p-5 flex flex-col gap-1 shadow-inner">
-              <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">Total Dues Collected</span>
-              <span className="text-2xl font-bold text-emerald-400">₹{panel?.totalPaid?.toLocaleString()}</span>
-            </div>
-
-            <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 p-5 flex flex-col gap-1 shadow-inner">
-              <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">Total Dues Outstanding</span>
-              <span className="text-2xl font-bold text-rose-400">₹{panel?.outstanding?.toLocaleString()}</span>
+        {/* Card 2: Default Client Rates */}
+        <div className="rounded-2xl glass-card border border-slate-800 p-6 shadow-xl flex flex-col justify-between">
+          <div>
+            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider text-slate-400">Default Client Rates</h4>
+            <div className="space-y-2 text-xs text-slate-300">
+              <div className="flex justify-between py-1 border-b border-slate-800/40">
+                <span>Opening Balance:</span>
+                <span className="font-semibold text-white">₹{panel?.openingBalance?.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-slate-800/40">
+                <span>License Rate:</span>
+                <span className="font-semibold text-slate-400">₹{panel?.licenseCharges?.toLocaleString()} / unit</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-slate-800/40">
+                <span>IP routing Rate:</span>
+                <span className="font-semibold text-slate-400">₹{panel?.ipCharges?.toLocaleString()} / unit</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span>Maintenance Rate:</span>
+                <span className="font-semibold text-slate-400">₹{panel?.maintenanceCharges?.toLocaleString()} / unit</span>
+              </div>
             </div>
           </div>
+          <div className="flex justify-between pt-2.5 font-bold text-sm text-white border-t border-slate-800 mt-2">
+            <span>Total Generated Bills:</span>
+            <span className="text-emerald-400">₹{calculatedTotalBill?.toLocaleString()}</span>
+          </div>
+        </div>
 
-          <div className="rounded-2xl glass-card border border-slate-800 overflow-hidden shadow-xl">
+        {/* Card 3: Total Collected */}
+        <div className="rounded-2xl bg-emerald-500/5 border border-emerald-500/10 p-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-emerald-500/5 blur-xl"></div>
+          <div>
+            <span className="text-xs uppercase tracking-wider font-bold text-slate-500">Total Dues Collected</span>
+            <p className="text-[10px] text-slate-400 mt-1">Sum of all successfully received payments</p>
+          </div>
+          <div className="mt-6 sm:mt-8">
+            <span className="text-3xl font-extrabold text-emerald-400">₹{panel?.totalPaid?.toLocaleString()}</span>
+          </div>
+        </div>
+
+        {/* Card 4: Total Outstanding */}
+        <div className="rounded-2xl bg-rose-500/5 border border-rose-500/10 p-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-rose-500/5 blur-xl"></div>
+          <div>
+            <span className="text-xs uppercase tracking-wider font-bold text-slate-500">Total Dues Outstanding</span>
+            <p className="text-[10px] text-slate-400 mt-1">Net pending dues across generated bills</p>
+          </div>
+          <div className="mt-6 sm:mt-8">
+            <span className="text-3xl font-extrabold text-rose-400">₹{panel?.outstanding?.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Full Width Ledger Transactions Table Card */}
+      <div className="rounded-2xl glass-card border border-slate-800 overflow-hidden shadow-xl w-full">
             <div className="p-5 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="font-bold text-white text-base">Ledger Transactions</h3>
@@ -508,8 +520,6 @@ export default function PanelLedger() {
               </div>
             )}
           </div>
-        </div>
-      </div>
 
       {/* Fullscreen Spreadsheet Overlay */}
       {isFullscreen && (

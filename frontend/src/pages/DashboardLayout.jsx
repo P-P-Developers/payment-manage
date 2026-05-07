@@ -23,6 +23,7 @@ export default function DashboardLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -207,46 +208,6 @@ export default function DashboardLayout() {
           })}
         </nav>
 
-        <div className="p-4 border-t border-slate-800">
-          <div className={`flex items-center gap-3 px-2 py-3 rounded-xl bg-slate-900/60 border border-slate-800 mb-3 ${
-            isSidebarCollapsed ? 'justify-center' : ''
-          }`}>
-            <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-indigo-500 to-emerald-500 flex items-center justify-center text-white font-bold text-sm shadow-inner uppercase shrink-0">
-              {user?.name?.substring(0, 2)}
-            </div>
-            {!isSidebarCollapsed && (
-              <div className="overflow-hidden animate-fadeIn">
-                <p className="text-sm font-semibold truncate text-white">{user?.name}</p>
-                <div className="flex items-center gap-1 mt-0.5 text-xs text-indigo-400 font-medium uppercase">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  <span>{user?.role}</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={() => setIsChangePasswordOpen(true)}
-            title={isSidebarCollapsed ? "Change Password" : ""}
-            className={`flex items-center justify-center gap-2 rounded-xl bg-slate-900/80 border border-slate-800/80 hover:border-indigo-500/30 hover:bg-slate-900 text-xs font-semibold text-slate-300 hover:text-indigo-400 transition-all duration-300 shadow-sm mb-2 ${
-              isSidebarCollapsed ? 'h-10 w-10 p-0 mx-auto' : 'w-full px-4 py-2.5'
-            }`}
-          >
-            <Key className="h-3.5 w-3.5 shrink-0" />
-            {!isSidebarCollapsed && <span className="animate-fadeIn">Change Password</span>}
-          </button>
-
-          <button
-            onClick={handleLogout}
-            title={isSidebarCollapsed ? "Sign Out" : ""}
-            className={`flex items-center justify-center gap-2 rounded-xl bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500 hover:text-white text-sm font-semibold text-rose-400 transition-all duration-300 shadow-md shadow-rose-500/5 ${
-              isSidebarCollapsed ? 'h-10 w-10 p-0 mx-auto' : 'w-full px-4 py-3'
-            }`}
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            {!isSidebarCollapsed && <span className="animate-fadeIn">Sign Out</span>}
-          </button>
-        </div>
       </aside>
 
       {/* MAIN SECTION */}
@@ -264,10 +225,65 @@ export default function DashboardLayout() {
             {navItems.find((item) => pathname === item.href)?.name || 'Panel Accounting'}
           </h1>
 
-          <div className="flex items-center gap-4">
-            <span className="text-xs bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-full text-indigo-400 font-medium">
+          <div className="flex items-center gap-4 relative">
+            <span className="hidden sm:inline-block text-xs bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-full text-indigo-400 font-medium">
               Sys Mode: Stable
             </span>
+
+            {/* User Profile Dropdown Button */}
+            <div className="relative">
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2.5 p-1.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition-all shadow-md focus:outline-none"
+              >
+                <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-emerald-500 flex items-center justify-center text-white font-bold text-xs shadow-inner uppercase shrink-0">
+                  {user?.name?.substring(0, 2)}
+                </div>
+                <div className="hidden md:block text-left pr-1.5 max-w-[120px]">
+                  <p className="text-xs font-semibold truncate text-white leading-tight">{user?.name}</p>
+                  <p className="text-[10px] text-indigo-400 font-medium uppercase leading-tight mt-0.5">{user?.role}</p>
+                </div>
+              </button>
+
+              {/* Glassmorphic Dropdown Menu */}
+              {isProfileOpen && (
+                <>
+                  <div 
+                    onClick={() => setIsProfileOpen(false)} 
+                    className="fixed inset-0 z-40 cursor-default"
+                  ></div>
+                  <div className="absolute right-0 mt-2.5 w-56 rounded-2xl bg-slate-900/95 border border-slate-800 p-2.5 shadow-2xl z-50 animate-in fade-in slide-in-from-top-3 duration-200 backdrop-blur-md">
+                    {/* User info header inside dropdown */}
+                    <div className="px-3.5 py-3 border-b border-slate-800/80 mb-1.5 md:hidden">
+                      <p className="text-sm font-semibold truncate text-white">{user?.name}</p>
+                      <p className="text-xs text-indigo-400 font-medium uppercase mt-0.5">{user?.role}</p>
+                    </div>
+                    
+                    <button
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        setIsChangePasswordOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-indigo-400 hover:bg-indigo-500/10 border border-transparent hover:border-indigo-500/20 transition-all"
+                    >
+                      <Key className="h-4 w-4 text-slate-500" />
+                      <span>Change Password</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all mt-1"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </header>
 
