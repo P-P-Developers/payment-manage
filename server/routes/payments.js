@@ -1,0 +1,149 @@
+const express = require('express');
+const router = express.Router();
+const Payment = require('../models/Payment');
+const Panel = require('../models/Panel');
+const Log = require('../models/Log');
+const { protect, hasPermission, adminOnly } = require('../middleware/auth');
+
+// @desc    Get all payments (with pagination support)
+// @route   GET /api/payments
+// @access  Private (view_panels permission)
+router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limitQuery = req.query.limit;
+    const limit = limitQuery === 'all' ? 0 : (parseInt(limitQuery) || 10);
+    const skip = limit === 0 ? 0 : (page - 1) * limit;
+
+    const total = await Payment.countDocuments({});
+    const payments = await Payment.find({})
+      .populate('panelId', 'panelName ownerName ownerEmail phoneNumber')
+      .populate('addedBy', 'name email')
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      success: true,
+      count: payments.length,
+      total,
+      pages: Math.ceil(total / limit),
+      currentPage: page,
+      payments,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Add a payment
+// @route   POST /api/payments
+// @access  Private (add_payments permission)
+router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
+  const { panelId, paymentType, amountReceived, paymentMode, bankName, quantity, remark, unitPrice, billAmount } = req.body;
+
+  try {
+    if (!panelId || !paymentType || amountReceived === undefined || !paymentMode) {
+      return res.status(400).json({ success: false, message: 'Please provide all required fields' });
+    }
+
+    const panel = await Panel.findById(panelId);
+    if (!panel) {
+      return res.status(404).json({ success: false, message: 'Panel not found' });
+    }
+  
+
+    const payment = await Payment.create({
+      panelId,
+      paymentType,
+      amountReceived: Number(amountReceived),
+      paymentMode,
+      bankName: bankName || '',
+      quantity: (quantity !== undefined && quantity !== null && quantity !== '') ? Number(quantity) : 0,
+      unitPrice: Number(unitPrice) || 0,
+      billAmount: Number(billAmount) || 0,
+      remark: remark || '',
+      addedBy: req.user._id,
+    });
+
+    // Create activity log
+    await Log.create({
+      userId: req.user._id,
+      actionType: 'ADD',
+      module: 'Payment',
+      details: `Received payment of ₹${amountReceived} (${paymentType}) from panel ${panel.panelName} via ${paymentMode}`,
+    });
+
+    res.status(201).json({ success: true, payment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Edit a payment
+// @route   PUT /api/payments/:id
+// @access  Private (edit_payments permission)
+router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => {
+  const { paymentType, amountReceived, paymentMode, bankName, quantity, remark } = req.body;
+
+  try {
+    const payment = await Payment.findById(req.params.id).populate('panelId', 'panelName');
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'Payment not found' });
+    }
+
+    const oldAmount = payment.amountReceived;
+    const oldType = payment.paymentType;
+
+    payment.paymentType = paymentType || payment.paymentType;
+    payment.amountReceived = amountReceived !== undefined ? Number(amountReceived) : payment.amountReceived;
+    payment.paymentMode = paymentMode || payment.paymentMode;
+    payment.bankName = bankName !== undefined ? bankName : payment.bankName;
+    payment.quantity = quantity !== undefined ? Number(quantity) : payment.quantity;
+    payment.unitPrice = req.body.unitPrice !== undefined ? Number(req.body.unitPrice) : payment.unitPrice;
+    payment.billAmount = req.body.billAmount !== undefined ? Number(req.body.billAmount) : payment.billAmount;
+    payment.remark = remark !== undefined ? remark : payment.remark;
+
+    const updatedPayment = await payment.save();
+
+    // Create activity log
+    await Log.create({
+      userId: req.user._id,
+      actionType: 'EDIT',
+      module: 'Payment',
+      details: `Edited payment for panel ${payment.panelId.panelName}. Changed from ₹${oldAmount} (${oldType}) to ₹${payment.amountReceived} (${payment.paymentType})`,
+    });
+
+    res.json({ success: true, payment: updatedPayment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Delete a payment
+// @route   DELETE /api/payments/:id
+// @access  Private (Admin Only - to prevent fraud)
+router.delete('/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const payment = await Payment.findById(req.params.id).populate('panelId', 'panelName');
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'Payment record not found' });
+    }
+
+    await Payment.findByIdAndDelete(req.params.id);
+
+    // Create activity log
+    await Log.create({
+      userId: req.user._id,
+      actionType: 'DELETE',
+      module: 'Payment',
+      details: `Deleted payment record of ₹${payment.amountReceived} from panel ${payment.panelId.panelName}`,
+    });
+
+    res.json({ success: true, message: 'Payment record deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+module.exports = router;

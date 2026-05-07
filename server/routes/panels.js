@@ -1,0 +1,188 @@
+const express = require('express');
+const router = express.Router();
+const Panel = require('../models/Panel');
+const Payment = require('../models/Payment');
+const Log = require('../models/Log');
+const { protect, hasPermission, adminOnly } = require('../middleware/auth');
+
+// @desc    Get all panels with computed ledger/outstanding
+// @route   GET /api/panels
+// @access  Private (view_panels permission)
+router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
+  try {
+    const panels = await Panel.find({}).sort({ panelName: 1 });
+    
+    // Compute total received and outstanding balance for each panel dynamically
+    const computedPanels = await Promise.all(
+      panels.map(async (panel) => {
+        const payments = await Payment.find({ panelId: panel._id });
+        const totalPaid = payments.reduce((sum, p) => sum + (p.amountReceived || 0), 0);
+        const totalBill = payments.reduce((sum, p) => sum + (p.billAmount || 0), 0);
+        
+        const outstanding = (panel.openingBalance || 0) + totalBill - totalPaid;
+
+        return {
+          ...panel.toObject(),
+          totalPaid,
+          outstanding,
+        };
+      })
+    );
+
+    res.json({ success: true, count: computedPanels.length, panels: computedPanels });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Get single panel details & specific history
+// @route   GET /api/panels/:id
+// @access  Private (view_panels permission)
+router.get('/:id', protect, hasPermission('view_panels'), async (req, res) => {
+  try {
+    const panel = await Panel.findById(req.params.id);
+    if (!panel) {
+      return res.status(404).json({ success: false, message: 'Panel not found' });
+    }
+
+    const payments = await Payment.find({ panelId: panel._id }).populate('addedBy', 'name email').sort({ timestamp: -1 });
+    const totalPaid = payments.reduce((sum, p) => sum + (p.amountReceived || 0), 0);
+    const totalBill = payments.reduce((sum, p) => sum + (p.billAmount || 0), 0);
+    const outstanding = (panel.openingBalance || 0) + totalBill - totalPaid;
+
+    res.json({
+      success: true,
+      panel: {
+        ...panel.toObject(),
+        totalPaid,
+        outstanding,
+      },
+      payments,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Create a new panel (client)
+// @route   POST /api/panels
+// @access  Private (Admin Only)
+router.post('/', protect, adminOnly, async (req, res) => {
+  const {
+    panelName,
+    ownerName,
+    ownerEmail,
+    phoneNumber,
+    licenseCharges,
+    ipCharges,
+    maintenanceCharges,
+    openingBalance,
+  } = req.body;
+
+  try {
+    const panelExists = await Panel.findOne({ panelName });
+    if (panelExists) {
+      return res.status(400).json({ success: false, message: 'Panel with this name already exists' });
+    }
+
+    const panel = await Panel.create({
+      panelName,
+      ownerName,
+      ownerEmail,
+      phoneNumber,
+      licenseCharges: Number(licenseCharges) || 0,
+      ipCharges: Number(ipCharges) || 0,
+      maintenanceCharges: Number(maintenanceCharges) || 0,
+      openingBalance: Number(openingBalance) || 0,
+    });
+
+    // Create activity log
+    await Log.create({
+      userId: req.user._id,
+      actionType: 'ADD',
+      module: 'Panel',
+      details: `Created new panel client: ${panelName} (Owner: ${ownerName}) with opening balance: ${openingBalance}`,
+    });
+
+    res.status(201).json({ success: true, panel });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Update a panel
+// @route   PUT /api/panels/:id
+// @access  Private (Admin Only)
+router.put('/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const panel = await Panel.findById(req.params.id);
+    if (!panel) {
+      return res.status(404).json({ success: false, message: 'Panel not found' });
+    }
+
+    const updatedFields = {};
+    const keys = [
+      'panelName',
+      'ownerName',
+      'ownerEmail',
+      'phoneNumber',
+      'licenseCharges',
+      'ipCharges',
+      'maintenanceCharges',
+      'openingBalance',
+    ];
+
+    keys.forEach((key) => {
+      if (req.body[key] !== undefined) {
+        updatedFields[key] = req.body[key];
+      }
+    });
+
+    const updatedPanel = await Panel.findByIdAndUpdate(req.params.id, updatedFields, {
+      new: true,
+      runValidators: true,
+    });
+
+    // Create activity log
+    await Log.create({
+      userId: req.user._id,
+      actionType: 'EDIT',
+      module: 'Panel',
+      details: `Updated panel client: ${panel.panelName}. Changes made: ${JSON.stringify(updatedFields)}`,
+    });
+
+    res.json({ success: true, panel: updatedPanel });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Delete a panel
+// @route   DELETE /api/panels/:id
+// @access  Private (Admin Only)
+router.delete('/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const panel = await Panel.findById(req.params.id);
+    if (!panel) {
+      return res.status(404).json({ success: false, message: 'Panel not found' });
+    }
+
+    // Also delete associated payments to maintain integrity
+    await Payment.deleteMany({ panelId: panel._id });
+    await Panel.findByIdAndDelete(req.params.id);
+
+    // Create activity log
+    await Log.create({
+      userId: req.user._id,
+      actionType: 'DELETE',
+      module: 'Panel',
+      details: `Deleted panel client: ${panel.panelName} and all associated payment receipts`,
+    });
+
+    res.json({ success: true, message: 'Panel and associated payments deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+module.exports = router;
