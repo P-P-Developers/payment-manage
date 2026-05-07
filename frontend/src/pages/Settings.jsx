@@ -9,6 +9,8 @@ import {
   Check,
   AlertCircle,
   ShieldCheck,
+  Upload,
+  Trash2,
 } from 'lucide-react';
 
 export default function Settings() {
@@ -32,6 +34,39 @@ export default function Settings() {
 
   const [activeSubTab, setActiveSubTab] = useState('branding'); // branding, billing, toggles
 
+  const [logo, setLogo] = useState('');
+  const [stamp, setStamp] = useState('');
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setError('Logo image must be smaller than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogo(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleStampChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setError('Stamp image must be smaller than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setStamp(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Load from localStorage on mount
   useEffect(() => {
     try {
@@ -49,6 +84,8 @@ export default function Settings() {
         if (parsed.autoReminder !== undefined) setAutoReminder(parsed.autoReminder);
         if (parsed.smsAlerts !== undefined) setSmsAlerts(parsed.smsAlerts);
         if (parsed.autoBackup !== undefined) setAutoBackup(parsed.autoBackup);
+        if (parsed.logo) setLogo(parsed.logo);
+        if (parsed.stamp) setStamp(parsed.stamp);
       }
     } catch (e) {
       console.error('Failed to parse saved settings', e);
@@ -73,6 +110,8 @@ export default function Settings() {
         autoReminder,
         smsAlerts,
         autoBackup,
+        logo,
+        stamp,
       };
 
       localStorage.setItem('app_system_settings', JSON.stringify(settingsPayload));
@@ -231,6 +270,75 @@ export default function Settings() {
                   <option value="USD ($)">USD ($) - US Dollar</option>
                   <option value="EUR (€)">EUR (€) - Euro</option>
                 </select>
+              </div>
+
+              {/* Logo & Stamp upload section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-800/60">
+                {/* Logo Upload Card */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Company Logo</label>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Recommended: Square format (PNG/JPG), transparent background</span>
+                  </div>
+
+                  <div className="relative group flex flex-col items-center justify-center border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-2xl p-5 bg-slate-950/20 hover:bg-slate-950/40 transition-all duration-300 min-h-[160px]">
+                    {logo ? (
+                      <div className="relative flex flex-col items-center gap-3">
+                        <img src={logo} alt="Company Logo" className="max-h-24 max-w-full rounded-xl object-contain bg-slate-900/60 p-2 border border-slate-800" />
+                        <button
+                          type="button"
+                          onClick={() => setLogo('')}
+                          className="flex items-center gap-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500 hover:border-rose-500 hover:text-white px-2.5 py-1.5 text-[10px] font-bold text-rose-400 transition-all"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          <span>Remove Logo</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="cursor-pointer flex flex-col items-center justify-center text-center p-4 h-full w-full">
+                        <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
+                        <div className="h-11 w-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300">
+                          <Upload className="h-5 w-5" />
+                        </div>
+                        <span className="text-xs font-bold text-slate-300 mt-3 block group-hover:text-white transition-colors">Upload Company Logo</span>
+                        <span className="text-[10px] text-slate-500 mt-1 block">Click to browse your files</span>
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                {/* Stamp Upload Card */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Authorized Sign / Stamp</label>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Recommended: Transparent PNG, dark color (blue/black/green)</span>
+                  </div>
+
+                  <div className="relative group flex flex-col items-center justify-center border-2 border-dashed border-slate-800 hover:border-emerald-500/50 rounded-2xl p-5 bg-slate-950/20 hover:bg-slate-950/40 transition-all duration-300 min-h-[160px]">
+                    {stamp ? (
+                      <div className="relative flex flex-col items-center gap-3">
+                        <img src={stamp} alt="Authorized Stamp" className="max-h-24 max-w-full rounded-xl object-contain bg-white/5 p-2 border border-slate-800" />
+                        <button
+                          type="button"
+                          onClick={() => setStamp('')}
+                          className="flex items-center gap-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500 hover:border-rose-500 hover:text-white px-2.5 py-1.5 text-[10px] font-bold text-rose-400 transition-all"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          <span>Remove Stamp</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="cursor-pointer flex flex-col items-center justify-center text-center p-4 h-full w-full">
+                        <input type="file" accept="image/*" onChange={handleStampChange} className="hidden" />
+                        <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
+                          <Upload className="h-5 w-5" />
+                        </div>
+                        <span className="text-xs font-bold text-slate-300 mt-3 block group-hover:text-white transition-colors">Upload Stamp / Signature</span>
+                        <span className="text-[10px] text-slate-500 mt-1 block">Click to browse your files</span>
+                      </label>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}

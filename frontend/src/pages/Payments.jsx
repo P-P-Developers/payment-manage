@@ -15,7 +15,9 @@ import {
   User,
   MessageSquare,
   Hash,
+  Printer,
 } from 'lucide-react';
+import ReceiptModal from '@/components/ReceiptModal';
 
 const BANK_LIST = [
   'HDFC Bank',
@@ -42,6 +44,7 @@ export default function Payments() {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -528,43 +531,45 @@ export default function Payments() {
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl glass-card border border-slate-800 overflow-hidden shadow-xl">
+            <div className="rounded-2xl bg-slate-950/60 border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-slate-900/80 border-b border-slate-800 text-slate-400 text-xs uppercase font-semibold tracking-wider">
-                      <th className="px-4 py-4 text-center">S.No</th>
-                      <th className="px-6 py-4">Transaction Details</th>
-                      <th className="px-6 py-4">Panel Client</th>
-                      <th className="px-6 py-4">Payment Type</th>
-                      <th className="px-6 py-4">Billing & Payment</th>
-                      <th className="px-6 py-4">Collected By</th>
-                      <th className="px-6 py-4">Remark</th>
+                    <tr className="bg-slate-900/90 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-[11px]">
+                      <th className="py-3.5 px-4 text-center w-14">S.No</th>
+                      <th className="py-3.5 px-5">Date & Time</th>
+                      <th className="py-3.5 px-5">Panel Client</th>
+                      <th className="py-3.5 px-5">Billing Type</th>
+                      <th className="py-3.5 px-5">Financial Details</th>
+                      <th className="py-3.5 px-5">Collected By</th>
+                      <th className="py-3.5 px-5">Remarks</th>
+                      <th className="py-3.5 px-4 text-center w-28">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-sm">
+                  <tbody className="divide-y divide-slate-800/50 text-slate-300">
                     {filteredPayments.map((p, index) => (
-                      <tr key={p._id} className="hover:bg-slate-800/20 transition-colors">
-                        <td className="px-4 py-4 text-center font-bold text-slate-400">
+                      <tr key={p._id} className="hover:bg-slate-900/40 transition-colors duration-150 group">
+                        <td className="py-3 px-4 text-center font-mono font-bold text-slate-500 group-hover:text-slate-400">
                           {(currentPage - 1) * 10 + index + 1}
                         </td>
-                        <td className="px-6 py-4 text-slate-300">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-slate-500" />
-                            <span>{new Date(p.timestamp).toLocaleDateString()}</span>
-                            <span className="text-xs text-slate-500">{new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <td className="py-3 px-5">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-white group-hover:text-indigo-300 transition-colors">{new Date(p.timestamp).toLocaleDateString()}</span>
+                            <span className="text-[10px] text-slate-500 font-medium mt-0.5">{new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2 font-bold text-white">
-                            <Layers className="h-4 w-4 text-slate-500" />
-                            <span>{p.panelId?.panelName || 'Deleted Panel'}</span>
+                        <td className="py-3 px-5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/10 flex items-center justify-center font-bold text-[11px] capitalize shrink-0 shadow-sm">
+                              {p.panelId?.panelName?.substring(0, 2)}
+                            </div>
+                            <span className="font-bold text-white tracking-wide">{p.panelId?.panelName || 'Deleted Panel'}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col gap-1.5 items-start">
+                        <td className="py-3 px-5">
+                          <div className="flex flex-col gap-1 items-start">
                             <span
-                              className={`inline-flex px-2.5 py-0.5 rounded text-xs font-semibold ${p.paymentType === 'License'
+                              className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${p.paymentType === 'License'
                                 ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
                                 : p.paymentType === 'IP Charges'
                                   ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
@@ -576,21 +581,21 @@ export default function Payments() {
                               {p.paymentType}
                             </span>
                             {(p.paymentType === 'License' || p.paymentType === 'IP Charges') && (p.quantity !== undefined && p.quantity !== null) && (
-                              <span className="text-[10px] text-slate-400 font-semibold uppercase">Qty: {p.quantity}</span>
+                              <span className="text-[9px] text-slate-500 font-bold uppercase ml-0.5">Qty: {p.quantity}</span>
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col gap-1.5">
+                        <td className="py-3 px-5">
+                          <div className="flex flex-col gap-1">
                             {p.billAmount > 0 ? (
-                              <>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-slate-500 font-medium">Bill:</span>
-                                  <span className="font-semibold text-slate-300">₹{p.billAmount?.toLocaleString()}</span>
+                              <div className="space-y-0.5">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] text-slate-500 font-semibold uppercase w-8">Bill:</span>
+                                  <span className="font-bold text-slate-400 font-mono">₹{p.billAmount?.toLocaleString()}</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-slate-500 font-medium">Paid:</span>
-                                  <span className={`font-bold text-base ${p.amountReceived === 0
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] text-slate-500 font-semibold uppercase w-8">Paid:</span>
+                                  <span className={`font-extrabold font-mono ${p.amountReceived === 0
                                     ? 'text-rose-400'
                                     : p.amountReceived < p.billAmount
                                       ? 'text-amber-400'
@@ -599,64 +604,72 @@ export default function Payments() {
                                     ₹{p.amountReceived?.toLocaleString()}
                                   </span>
                                 </div>
-                                {p.amountReceived === 0 ? (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 w-fit">
-                                    Outstanding / Credit Only
-                                  </span>
-                                ) : p.amountReceived < p.billAmount ? (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20 w-fit">
-                                    Partially Paid (₹{(p.billAmount - p.amountReceived).toLocaleString()} due)
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 w-fit">
-                                    Fully Paid
-                                  </span>
-                                )}
-                              </>
-                            ) : (
-                              <>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-slate-500 font-medium">Paid:</span>
-                                  <span className="font-bold text-white text-base">₹{p.amountReceived?.toLocaleString()}</span>
+                                <div className="mt-1">
+                                  {p.amountReceived === 0 ? (
+                                    <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-rose-500/10 text-rose-400 border border-rose-500/15">
+                                      Unpaid
+                                    </span>
+                                  ) : p.amountReceived < p.billAmount ? (
+                                    <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/15">
+                                      Partial (₹{(p.billAmount - p.amountReceived).toLocaleString()} due)
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/15">
+                                      Fully Paid
+                                    </span>
+                                  )}
                                 </div>
-                                {p.amountReceived > 0 ? (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 w-fit">
-                                    Direct Payment
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-500/10 text-slate-400 border border-slate-500/20 w-fit">
-                                    No Amount
-                                  </span>
-                                )}
-                              </>
+                              </div>
+                            ) : (
+                              <div className="space-y-0.5">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] text-slate-500 font-semibold uppercase w-8">Paid:</span>
+                                  <span className="font-extrabold text-white font-mono">₹{p.amountReceived?.toLocaleString()}</span>
+                                </div>
+                                <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/15 w-fit">
+                                  Direct Payment
+                                </span>
+                              </div>
                             )}
-                            <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5 uppercase tracking-wide">
-                              <CreditCard className="h-3.5 w-3.5 shrink-0 text-slate-600" />
-                              {p.paymentMode} {p.bankName && `(${p.bankName})`}
-                            </span>
+                            <div className="text-[9px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5 uppercase tracking-wide">
+                              <CreditCard className="h-3 w-3 shrink-0 text-slate-600" />
+                              <span>{p.paymentMode} {p.bankName && `(${p.bankName})`}</span>
+                            </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-slate-400 font-medium">
-                          <div className="flex items-center gap-1.5">
-                            <User className="h-4 w-4 text-slate-500" />
-                            <span>{p.addedBy?.name || 'Staff User'}</span>
+                        <td className="py-3 px-5">
+                          <div className="flex items-center gap-1.5 text-slate-300">
+                            <div className="h-5 w-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-[9px] uppercase border border-slate-700">
+                              {p.addedBy?.name?.substring(0, 2)}
+                            </div>
+                            <span className="font-medium truncate max-w-[110px]">{p.addedBy?.name || 'Staff User'}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-slate-400 max-w-xs truncate">
+                        <td className="py-3 px-5 text-slate-400 max-w-[140px] truncate" title={p.remark || ''}>
                           {p.remark ? (
-                            <div className="flex items-center gap-1.5" title={p.remark}>
-                              <MessageSquare className="h-4 w-4 text-slate-500 shrink-0" />
-                              <span>{p.remark}</span>
+                            <div className="flex items-center gap-1.5">
+                              <MessageSquare className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                              <span className="truncate">{p.remark}</span>
                             </div>
                           ) : (
-                            <span className="text-slate-600">-</span>
+                            <span className="text-slate-600 font-semibold">-</span>
                           )}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <button
+                            onClick={() => setSelectedReceiptPayment(p)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-600 text-indigo-400 hover:text-white border border-indigo-500/10 hover:border-transparent text-xs font-bold transition-all shadow-md active:scale-95"
+                            title="Generate Receipt"
+                          >
+                            <Printer className="h-3.5 w-3.5" />
+                            <span>Receipt</span>
+                          </button>
                         </td>
                       </tr>
                     ))}
                     {filteredPayments.length === 0 && (
                       <tr>
-                        <td colSpan="7" className="text-center py-8 text-slate-400">
+                        <td colSpan="8" className="text-center py-8 text-slate-400">
                           No payments recorded yet.
                         </td>
                       </tr>
@@ -1063,9 +1076,16 @@ export default function Payments() {
                 </button>
               </div>
             </form>
-          </div>
         </div>
+      </div>
       )}
+
+      {/* Reusable Receipt Preview Modal */}
+      <ReceiptModal
+        isOpen={!!selectedReceiptPayment}
+        onClose={() => setSelectedReceiptPayment(null)}
+        payment={selectedReceiptPayment}
+      />
     </div>
   );
 }

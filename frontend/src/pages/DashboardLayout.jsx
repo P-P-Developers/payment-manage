@@ -13,6 +13,8 @@ import {
   ShieldCheck,
   Key,
   Lock,
+  Mail,
+  Settings,
 } from 'lucide-react';
 
 export default function DashboardLayout() {
@@ -145,19 +147,17 @@ export default function DashboardLayout() {
   return (
     <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden">
       {/* SIDEBAR FOR DESKTOP */}
-      <aside className={`hidden md:flex flex-col h-full glass-card border-r border-slate-800 shrink-0 transition-all duration-300 overflow-hidden ${
-        isSidebarCollapsed ? 'w-20' : 'w-64'
-      }`}>
-        <div className={`h-16 flex items-center border-b border-slate-800 transition-all duration-300 ${
-          isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-6'
+      <aside className={`hidden md:flex flex-col h-full glass-card border-r border-slate-800 shrink-0 transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'w-20' : 'w-64'
         }`}>
+        <div className={`h-16 flex items-center border-b border-slate-800 transition-all duration-300 ${isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-6'
+          }`}>
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold shadow-md shrink-0">
-              P
+              D
             </div>
             {!isSidebarCollapsed && (
               <span className="font-bold text-lg tracking-wider bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent animate-fadeIn">
-                PANEL ACCT
+                DEEP MIND
               </span>
             )}
           </div>
@@ -193,13 +193,11 @@ export default function DashboardLayout() {
                 key={item.href}
                 to={item.href}
                 title={isSidebarCollapsed ? item.name : ""}
-                className={`flex items-center gap-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  isSidebarCollapsed ? 'justify-center px-0 h-11 w-11 mx-auto' : 'px-4'
-                } ${
-                  isActive
+                className={`flex items-center gap-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isSidebarCollapsed ? 'justify-center px-0 h-11 w-11 mx-auto' : 'px-4'
+                  } ${isActive
                     ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/10 text-indigo-400 border border-indigo-500/30 shadow-md shadow-indigo-500/5'
                     : 'text-slate-400 hover:bg-slate-800/50 hover:text-white border border-transparent'
-                }`}
+                  }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />
                 {!isSidebarCollapsed && <span className="animate-fadeIn">{item.name}</span>}
@@ -226,9 +224,7 @@ export default function DashboardLayout() {
           </h1>
 
           <div className="flex items-center gap-4 relative">
-            <span className="hidden sm:inline-block text-xs bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-full text-indigo-400 font-medium">
-              Sys Mode: Stable
-            </span>
+      
 
             {/* User Profile Dropdown Button */}
             <div className="relative">
@@ -248,8 +244,8 @@ export default function DashboardLayout() {
               {/* Glassmorphic Dropdown Menu */}
               {isProfileOpen && (
                 <>
-                  <div 
-                    onClick={() => setIsProfileOpen(false)} 
+                  <div
+                    onClick={() => setIsProfileOpen(false)}
                     className="fixed inset-0 z-40 cursor-default"
                   ></div>
                   <div className="absolute right-0 mt-2.5 w-56 rounded-2xl bg-slate-900/95 border border-slate-800 p-2.5 shadow-2xl z-50 animate-in fade-in slide-in-from-top-3 duration-200 backdrop-blur-md">
@@ -258,8 +254,8 @@ export default function DashboardLayout() {
                       <p className="text-sm font-semibold truncate text-white">{user?.name}</p>
                       <p className="text-xs text-indigo-400 font-medium uppercase mt-0.5">{user?.role}</p>
                     </div>
-                    
-                    <button
+
+                     <button
                       onClick={() => {
                         setIsProfileOpen(false);
                         setIsChangePasswordOpen(true);
@@ -269,6 +265,27 @@ export default function DashboardLayout() {
                       <Key className="h-4 w-4 text-slate-500" />
                       <span>Change Password</span>
                     </button>
+
+                    {user?.role === 'Admin' && (
+                      <>
+                        <Link
+                          to="/dashboard/settings"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-indigo-400 hover:bg-indigo-500/10 border border-transparent hover:border-indigo-500/20 transition-all mt-1"
+                        >
+                          <Settings className="h-4 w-4 text-slate-500" />
+                          <span>System Settings</span>
+                        </Link>
+                        <Link
+                          to="/dashboard/smtp"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-indigo-400 hover:bg-indigo-500/10 border border-transparent hover:border-indigo-500/20 transition-all mt-1"
+                        >
+                          <Mail className="h-4 w-4 text-slate-500" />
+                          <span>SMTP Settings</span>
+                        </Link>
+                      </>
+                    )}
 
                     <button
                       onClick={() => {
@@ -325,11 +342,10 @@ export default function DashboardLayout() {
                     key={item.href}
                     to={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                      isActive
-                        ? 'bg-indigo-600 text-white'
-                        : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
-                    }`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                      }`}
                   >
                     <Icon className="h-5 w-5" />
                     <span>{item.name}</span>

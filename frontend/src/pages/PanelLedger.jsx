@@ -13,7 +13,9 @@ import {
   ShieldCheck,
   Maximize2,
   Minimize2,
+  Printer,
 } from 'lucide-react';
+import ReceiptModal from '@/components/ReceiptModal';
 
 export default function PanelLedger() {
   const navigate = useNavigate();
@@ -25,6 +27,7 @@ export default function PanelLedger() {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('list'); // 'list' or 'excel'
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -294,6 +297,7 @@ export default function PanelLedger() {
                       <th className="px-6 py-4">Mode</th>
                       <th className="px-6 py-4">Billing & Payment</th>
                       <th className="px-6 py-4">Received By</th>
+                      <th className="px-6 py-4 text-center">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800 text-sm">
@@ -390,11 +394,21 @@ export default function PanelLedger() {
                             <span>{p.addedBy?.name || 'Staff User'}</span>
                           </div>
                         </td>
+                        <td className="px-6 py-4 text-center">
+                          <button
+                            onClick={() => setSelectedReceiptPayment({ ...p, panelId: { panelName: panel?.panelName, ownerName: panel?.ownerName } })}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white border border-indigo-500/10 hover:border-indigo-500 text-xs font-bold transition-all shadow-md"
+                            title="Generate Receipt"
+                          >
+                            <Printer className="h-3.5 w-3.5" />
+                            <span>Receipt</span>
+                          </button>
+                        </td>
                       </tr>
                     ))}
                     {payments.length === 0 && (
                       <tr>
-                        <td colSpan="6" className="text-center py-8 text-slate-400">
+                        <td colSpan="7" className="text-center py-8 text-slate-400">
                           No payments collected for this panel yet.
                         </td>
                       </tr>
@@ -667,6 +681,13 @@ export default function PanelLedger() {
           </div>
         </div>
       )}
+
+      {/* Reusable Receipt Preview Modal */}
+      <ReceiptModal
+        isOpen={!!selectedReceiptPayment}
+        onClose={() => setSelectedReceiptPayment(null)}
+        payment={selectedReceiptPayment}
+      />
     </div>
   );
 }

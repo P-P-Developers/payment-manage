@@ -70,9 +70,26 @@ export default function Panels() {
     setOwnerName('');
     setOwnerEmail('');
     setPhoneNumber('');
-    setLicenseCharges(0);
-    setIpCharges(0);
-    setMaintenanceCharges(0);
+    
+    // Load Billing Defaults from system settings
+    let defaultL = 0;
+    let defaultI = 0;
+    let defaultM = 0;
+    try {
+      const savedSettings = localStorage.getItem('app_system_settings');
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        if (parsed.defaultLicense) defaultL = Number(parsed.defaultLicense);
+        if (parsed.defaultIp) defaultI = Number(parsed.defaultIp);
+        if (parsed.defaultMaint) defaultM = Number(parsed.defaultMaint);
+      }
+    } catch (e) {
+      console.error('Failed to load billing defaults', e);
+    }
+
+    setLicenseCharges(defaultL);
+    setIpCharges(defaultI);
+    setMaintenanceCharges(defaultM);
     setOpeningBalance(0);
     setFormErrors({});
     setIsModalOpen(true);
@@ -365,10 +382,10 @@ export default function Panels() {
 
       {/* CREATE / EDIT PANEL MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-          <div className="relative w-full max-w-2xl rounded-2xl glass-card p-6 md:p-8 border border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[90vh]">
+          <div className="relative w-full max-w-2xl rounded-2xl glass-card p-6 md:p-8 border border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[85vh] md:max-h-[90vh]">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-white"
