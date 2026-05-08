@@ -17,6 +17,8 @@ import {
   Hash,
   Printer,
   Eye,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import ReceiptModal from '@/components/ReceiptModal';
 
@@ -122,7 +124,67 @@ export default function Payments() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);
   const [viewingPayment, setViewingPayment] = useState(null);
+  const [expandedPanelId, setExpandedPanelId] = useState(null);
+  const [expandedPanelPayments, setExpandedPanelPayments] = useState([]);
+  const [expandedLoading, setExpandedLoading] = useState(false);
+  const [editingPayment, setEditingPayment] = useState(null);
+  const [editForm, setEditForm] = useState({
+    paymentType: '',
+    amountReceived: '',
+    paymentMode: '',
+    bankName: '',
+    quantity: '',
+    unitPrice: '',
+    billAmount: '',
+    remark: '',
+  });
   const [submitting, setSubmitting] = useState(false);
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [editingCell, setEditingCell] = useState(null); // { paymentId, field, value }
+
+  const handleInlineCellSave = async (payment, field, newValue) => {
+    if (newValue === '' || isNaN(newValue)) {
+      setEditingCell(null);
+      return;
+    }
+    const val = Number(newValue);
+    const originalVal = field === 'billAmount' ? (payment.billAmount || 0) : (payment.amountReceived || 0);
+    if (val === originalVal) {
+      setEditingCell(null);
+      return;
+    }
+
+    try {
+      const payload = {
+        paymentType: payment.paymentType,
+        amountReceived: field === 'amountReceived' ? val : (payment.amountReceived || 0),
+        paymentMode: payment.paymentMode,
+        bankName: payment.bankName,
+        quantity: payment.quantity || 1,
+        unitPrice: field === 'billAmount' ? val : (payment.unitPrice || val),
+        billAmount: field === 'billAmount' ? val : (payment.billAmount || 0),
+        remark: `Direct cell correction of ${field === 'billAmount' ? 'Bill Amount' : 'Amount Paid'} (Value corrected from ₹${originalVal.toLocaleString()} to ₹${val.toLocaleString()})`,
+      };
+
+      const data = await apiRequest(`/payments/${payment._id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      });
+
+      if (data.success) {
+        const refreshedData = await apiRequest(`/panels/${payment.panelId._id || payment.panelId}`);
+        if (refreshedData.success) {
+          setExpandedPanelPayments(refreshedData.payments || []);
+        }
+        fetchPaymentsAndPanels(currentPage, true);
+      }
+    } catch (err) {
+      console.error('Failed to update inline cell:', err);
+    } finally {
+      setEditingCell(null);
+    }
+  };
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -222,6 +284,131 @@ export default function Payments() {
     setBillAmountInput('');
     setRemark('');
     setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (payment) => {
+    setEditingPayment(payment);
+    setEditForm({
+      paymentType: payment.paymentType || '',
+      amountReceived: payment.amountReceived !== undefined ? payment.amountReceived : '',
+      paymentMode: payment.paymentMode || '',
+      bankName: payment.bankName || '',
+      quantity: payment.quantity !== undefined ? payment.quantity : '',
+      unitPrice: payment.unitPrice !== undefined ? payment.unitPrice : '',
+      billAmount: payment.billAmount !== undefined ? payment.billAmount : '',
+      remark: payment.remark || '',
+    });
+    setViewingPayment(null);
+  };
+
+  const handleUpdatePayment = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setSubmitting(true);
+
+    try {
+      const payload = {
+        paymentType: editForm.paymentType,
+        amountReceived: editForm.amountReceived === '' ? 0 : Number(editForm.amountReceived),
+        paymentMode: editForm.paymentMode,
+        bankName: editForm.bankName,
+        quantity: editForm.quantity === '' ? 0 : Number(editForm.quantity),
+        unitPrice: editForm.unitPrice === '' ? 0 : Number(editForm.unitPrice),
+        billAmount: editForm.billAmount === '' ? 0 : Number(editForm.billAmount),
+        remark: editForm.remark,
+      };
+
+      if (editingPayment.billAmount > 0 && (editForm.paymentType === 'License' || editForm.paymentType === 'IP Charges')) {
+        payload.billAmount = payload.quantity * payload.unitPrice;
+      }
+
+      const data = await apiRequest(`/payments/${editingPayment._id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      });
+
+      if (data.success) {
+        setSuccess('Transaction updated successfully and changes logged in audit ledger!');
+        setEditingPayment(null);
+        fetchPaymentsAndPanels(currentPage, true);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to update transaction');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const toggleExpandPanel = async (panelId) => {
+    if (expandedPanelId === panelId) {
+      setExpandedPanelId(null);
+      setExpandedPanelPayments([]);
+      return;
+    }
+
+    setExpandedPanelId(panelId);
+    setExpandedLoading(true);
+    try {
+      const data = await apiRequest(`/panels/${panelId}`);
+      if (data.success) {
+        setExpandedPanelPayments(data.payments || []);
+      }
+    } catch (err) {
+      console.error('Failed to load panel ledger:', err);
+    } finally {
+      setExpandedLoading(false);
+    }
+  };
+
+  const getLast30DaysData = (panelPayments) => {
+    const data = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 30; i++) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const dateStr = d.toLocaleDateString();
+      
+      const dayPayments = (panelPayments || []).filter(p => {
+        const pDate = new Date(p.timestamp).toLocaleDateString();
+        return pDate === dateStr;
+      });
+      
+      if (dayPayments.length > 0) {
+        dayPayments.forEach((p, pIndex) => {
+          data.push({
+            id: `${p._id || dateStr}-${pIndex}`,
+            date: dateStr,
+            displayDate: pIndex === 0 ? dateStr : '',
+            paymentType: p.paymentType,
+            quantity: p.quantity,
+            unitPrice: p.unitPrice,
+            billAmount: p.billAmount || 0,
+            amountReceived: p.amountReceived || 0,
+            remark: p.remark || '-',
+            addedBy: p.addedBy?.name || 'Staff User',
+            hasData: true,
+            originalPayment: p,
+          });
+        });
+      } else {
+        data.push({
+          id: `${dateStr}-empty`,
+          date: dateStr,
+          displayDate: dateStr,
+          paymentType: '-',
+          quantity: '-',
+          unitPrice: '-',
+          billAmount: 0,
+          amountReceived: 0,
+          remark: '-',
+          addedBy: '-',
+          hasData: false,
+        });
+      }
+    }
+    return data;
   };
 
   const handleOpenBillModal = () => {
@@ -815,11 +1002,28 @@ export default function Payments() {
           </div>
         </>
       ) : (
-        <div className="overflow-x-auto p-4 bg-slate-950 rounded-2xl border border-slate-800 shadow-xl">
-          <div className="flex items-center justify-between mb-4 text-xs font-mono">
+        <div className={`overflow-x-auto p-4 bg-slate-950 rounded-2xl border border-slate-800 shadow-xl transition-all duration-300 ${isFullscreen ? 'fixed inset-0 z-[100] p-6 overflow-auto bg-slate-950' : ''}`}>
+          <div className="flex items-center justify-between mb-4 text-xs font-mono border-b border-slate-800 pb-3">
             <div className="flex items-center gap-3">
               <span className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold rounded">Sheet1</span>
               <span className="text-slate-400 font-bold">Consolidated Panels Ledger Sheet</span>
+              <button
+                onClick={() => setIsFullscreen(!isFullscreen)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 font-bold text-[11px] transition-all shadow-md active:scale-95"
+                title={isFullscreen ? 'Exit Full Screen' : 'Enter Full Screen'}
+              >
+                {isFullscreen ? (
+                  <>
+                    <Minimize2 className="h-3.5 w-3.5 text-amber-400" />
+                    <span>Exit Full Screen</span>
+                  </>
+                ) : (
+                  <>
+                    <Maximize2 className="h-3.5 w-3.5 text-indigo-400" />
+                    <span>Full Screen View</span>
+                  </>
+                )}
+              </button>
             </div>
             <span className="text-slate-500 hidden sm:inline">Formula Bar: <span className="text-indigo-400 font-bold">f(x)</span> = Outstanding = Opening Balance + Total Bill - Paid</span>
           </div>
@@ -838,61 +1042,278 @@ export default function Payments() {
                 <th className="border-r border-slate-700/60 py-1 bg-slate-900">H</th>
                 <th className="py-1 bg-slate-900">I</th>
               </tr>
-              <tr className="bg-slate-800 text-slate-300 border-b border-slate-700 font-bold uppercase tracking-wider text-xs">
-                <th className="border-r border-slate-700/60 text-center text-slate-500 bg-slate-800/50 py-2.5 w-12">#</th>
-                <th className="border-r border-slate-700/60 px-4 py-2.5 bg-slate-800">Panel Client</th>
-                <th className="border-r border-slate-700/60 px-4 py-2.5 bg-slate-800">Owner Name</th>
-                <th className="border-r border-slate-700/60 px-4 py-2.5 text-right bg-slate-800">Opening Bal (₹)</th>
-                <th className="border-r border-slate-700/60 px-4 py-2.5 text-right bg-slate-800">License charges (₹)</th>
-                <th className="border-r border-slate-700/60 px-4 py-2.5 text-right bg-slate-800">IP charges (₹)</th>
-                <th className="border-r border-slate-700/60 px-4 py-2.5 text-right bg-slate-800">Maint. charges (₹)</th>
-                <th className="border-r border-slate-700/60 px-4 py-2.5 text-right bg-slate-800">Total Paid (₹)</th>
-                <th className="border-r border-slate-700/60 px-4 py-2.5 text-right bg-slate-800">Outstanding (₹)</th>
-                <th className="px-4 py-2.5 bg-slate-800 text-center">Quick Ledger Link</th>
+              <tr className="bg-slate-800 text-slate-100 border-b border-slate-700 font-black uppercase tracking-wider text-xs">
+                <th className="border-r border-slate-700/60 text-center text-slate-400 bg-slate-800/50 py-2.5 w-12">#</th>
+                <th className="border-r border-slate-700/60 px-4 py-2.5 bg-slate-800 text-white font-black">Panel Client</th>
+                <th className="border-r border-slate-700/60 px-4 py-2.5 bg-slate-800 text-white font-black">Owner Name</th>
+                <th className="border-r border-slate-700/60 px-4 py-2.5 text-right bg-slate-800 text-slate-100 font-black">Opening Bal (₹)</th>
+                <th className="border-r border-slate-700/60 px-4 py-2.5 text-right bg-slate-800 text-slate-100 font-black">License charges (₹)</th>
+                <th className="border-r border-slate-700/60 px-4 py-2.5 text-right bg-slate-800 text-slate-100 font-black">IP charges (₹)</th>
+                <th className="border-r border-slate-700/60 px-4 py-2.5 text-right bg-slate-800 text-slate-100 font-black">Maint. charges (₹)</th>
+                <th className="border-r border-slate-700/60 px-4 py-2.5 text-right bg-slate-800 text-emerald-300 font-black">Total Paid (₹)</th>
+                <th className="border-r border-slate-700/60 px-4 py-2.5 text-right bg-slate-800 text-rose-300 font-black">Outstanding (₹)</th>
+                <th className="px-4 py-2.5 bg-slate-800 text-center text-indigo-300 font-black">Quick Ledger Link</th>
               </tr>
             </thead>
             <tbody>
               {panels.map((p, idx) => (
-                <tr
-                  key={p._id}
-                  className={`border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors ${idx % 2 === 0 ? 'bg-slate-900/10' : 'bg-slate-950/20'
-                    }`}
-                >
-                  <td className="border-r border-slate-700/40 text-center text-slate-500 bg-slate-800/10 py-2.5 font-bold w-12">
-                    {idx + 1}
-                  </td>
-                  <td className="border-r border-slate-700/40 px-4 py-2.5 text-white font-bold">
-                    {p.panelName}
-                  </td>
-                  <td className="border-r border-slate-700/40 px-4 py-2.5 text-slate-400">
-                    {p.ownerName}
-                  </td>
-                  <td className="border-r border-slate-700/40 px-4 py-2.5 text-right text-slate-300">
-                    ₹{p.openingBalance?.toLocaleString() || '0'}
-                  </td>
-                  <td className="border-r border-slate-700/40 px-4 py-2.5 text-right text-slate-400">
-                    ₹{p.licenseCharges?.toLocaleString() || '0'}
-                  </td>
-                  <td className="border-r border-slate-700/40 px-4 py-2.5 text-right text-slate-400">
-                    ₹{p.ipCharges?.toLocaleString() || '0'}
-                  </td>
-                  <td className="border-r border-slate-700/40 px-4 py-2.5 text-right text-slate-400">
-                    ₹{p.maintenanceCharges?.toLocaleString() || '0'}
-                  </td>
-                  <td className="border-r border-slate-700/40 px-4 py-2.5 text-right font-bold text-emerald-400 bg-emerald-500/5">
-                    ₹{p.totalPaid?.toLocaleString() || '0'}
-                  </td>
-                  <td className={`border-r border-slate-700/40 px-4 py-2.5 text-right font-bold bg-rose-500/5 ${p.outstanding > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                    ₹{p.outstanding?.toLocaleString() || '0'}
-                  </td>
-                  <td className="px-4 py-2.5 text-center">
-                    <a
-                      href={`#/dashboard/panels/${p._id}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] uppercase tracking-wider transition-colors shadow"
-                    >
-                      <span>View Ledger</span>
-                    </a>
-                  </td>
+                <tr key={p._id} className="contents">
+                  <tr
+                    className={`border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors ${idx % 2 === 0 ? 'bg-slate-900/10' : 'bg-slate-950/20'
+                      }`}
+                  >
+                    <td className="border-r border-slate-700/40 text-center text-slate-500 bg-slate-800/10 py-2.5 font-bold w-12">
+                      {idx + 1}
+                    </td>
+                    <td className="border-r border-slate-700/40 px-4 py-2.5 text-white font-bold">
+                      {p.panelName}
+                    </td>
+                    <td className="border-r border-slate-700/40 px-4 py-2.5 text-slate-200 font-bold">
+                      {p.ownerName}
+                    </td>
+                    <td className="border-r border-slate-700/40 px-4 py-2.5 text-right text-slate-100 font-bold">
+                      ₹{p.openingBalance?.toLocaleString() || '0'}
+                    </td>
+                    <td className="border-r border-slate-700/40 px-4 py-2.5 text-right text-slate-100 font-bold">
+                      ₹{p.licenseCharges?.toLocaleString() || '0'}
+                    </td>
+                    <td className="border-r border-slate-700/40 px-4 py-2.5 text-right text-slate-100 font-bold">
+                      ₹{p.ipCharges?.toLocaleString() || '0'}
+                    </td>
+                    <td className="border-r border-slate-700/40 px-4 py-2.5 text-right text-slate-100 font-bold">
+                      ₹{p.maintenanceCharges?.toLocaleString() || '0'}
+                    </td>
+                    <td className="border-r border-slate-700/40 px-4 py-2.5 text-right font-black text-emerald-300 bg-emerald-500/15">
+                      ₹{p.totalPaid?.toLocaleString() || '0'}
+                    </td>
+                    <td className={`border-r border-slate-700/40 px-4 py-2.5 text-right font-black bg-rose-500/15 ${p.outstanding > 0 ? 'text-rose-300' : 'text-emerald-300'}`}>
+                      ₹{p.outstanding?.toLocaleString() || '0'}
+                    </td>
+                    <td className="px-4 py-2.5 text-center">
+                      <button
+                        onClick={() => toggleExpandPanel(p._id)}
+                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded text-[10px] uppercase font-extrabold tracking-wider transition-all shadow active:scale-95 border ${
+                          expandedPanelId === p._id
+                            ? 'bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white border-rose-500/20'
+                            : 'bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white border-indigo-500/20'
+                        }`}
+                      >
+                        {expandedPanelId === p._id ? 'Close Ledger' : 'View Ledger'}
+                      </button>
+                    </td>
+                  </tr>
+
+                  {expandedPanelId === p._id && (
+                    <tr className="bg-slate-950/40 border-b border-slate-800/80">
+                      <td className="border-r border-slate-700/40 text-center text-slate-500 bg-slate-950/20 py-4 font-bold">
+                        ↳
+                      </td>
+                      <td colSpan="9" className="p-4 bg-slate-950/10">
+                        <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl animate-in slide-in-from-top-2 duration-200">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800pb-3 pb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                              <h4 className="text-xs font-extrabold text-slate-200 uppercase tracking-widest">
+                                Chronological Ledger: <span className="text-indigo-400 font-black">{p.panelName}</span>
+                              </h4>
+                            </div>
+                            <span className="text-[9px] text-slate-500 uppercase font-black tracking-widest">
+                              {expandedPanelPayments.length} transaction entries found
+                            </span>
+                          </div>
+
+                          {expandedLoading ? (
+                            <div className="flex items-center justify-center py-10 gap-2.5">
+                              <svg className="animate-spin h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <span className="text-xs text-slate-400 font-bold tracking-wide">Syncing chronological database entries...</span>
+                            </div>
+                          ) : (
+                            <div className="overflow-x-auto rounded-xl border border-slate-800">
+                              <div className="flex items-center justify-between mb-2 text-[10px] font-mono px-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold rounded">Sheet2</span>
+                                  <span className="text-slate-400 font-bold">Continuous 30-Day Ledger</span>
+                                </div>
+                                <span className="text-slate-500 text-[9px] hidden sm:inline">Formula Bar: <span className="text-indigo-400 font-bold">f(x)</span> = SUM(F2:F31) - SUM(G2:G31)</span>
+                              </div>
+
+                              <table className="w-full text-left border border-slate-800 font-mono text-[11px] border-collapse bg-slate-900/10">
+                                <thead>
+                                  <tr className="bg-slate-900 border-b border-slate-800 text-slate-600 text-center text-[9px]">
+                                    <th className="border-r border-slate-800/60 py-1 w-[4%] bg-slate-950"></th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">A</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">B</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[6%] bg-slate-950">C</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[10%] bg-slate-950">D</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">E</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">F</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">G</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[22%] bg-slate-950">H</th>
+                                    <th className="py-1 w-[10%] bg-slate-950">I</th>
+                                  </tr>
+                                  <tr className="bg-slate-900/80 text-slate-400 border-b border-slate-800 font-bold uppercase tracking-wider text-[10px]">
+                                    <th className="border-r border-slate-800/60 text-center text-slate-600 bg-slate-900 py-2 w-[4%]">#</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 w-[12%] bg-slate-900/50">Date</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 w-[12%] bg-slate-900/50">Type</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-center w-[6%] bg-slate-900/50">Qty</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[10%] bg-slate-900/50">Rate</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[12%] bg-slate-900/50">Bill Amount</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[12%] bg-slate-900/50">Amt Paid</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[12%] bg-slate-900/50">Net Due</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 bg-slate-900/50 w-[22%]">Remarks / Note</th>
+                                    <th className="px-3 py-2 text-center bg-slate-900/50 w-[10%]">Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {getLast30DaysData(expandedPanelPayments).map((row, hIdx) => (
+                                    <tr 
+                                      key={row.id} 
+                                      className={`border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors ${
+                                        row.hasData 
+                                          ? 'bg-indigo-500/5 font-semibold text-white' 
+                                          : hIdx % 2 === 0 
+                                            ? 'bg-slate-950/10' 
+                                            : 'bg-slate-950/30'
+                                      }`}
+                                    >
+                                      <td className="border-r border-slate-700/40 text-center text-slate-500 bg-slate-800/10 py-1.5 font-bold">
+                                        {hIdx + 2}
+                                      </td>
+                                      <td className="border-r border-slate-700/40 px-3 py-1.5 text-slate-400">
+                                        {row.displayDate}
+                                      </td>
+                                      <td className="border-r border-slate-700/40 px-3 py-1.5">
+                                        {row.paymentType !== '-' ? (
+                                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                                            row.paymentType === 'License'
+                                              ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                                              : row.paymentType === 'IP Charges'
+                                              ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
+                                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                          }`}>
+                                            {row.paymentType}
+                                          </span>
+                                        ) : '-'}
+                                      </td>
+                                      <td className="border-r border-slate-700/40 px-3 py-1.5 text-center text-slate-400">
+                                        {row.quantity}
+                                      </td>
+                                      <td className="border-r border-slate-700/40 px-3 py-1.5 text-right text-slate-400">
+                                        {row.unitPrice !== '-' ? `₹${row.unitPrice.toLocaleString()}` : '-'}
+                                      </td>
+                                      <td 
+                                        className={`border-r border-slate-700/40 px-3 py-1.5 text-right font-bold ${row.billAmount > 0 ? 'text-amber-400 bg-amber-400/5' : 'text-slate-500'} ${row.hasData ? 'cursor-pointer hover:bg-slate-800/40 hover:text-white group' : ''}`}
+                                        onClick={() => row.hasData && setEditingCell({ paymentId: row.originalPayment._id, field: 'billAmount', value: row.billAmount })}
+                                      >
+                                        {editingCell && editingCell.paymentId === row.originalPayment?._id && editingCell.field === 'billAmount' ? (
+                                          <input
+                                            type="number"
+                                            className="w-20 bg-slate-950 border border-indigo-500 rounded px-1 text-right text-xs text-indigo-300 font-mono font-bold focus:outline-none"
+                                            value={editingCell.value}
+                                            onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                            onBlur={() => handleInlineCellSave(row.originalPayment, 'billAmount', editingCell.value)}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') handleInlineCellSave(row.originalPayment, 'billAmount', editingCell.value);
+                                              if (e.key === 'Escape') setEditingCell(null);
+                                            }}
+                                            autoFocus
+                                            onClick={(e) => e.stopPropagation()}
+                                          />
+                                        ) : (
+                                          <div className="flex items-center justify-end gap-1">
+                                            <span>₹{row.billAmount.toLocaleString()}</span>
+                                            {row.hasData && <span className="text-[9px] text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity font-bold">✏️</span>}
+                                          </div>
+                                        )}
+                                      </td>
+                                      <td 
+                                        className={`border-r border-slate-700/40 px-3 py-1.5 text-right font-bold ${row.amountReceived > 0 ? 'text-emerald-400 bg-emerald-400/5' : 'text-slate-500'} ${row.hasData ? 'cursor-pointer hover:bg-slate-800/40 hover:text-emerald-300 group' : ''}`}
+                                        onClick={() => row.hasData && setEditingCell({ paymentId: row.originalPayment._id, field: 'amountReceived', value: row.amountReceived })}
+                                      >
+                                        {editingCell && editingCell.paymentId === row.originalPayment?._id && editingCell.field === 'amountReceived' ? (
+                                          <input
+                                            type="number"
+                                            className="w-20 bg-slate-950 border border-emerald-500 rounded px-1 text-right text-xs text-emerald-300 font-mono font-bold focus:outline-none"
+                                            value={editingCell.value}
+                                            onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                            onBlur={() => handleInlineCellSave(row.originalPayment, 'amountReceived', editingCell.value)}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') handleInlineCellSave(row.originalPayment, 'amountReceived', editingCell.value);
+                                              if (e.key === 'Escape') setEditingCell(null);
+                                            }}
+                                            autoFocus
+                                            onClick={(e) => e.stopPropagation()}
+                                          />
+                                        ) : (
+                                          <div className="flex items-center justify-end gap-1">
+                                            <span>₹{row.amountReceived.toLocaleString()}</span>
+                                            {row.hasData && <span className="text-[9px] text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity font-bold">✏️</span>}
+                                          </div>
+                                        )}
+                                      </td>
+                                      <td className={`border-r border-slate-700/40 px-3 py-1.5 text-right font-bold ${row.billAmount - row.amountReceived > 0 ? 'text-rose-400 bg-rose-400/5' : 'text-slate-500'}`}>
+                                        ₹{(row.billAmount - row.amountReceived).toLocaleString()}
+                                      </td>
+                                      <td className="border-r border-slate-700/40 px-3 py-1.5 text-slate-400 truncate max-w-[200px] font-sans" title={row.remark}>
+                                        {row.remark}
+                                      </td>
+                                      <td className="px-3 py-1.5 text-center">
+                                        {row.hasData ? (
+                                          <div className="flex items-center justify-center gap-1.5">
+                                            <button
+                                              onClick={() => setViewingPayment(row.originalPayment)}
+                                              className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all shadow"
+                                              title="View Full Details / Audit logs"
+                                            >
+                                              <Eye className="h-3.5 w-3.5" />
+                                            </button>
+                                            <button
+                                              onClick={() => setSelectedReceiptPayment(row.originalPayment)}
+                                              className="p-1 rounded bg-indigo-500/10 hover:bg-indigo-600 text-indigo-400 hover:text-white border border-indigo-500/10 hover:border-transparent transition-all shadow"
+                                              title="Generate Print Receipt"
+                                            >
+                                              <Printer className="h-3.5 w-3.5" />
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <span className="text-slate-600 font-semibold text-[10px]">-</span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))}
+
+                                  {/* Sheet2 Summary Formula Row */}
+                                  <tr className="bg-slate-900 border-t border-slate-800 font-bold text-white text-[11px]">
+                                    <td className="border-r border-slate-800 text-center text-slate-500 bg-slate-900 py-2.5">
+                                      32
+                                    </td>
+                                    <td className="border-r border-slate-800 px-3 py-2.5 uppercase tracking-wider text-slate-400 text-[9px]" colSpan="4">
+                                      =SUM(E2:E31) / SUM(F2:F31)
+                                    </td>
+                                    <td className="border-r border-slate-800 px-3 py-2.5 text-right text-amber-400 bg-amber-500/5">
+                                      ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.billAmount, 0).toLocaleString()}
+                                    </td>
+                                    <td className="border-r border-slate-800 px-3 py-2.5 text-right text-emerald-400 bg-emerald-500/5">
+                                      ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.amountReceived, 0).toLocaleString()}
+                                    </td>
+                                    <td className="border-r border-slate-800 px-3 py-2.5 text-right text-rose-400 bg-rose-500/5">
+                                      ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + (r.billAmount - r.amountReceived), 0).toLocaleString()}
+                                    </td>
+                                    <td className="px-3 py-2.5 text-indigo-400 font-semibold italic text-[10px]" colSpan="2">
+                                      Last 30 Days Net Activity
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </tr>
               ))}
 
@@ -927,7 +1348,7 @@ export default function Payments() {
 
       {/* RECEIVE PAYMENT / GENERATE BILL FORM MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
           <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
 
           <div className="relative w-full max-w-3xl rounded-2xl glass-card p-6 md:p-8 border border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200">
@@ -1206,7 +1627,7 @@ export default function Payments() {
 
       {/* View Full Transaction Details Modal */}
       {viewingPayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
           <div onClick={() => setViewingPayment(null)} className="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
 
           <div className="relative w-full max-w-2xl rounded-2xl bg-slate-950 p-6 md:p-8 border border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 text-white glass-card">
@@ -1352,6 +1773,22 @@ export default function Payments() {
                       )}
                     </div>
                   </div>
+                  {viewingPayment.editHistory && viewingPayment.editHistory.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-slate-800/60">
+                      <span className="text-slate-400 block mb-2 font-semibold">Previous Edit Logs (Transparency Tracker):</span>
+                      <div className="space-y-2 max-h-36 overflow-y-auto pr-1 scrollbar-thin">
+                        {viewingPayment.editHistory.map((history, idx) => (
+                          <div key={idx} className="bg-slate-950/50 border border-slate-800/80 rounded-lg p-2.5 text-[11px] space-y-1">
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="font-bold text-amber-400">Edited By: {history.editedBy?.name || 'Staff Admin'}</span>
+                              <span className="text-slate-500 font-mono">{new Date(history.editedAt).toLocaleString()}</span>
+                            </div>
+                            <div className="text-slate-300 leading-normal font-medium">{history.changes}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1360,9 +1797,16 @@ export default function Payments() {
             <div className="flex items-center justify-end gap-3 mt-6 pt-5 border-t border-slate-800">
               <button
                 onClick={() => setViewingPayment(null)}
-                className="rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-5 py-2.5 text-sm transition-all border border-slate-700"
+                className="rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-4 py-2.5 text-sm transition-all border border-slate-700"
               >
                 Close View
+              </button>
+              <button
+                onClick={() => handleOpenEditModal(viewingPayment)}
+                className="flex items-center justify-center gap-1.5 rounded-xl bg-amber-600/10 hover:bg-amber-600 text-amber-400 hover:text-white border border-amber-500/20 hover:border-transparent font-semibold px-4 py-2.5 text-sm transition-all shadow-md active:scale-95"
+                title="Edit this entry"
+              >
+                <span>Edit Entry</span>
               </button>
               <button
                 onClick={() => {
@@ -1375,6 +1819,199 @@ export default function Payments() {
                 <span>Print Receipt</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Transaction Modal */}
+      {editingPayment && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          <div onClick={() => setEditingPayment(null)} className="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+
+          <div className="relative w-full max-w-lg rounded-2xl bg-slate-950 p-6 md:p-8 border border-slate-800 shadow-2xl z-10 text-white glass-card animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setEditingPayment(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="h-6 w-6" />
+            </button>
+
+            {/* Header */}
+            <div className="mb-6 border-b border-slate-800 pb-4">
+              <h3 className="text-lg font-bold text-white tracking-wide">
+                Edit Transaction Entry (Correction Desk)
+              </h3>
+              <p className="text-xs text-amber-400 mt-1 font-medium">
+                ⚠️ Modifying this entry will automatically log an audit trail for transparency.
+              </p>
+            </div>
+
+            <form onSubmit={handleUpdatePayment} className="space-y-4">
+              {/* Conditional Input Fields depending on whether it is a Bill or Payment */}
+              {editingPayment.billAmount > 0 ? (
+                /* It's a Bill Generated */
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-400 mb-1.5">Billing Type</label>
+                      <select
+                        value={editForm.paymentType}
+                        onChange={(e) => setEditForm({ ...editForm, paymentType: e.target.value })}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-semibold"
+                        required
+                      >
+                        <option value="License">License Charges</option>
+                        <option value="IP Charges">IP Charges</option>
+                        <option value="Maintenance">Maintenance Charges</option>
+                        <option value="Other">Other Charges</option>
+                      </select>
+                    </div>
+
+                    {(editForm.paymentType === 'License' || editForm.paymentType === 'IP Charges') ? (
+                      <>
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-400 mb-1.5">Quantity</label>
+                          <input
+                            type="number"
+                            value={editForm.quantity}
+                            onChange={(e) => setEditForm({ ...editForm, quantity: e.target.value })}
+                            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-200 focus:outline-none focus:border-indigo-500"
+                            placeholder="e.g. 10"
+                            required
+                            min="1"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-400 mb-1.5">Total Bill Amount (₹)</label>
+                        <input
+                          type="number"
+                          value={editForm.billAmount}
+                          onChange={(e) => setEditForm({ ...editForm, billAmount: e.target.value })}
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-200 focus:outline-none focus:border-indigo-500"
+                          placeholder="Amount in ₹"
+                          required
+                          min="1"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {(editForm.paymentType === 'License' || editForm.paymentType === 'IP Charges') && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-400 mb-1.5">Unit Price (₹)</label>
+                        <input
+                          type="number"
+                          value={editForm.unitPrice}
+                          onChange={(e) => setEditForm({ ...editForm, unitPrice: e.target.value })}
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-200 focus:outline-none focus:border-indigo-500"
+                          placeholder="Price per unit"
+                          required
+                          min="1"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-400 mb-1.5">Auto Bill Total</label>
+                        <div className="w-full bg-slate-900/50 border border-slate-800/50 rounded-xl px-4 py-2.5 text-sm font-bold font-mono text-indigo-400">
+                          ₹{((Number(editForm.quantity) || 0) * (Number(editForm.unitPrice) || 0)).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 mb-1.5">Amount Received / Adjusted (₹)</label>
+                    <input
+                      type="number"
+                      value={editForm.amountReceived}
+                      onChange={(e) => setEditForm({ ...editForm, amountReceived: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-200 focus:outline-none focus:border-indigo-500"
+                      placeholder="e.g. 0 or partial payment"
+                      required
+                      min="0"
+                    />
+                  </div>
+                </>
+              ) : (
+                /* It's a Direct Payment Collected */
+                <>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 mb-1.5">Amount Received (₹)</label>
+                    <input
+                      type="number"
+                      value={editForm.amountReceived}
+                      onChange={(e) => setEditForm({ ...editForm, amountReceived: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-200 focus:outline-none focus:border-indigo-500"
+                      placeholder="Amount in ₹"
+                      required
+                      min="1"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-400 mb-1.5">Payment Mode</label>
+                      <select
+                        value={editForm.paymentMode}
+                        onChange={(e) => setEditForm({ ...editForm, paymentMode: e.target.value })}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-semibold"
+                        required
+                      >
+                        <option value="UPI">UPI / QR Code</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Online">Online Payment</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-400 mb-1.5">Bank Name</label>
+                      <select
+                        value={editForm.bankName}
+                        onChange={(e) => setEditForm({ ...editForm, bankName: e.target.value })}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-semibold"
+                      >
+                        <option value="">N/A (Cash / None)</option>
+                        {BANK_LIST.map((bank) => (
+                          <option key={bank} value={bank}>{bank}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">Correction Remarks / Reason for Change</label>
+                <textarea
+                  value={editForm.remark}
+                  onChange={(e) => setEditForm({ ...editForm, remark: e.target.value })}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 h-20 resize-none leading-relaxed"
+                  placeholder="Describe the reason for correcting this entry..."
+                  required
+                ></textarea>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800/80 mt-5">
+                <button
+                  type="button"
+                  onClick={() => setEditingPayment(null)}
+                  className="rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-5 py-2.5 text-sm transition-all border border-slate-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white font-semibold px-5 py-2.5 text-sm transition-all shadow-lg shadow-indigo-600/10 active:scale-95"
+                >
+                  {submitting ? 'Saving Changes...' : 'Save & Log Changes'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

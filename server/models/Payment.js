@@ -50,6 +50,23 @@ const paymentSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    editHistory: [
+      {
+        editedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        editedAt: {
+          type: Date,
+          default: Date.now,
+        },
+        changes: {
+          type: String,
+          required: true,
+        },
+      }
+    ],
   },
   {
     timestamps: true,

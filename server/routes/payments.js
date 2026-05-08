@@ -19,6 +19,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
     const payments = await Payment.find({})
       .populate('panelId', 'panelName ownerName ownerEmail phoneNumber')
       .populate('addedBy', 'name email')
+      .populate('editHistory.editedBy', 'name email')
       .sort({ timestamp: -1 })
       .skip(skip)
       .limit(limit)
@@ -95,6 +96,12 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
 
     const oldAmount = payment.amountReceived;
     const oldType = payment.paymentType;
+    const oldMode = payment.paymentMode;
+    const oldBank = payment.bankName;
+    const oldQty = payment.quantity;
+    const oldPrice = payment.unitPrice;
+    const oldBill = payment.billAmount;
+    const oldRemark = payment.remark;
 
     payment.paymentType = paymentType || payment.paymentType;
     payment.amountReceived = amountReceived !== undefined ? Number(amountReceived) : payment.amountReceived;
@@ -105,14 +112,39 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
     payment.billAmount = req.body.billAmount !== undefined ? Number(req.body.billAmount) : payment.billAmount;
     payment.remark = remark !== undefined ? remark : payment.remark;
 
-    const updatedPayment = await payment.save();
+    // Track changes
+    const changesArray = [];
+    if (oldType !== payment.paymentType) changesArray.push(`Type: ${oldType} ➔ ${payment.paymentType}`);
+    if (oldAmount !== payment.amountReceived) changesArray.push(`Paid: ₹${oldAmount} ➔ ₹${payment.amountReceived}`);
+    if (oldMode !== payment.paymentMode) changesArray.push(`Mode: ${oldMode} ➔ ${payment.paymentMode}`);
+    if (oldBank !== payment.bankName) changesArray.push(`Bank: "${oldBank || 'N/A'}" ➔ "${payment.bankName || 'N/A'}"`);
+    if (oldQty !== payment.quantity) changesArray.push(`Qty: ${oldQty} ➔ ${payment.quantity}`);
+    if (oldPrice !== payment.unitPrice) changesArray.push(`Price: ₹${oldPrice} ➔ ₹${payment.unitPrice}`);
+    if (oldBill !== payment.billAmount) changesArray.push(`Bill: ₹${oldBill} ➔ ₹${payment.billAmount}`);
+    if (oldRemark !== payment.remark) changesArray.push(`Remark: "${oldRemark || 'N/A'}" ➔ "${payment.remark || 'N/A'}"`);
+
+    if (changesArray.length > 0) {
+      payment.editHistory.push({
+        editedBy: req.user._id,
+        editedAt: new Date(),
+        changes: changesArray.join(' | '),
+      });
+    }
+
+    let updatedPayment = await payment.save();
+    
+    // Populate the newly added editHistory's editedBy before returning
+    updatedPayment = await Payment.findById(updatedPayment._id)
+      .populate('panelId', 'panelName ownerName ownerEmail phoneNumber')
+      .populate('addedBy', 'name email')
+      .populate('editHistory.editedBy', 'name email');
 
     // Create activity log
     await Log.create({
       userId: req.user._id,
       actionType: 'EDIT',
       module: 'Payment',
-      details: `Edited payment for panel ${payment.panelId.panelName}. Changed from ₹${oldAmount} (${oldType}) to ₹${payment.amountReceived} (${payment.paymentType})`,
+      details: `Edited payment for panel ${payment.panelId.panelName}. Changes: ${changesArray.join(' | ')}`,
     });
 
     res.json({ success: true, payment: updatedPayment });

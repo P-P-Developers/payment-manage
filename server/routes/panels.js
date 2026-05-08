@@ -62,7 +62,11 @@ router.get('/:id', protect, hasPermission('view_panels'), async (req, res) => {
       return res.status(404).json({ success: false, message: 'Panel not found' });
     }
 
-    const payments = await Payment.find({ panelId: panel._id }).populate('addedBy', 'name email').sort({ timestamp: -1 }).lean();
+    const payments = await Payment.find({ panelId: panel._id })
+      .populate('addedBy', 'name email')
+      .populate('editHistory.editedBy', 'name email')
+      .sort({ timestamp: -1 })
+      .lean();
     const totalPaid = payments.reduce((sum, p) => sum + (p.amountReceived || 0), 0);
     const totalBill = payments.reduce((sum, p) => sum + (p.billAmount || 0), 0);
     const outstanding = (panel.openingBalance || 0) + totalBill - totalPaid;
