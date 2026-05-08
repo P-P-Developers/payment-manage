@@ -43,7 +43,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
     iframe.style.height = '0px';
     iframe.style.border = 'none';
     iframe.style.overflow = 'hidden';
-    
+
     document.body.appendChild(iframe);
 
     const printContent = printAreaRef.current.innerHTML;
@@ -215,7 +215,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
 
       {/* Modal Card */}
       <div className="relative w-full max-w-xl rounded-2xl glass-card p-6 md:p-8 border border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-        
+
         {/* Header Actions */}
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800/80">
           <div className="flex items-center gap-2">
@@ -248,7 +248,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
 
         {/* Printable/Preview Receipt Container */}
         <div className="flex-1 overflow-y-auto pr-1">
-          <div 
+          <div
             ref={printAreaRef}
             className="p-8 rounded-2xl bg-white border border-slate-200 relative overflow-hidden shadow-xl text-slate-800 font-sans"
           >
@@ -271,7 +271,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
 
             {/* Receipt Content */}
             <div className="relative z-10 space-y-6">
-              
+
               {/* Receipt Header */}
               <div className="text-center pb-6 border-b border-slate-200 flex flex-col items-center justify-center gap-2">
                 {settings.logo ? (

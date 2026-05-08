@@ -15,8 +15,49 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
     const limit = limitQuery === 'all' ? 0 : (parseInt(limitQuery) || 10);
     const skip = limit === 0 ? 0 : (page - 1) * limit;
 
-    const total = await Payment.countDocuments({});
-    const payments = await Payment.find({})
+    let filterQuery = {};
+
+    // Filter by Search Query (searches panelName)
+    if (req.query.search) {
+      const matchedPanels = await Panel.find({
+        panelName: { $regex: req.query.search, $options: 'i' }
+      }).select('_id');
+      const matchedPanelIds = matchedPanels.map(p => p._id);
+      filterQuery.panelId = { $in: matchedPanelIds };
+    }
+
+    // Filter by Payment Type
+    if (req.query.paymentType && req.query.paymentType !== 'All') {
+      filterQuery.paymentType = req.query.paymentType;
+    }
+
+    // Filter by Payment Mode
+    if (req.query.paymentMode && req.query.paymentMode !== 'All') {
+      filterQuery.paymentMode = req.query.paymentMode;
+    }
+
+    // Filter by Transaction Category
+    if (req.query.transactionType === 'bill') {
+      filterQuery.billAmount = { $gt: 0 };
+    } else if (req.query.transactionType === 'received') {
+      filterQuery.amountReceived = { $gt: 0 };
+    }
+
+    // Filter by Date Range
+    if (req.query.startDate || req.query.endDate) {
+      filterQuery.timestamp = {};
+      if (req.query.startDate) {
+        filterQuery.timestamp.$gte = new Date(req.query.startDate);
+      }
+      if (req.query.endDate) {
+        const end = new Date(req.query.endDate);
+        end.setHours(23, 59, 59, 999);
+        filterQuery.timestamp.$lte = end;
+      }
+    }
+
+    const total = await Payment.countDocuments(filterQuery);
+    const payments = await Payment.find(filterQuery)
       .populate('panelId', 'panelName ownerName ownerEmail phoneNumber')
       .populate('addedBy', 'name email')
       .populate('editHistory.editedBy', 'name email')
@@ -29,7 +70,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
       success: true,
       count: payments.length,
       total,
-      pages: Math.ceil(total / limit),
+      pages: limit === 0 ? 1 : Math.ceil(total / limit),
       currentPage: page,
       payments,
     });

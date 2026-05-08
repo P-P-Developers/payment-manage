@@ -577,7 +577,7 @@ export default function PanelLedger() {
               <span className="text-slate-500">Formula Bar: <span className="text-indigo-400 font-bold">f(x)</span> = SUM(E2:E{getLast30DaysData().length + 1}) - SUM(F2:F{getLast30DaysData().length + 1})</span>
             </div>
 
-            <table className="w-full text-left border border-slate-700/60 font-mono text-[11px] border-collapse bg-slate-900/40">
+            <table className="w-full text-left border border-slate-700/60 font-mono text-xs md:text-[13px] border-collapse bg-slate-900/40">
               <thead>
                 <tr className="bg-slate-800/80 border-b border-slate-700 text-slate-500 text-center text-[10px]">
                   <th className="border-r border-slate-700/60 py-1 w-10"></th>
@@ -590,7 +590,7 @@ export default function PanelLedger() {
                   <th className="border-r border-slate-700/60 py-1 w-24">G</th>
                   <th className="py-1">H</th>
                 </tr>
-                <tr className="bg-slate-800 text-slate-300 border-b border-slate-700 text-[11px] font-bold uppercase tracking-wider">
+                <tr className="bg-slate-800 text-slate-300 border-b border-slate-700 text-xs md:text-[13px] font-bold uppercase tracking-wider">
                   <th className="border-r border-slate-700/60 text-center text-slate-500 bg-slate-800/50 py-2 w-10">#</th>
                   <th className="border-r border-slate-700/60 px-3 py-2 w-24">Date</th>
                   <th className="border-r border-slate-700/60 px-3 py-2 w-24">Type</th>
@@ -733,7 +733,7 @@ export default function PanelLedger() {
 
           {/* Table Container wrapped in scrollable flex-1 */}
           <div className="flex-1 overflow-auto border border-slate-800 rounded-xl bg-slate-900/10">
-            <table className="w-full text-left border border-slate-700/60 font-mono text-xs border-collapse">
+            <table className="w-full text-left border border-slate-700/60 font-mono text-xs md:text-[13px] border-collapse">
               <thead>
                 <tr className="bg-slate-800/80 border-b border-slate-700 text-slate-500 text-center text-[10px] sticky top-0">
                   <th className="border-r border-slate-700/60 py-1 w-12 bg-slate-900"></th>
@@ -746,7 +746,7 @@ export default function PanelLedger() {
                   <th className="border-r border-slate-700/60 py-1 w-32 bg-slate-900">G</th>
                   <th className="py-1 bg-slate-900">H</th>
                 </tr>
-                <tr className="bg-slate-800 text-slate-300 border-b border-slate-700 font-bold uppercase tracking-wider text-xs sticky top-[22px]">
+                <tr className="bg-slate-800 text-slate-300 border-b border-slate-700 font-bold uppercase tracking-wider text-xs md:text-[13px] sticky top-[22px]">
                   <th className="border-r border-slate-700/60 text-center text-slate-500 bg-slate-800/50 py-2 w-12">#</th>
                   <th className="border-r border-slate-700/60 px-4 py-2 w-28 bg-slate-800">Date</th>
                   <th className="border-r border-slate-700/60 px-4 py-2 w-32 bg-slate-800">Type</th>

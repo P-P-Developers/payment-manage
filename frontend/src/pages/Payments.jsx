@@ -120,12 +120,22 @@ export default function Payments() {
 
   // Search & Dropdown Filters
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
   const [modeFilter, setModeFilter] = useState('All');
   const [activeTab, setActiveTab] = useState('list'); // 'list' or 'consolidated'
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [transactionTypeFilter, setTransactionTypeFilter] = useState('all'); // 'all', 'bill', 'received'
+
+  // Debouncing Search Query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setCurrentPage(1); // Go back to first page on search change
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -263,8 +273,17 @@ export default function Payments() {
   const fetchPaymentsAndPanels = async (page = currentPage, isSilent = false) => {
     try {
       if (!isSilent) setLoading(true);
+
+      let url = `/payments?page=${page}&limit=10`;
+      if (debouncedSearchQuery) url += `&search=${encodeURIComponent(debouncedSearchQuery)}`;
+      if (typeFilter && typeFilter !== 'All') url += `&paymentType=${encodeURIComponent(typeFilter)}`;
+      if (modeFilter && modeFilter !== 'All') url += `&paymentMode=${encodeURIComponent(modeFilter)}`;
+      if (transactionTypeFilter && transactionTypeFilter !== 'all') url += `&transactionType=${encodeURIComponent(transactionTypeFilter)}`;
+      if (startDate) url += `&startDate=${encodeURIComponent(startDate)}`;
+      if (endDate) url += `&endDate=${encodeURIComponent(endDate)}`;
+
       const [paymentsData, panelsData] = await Promise.all([
-        apiRequest(`/payments?page=${page}&limit=10`),
+        apiRequest(url),
         apiRequest('/panels'),
       ]);
 
@@ -283,7 +302,7 @@ export default function Payments() {
 
   useEffect(() => {
     fetchPaymentsAndPanels(currentPage);
-  }, [currentPage]);
+  }, [currentPage, debouncedSearchQuery, typeFilter, modeFilter, transactionTypeFilter, startDate, endDate]);
 
   const handleOpenReceiveModal = () => {
     setModalMode('receive');
@@ -669,34 +688,7 @@ export default function Payments() {
     }
   };
 
-  const filteredPayments = payments.filter((p) => {
-    const panelName = p.panelId?.panelName || '';
-    const matchesSearch = panelName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = typeFilter === 'All' || p.paymentType === typeFilter;
-    const matchesMode = modeFilter === 'All' || p.paymentMode === modeFilter;
-
-    if (!matchesSearch || !matchesType || !matchesMode) return false;
-
-    // Filter by Transaction Type (Bill Only, Payment Only, All)
-    if (transactionTypeFilter === 'bill' && !(p.billAmount > 0)) return false;
-    if (transactionTypeFilter === 'received' && !(p.amountReceived > 0)) return false;
-
-    // Filter by Date
-    if (startDate) {
-      const pDate = new Date(p.timestamp);
-      const sDate = new Date(startDate);
-      sDate.setHours(0, 0, 0, 0);
-      if (pDate < sDate) return false;
-    }
-    if (endDate) {
-      const pDate = new Date(p.timestamp);
-      const eDate = new Date(endDate);
-      eDate.setHours(23, 59, 59, 999);
-      if (pDate > eDate) return false;
-    }
-
-    return true;
-  });
+  const filteredPayments = payments;
 
   const selectedPanelDetails = panels.find((p) => p._id === selectedPanelId);
 
@@ -1117,7 +1109,7 @@ export default function Payments() {
             <span className="text-slate-500 hidden sm:inline">Formula Bar: <span className="text-indigo-400 ">f(x)</span> = Outstanding = Opening Balance + Total Bill - Paid</span>
           </div>
 
-          <table className="w-full text-left border border-slate-700/60 font-mono text-xs border-collapse bg-slate-900/40">
+          <table className="w-full text-left border border-slate-700/60 font-mono text-[13px] md:text-sm border-collapse bg-slate-900/40">
             <thead>
               <tr className="bg-slate-800/80 border-b border-slate-700 text-slate-500 text-center text-[10px]">
                 <th className="border-r border-slate-700/60 py-1 w-12 bg-slate-900"></th>
@@ -1131,7 +1123,7 @@ export default function Payments() {
                 <th className="border-r border-slate-700/60 py-1 bg-slate-900">H</th>
                 <th className="py-1 bg-slate-900">I</th>
               </tr>
-              <tr className="bg-slate-800 text-slate-100 border-b border-slate-700 font-black uppercase tracking-wider text-xs">
+              <tr className="bg-slate-800 text-slate-100 border-b border-slate-700 font-black uppercase tracking-wider text-[13px] md:text-sm">
                 <th className="border-r border-slate-700/60 text-center text-slate-400 bg-slate-800/50 py-2.5 w-12">#</th>
                 <th className="border-r border-slate-700/60 px-4 py-2.5 bg-slate-800 text-white font-black">Panel Client</th>
                 <th className="border-r border-slate-700/60 px-4 py-2.5 bg-slate-800 text-white font-black">Owner Name</th>
@@ -1219,24 +1211,14 @@ export default function Payments() {
                           </div>
 
                           {expandedLoading ? (
-                            <div className="flex items-center justify-center py-10 gap-2.5">
-                              <svg className="animate-spin h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                              <span className="text-xs text-slate-400  tracking-wide">Syncing chronological database entries...</span>
-                            </div>
-                          ) : (
-                            <div className="overflow-x-auto rounded-xl border border-slate-800">
-                              <div className="flex items-center justify-between mb-2 text-[10px] font-mono px-1">
+                            <div className="overflow-x-auto rounded-xl border border-slate-800 animate-pulse">
+                              <div className="flex items-center justify-between mb-2 text-[10px] font-mono px-1 py-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400  rounded">Sheet2</span>
-                                  <span className="text-slate-400 ">Transaction Ledger</span>
+                                  <span className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded">Sheet2</span>
+                                  <span className="text-slate-400">Syncing Chronological Ledger...</span>
                                 </div>
-                                <span className="text-slate-500 text-[9px] hidden sm:inline">Formula Bar: <span className="text-indigo-400 ">f(x)</span> = SUM(E2:E{getLast30DaysData(expandedPanelPayments).length + 1}) - SUM(F2:F{getLast30DaysData(expandedPanelPayments).length + 1})</span>
                               </div>
-
-                              <table className="w-full text-left border border-slate-800 font-mono text-[11px] border-collapse bg-slate-900/10">
+                              <table className="w-full text-left border border-slate-800 font-mono text-xs md:text-[13px] border-collapse bg-slate-900/10">
                                 <thead>
                                   <tr className="bg-slate-900 border-b border-slate-800 text-slate-600 text-center text-[9px]">
                                     <th className="border-r border-slate-800/60 py-1 w-[4%] bg-slate-950"></th>
@@ -1250,7 +1232,85 @@ export default function Payments() {
                                     <th className="border-r border-slate-800/60 py-1 w-[22%] bg-slate-950">H</th>
                                     <th className="py-1 w-[10%] bg-slate-950">I</th>
                                   </tr>
-                                  <tr className="bg-slate-900/80 text-slate-400 border-b border-slate-800  uppercase tracking-wider text-[10px]">
+                                  <tr className="bg-slate-900/80 text-slate-400 border-b border-slate-800 uppercase tracking-wider text-xs md:text-[13px]">
+                                    <th className="border-r border-slate-800/60 text-center text-slate-600 bg-slate-900 py-2">#</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2">Date</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2">Type</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-center">Qty</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right">Rate</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right">Bill Amount</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right">Amt Paid</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right">Net Due</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2">Remarks / Note</th>
+                                    <th className="px-3 py-2 text-center">Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {[1, 2, 3, 4].map((n) => (
+                                    <tr key={n} className="border-b border-slate-800/80 bg-slate-950/10">
+                                      <td className="border-r border-slate-700/40 text-center py-3 bg-slate-800/10 text-slate-700 font-bold">
+                                        {n + 1}
+                                      </td>
+                                      <td className="border-r border-slate-700/40 px-3 py-3">
+                                        <div className="h-3.5 bg-slate-800/80 rounded w-16 animate-pulse"></div>
+                                      </td>
+                                      <td className="border-r border-slate-700/40 px-3 py-3">
+                                        <div className="h-5 bg-indigo-500/10 border border-indigo-500/15 rounded w-14 animate-pulse"></div>
+                                      </td>
+                                      <td className="border-r border-slate-700/40 px-3 py-3">
+                                        <div className="h-3.5 bg-slate-800/80 rounded w-8 mx-auto animate-pulse"></div>
+                                      </td>
+                                      <td className="border-r border-slate-700/40 px-3 py-3">
+                                        <div className="h-3.5 bg-slate-800/80 rounded w-12 ml-auto animate-pulse"></div>
+                                      </td>
+                                      <td className="border-r border-slate-700/40 px-3 py-3">
+                                        <div className="h-3.5 bg-amber-500/10 rounded w-14 ml-auto animate-pulse"></div>
+                                      </td>
+                                      <td className="border-r border-slate-700/40 px-3 py-3">
+                                        <div className="h-3.5 bg-emerald-500/10 rounded w-14 ml-auto animate-pulse"></div>
+                                      </td>
+                                      <td className="border-r border-slate-700/40 px-3 py-3">
+                                        <div className="h-3.5 bg-rose-500/10 rounded w-14 ml-auto animate-pulse"></div>
+                                      </td>
+                                      <td className="border-r border-slate-700/40 px-3 py-3">
+                                        <div className="h-3.5 bg-slate-800/80 rounded w-28 animate-pulse"></div>
+                                      </td>
+                                      <td className="px-3 py-3">
+                                        <div className="flex gap-1.5 justify-center">
+                                          <div className="h-6 w-6 bg-slate-800 border border-slate-700 rounded animate-pulse"></div>
+                                          <div className="h-6 w-6 bg-slate-800 border border-slate-700 rounded animate-pulse"></div>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : (
+                            <div className="overflow-x-auto rounded-xl border border-slate-800">
+                              <div className="flex items-center justify-between mb-2 text-[10px] font-mono px-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400  rounded">Sheet2</span>
+                                  <span className="text-slate-400 ">Transaction Ledger</span>
+                                </div>
+                                <span className="text-slate-500 text-[9px] hidden sm:inline">Formula Bar: <span className="text-indigo-400 ">f(x)</span> = SUM(E2:E{getLast30DaysData(expandedPanelPayments).length + 1}) - SUM(F2:F{getLast30DaysData(expandedPanelPayments).length + 1})</span>
+                              </div>
+
+                              <table className="w-full text-left border border-slate-800 font-mono text-xs md:text-[13px] border-collapse bg-slate-900/10">
+                                <thead>
+                                  <tr className="bg-slate-900 border-b border-slate-800 text-slate-600 text-center text-[9px]">
+                                    <th className="border-r border-slate-800/60 py-1 w-[4%] bg-slate-950"></th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">A</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">B</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[6%] bg-slate-950">C</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[10%] bg-slate-950">D</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">E</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">F</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">G</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[22%] bg-slate-950">H</th>
+                                    <th className="py-1 w-[10%] bg-slate-950">I</th>
+                                  </tr>
+                                  <tr className="bg-slate-900/80 text-slate-400 border-b border-slate-800  uppercase tracking-wider text-xs md:text-[13px]">
                                     <th className="border-r border-slate-800/60 text-center text-slate-600 bg-slate-900 py-2 w-[4%]">#</th>
                                     <th className="border-r border-slate-800/60 px-3 py-2 w-[12%] bg-slate-900/50">Date</th>
                                     <th className="border-r border-slate-800/60 px-3 py-2 w-[12%] bg-slate-900/50">Type</th>
@@ -1274,26 +1334,27 @@ export default function Payments() {
                                           : 'bg-slate-950/30'
                                         }`}
                                     >
-                                      <td className="border-r border-slate-700/40 text-center text-slate-500 bg-slate-800/10 py-1.5 ">
+                                      <td className="border-r border-slate-700/40 text-center text-slate-500 py-2">
                                         {hIdx + 2}
                                       </td>
-                                      <td className="border-r border-slate-700/40 px-3 py-1.5 text-slate-400">
+
+                                      <td className="border-r border-slate-700/40 px-3 py-2 text-slate-300">
                                         {row.displayDate}
                                       </td>
-                                      <td className="border-r border-slate-700/40 px-3 py-1.5">
-                                        {row.paymentType !== '-' ? (
+                                      <td className="border-r border-slate-700/40 px-3 py-2">
+                                        {row.paymentType !== "-" ? (
                                           <span
-                                            className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${row.paymentType === 'License'
-                                              ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/40'
-                                              : row.paymentType === 'IP Charges'
-                                                ? 'bg-violet-500/20 text-violet-300 border border-violet-400/40'
-                                                : 'bg-amber-400/20 text-amber-200 border border-amber-400/50 shadow-sm'
+                                            className={`px-3 py-1 rounded text-sm md:text-base font-semibold uppercase tracking-wider ${row.paymentType === "License"
+                                              ? "bg-indigo-500/20 text-indigo-300 border border-indigo-400/40"
+                                              : row.paymentType === "IP Charges"
+                                                ? "bg-violet-500/20 text-violet-300 border border-violet-400/40"
+                                                : "bg-amber-400/20 text-amber-200 border border-amber-400/50"
                                               }`}
                                           >
                                             {row.paymentType}
                                           </span>
                                         ) : (
-                                          '-'
+                                          "-"
                                         )}
                                       </td>
                                       <td className="border-r border-slate-700/40 px-3 py-1.5 text-center text-slate-400">
@@ -2065,7 +2126,7 @@ export default function Payments() {
                     </div>
                   )}
 
-                  <div>
+                  {/* <div>
                     <label className="block text-xs font-semibold text-slate-400 mb-1.5">Amount Received / Adjusted (₹)</label>
                     <input
                       type="number"
@@ -2076,7 +2137,7 @@ export default function Payments() {
                       required
                       min="0"
                     />
-                  </div>
+                  </div> */}
                 </>
               ) : (
                 /* It's a Direct Payment Collected */
