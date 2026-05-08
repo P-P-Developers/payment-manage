@@ -10,24 +10,41 @@ const { protect, hasPermission, adminOnly } = require('../middleware/auth');
 // @access  Private (view_panels permission)
 router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
   try {
-    const panels = await Panel.find({}).sort({ panelName: 1 });
-    
-    // Compute total received and outstanding balance for each panel dynamically
-    const computedPanels = await Promise.all(
-      panels.map(async (panel) => {
-        const payments = await Payment.find({ panelId: panel._id });
-        const totalPaid = payments.reduce((sum, p) => sum + (p.amountReceived || 0), 0);
-        const totalBill = payments.reduce((sum, p) => sum + (p.billAmount || 0), 0);
-        
-        const outstanding = (panel.openingBalance || 0) + totalBill - totalPaid;
+    const [panels, paymentsSummary] = await Promise.all([
+      Panel.find({}).sort({ createdAt: -1 }).lean(),
+      Payment.aggregate([
+        {
+          $group: {
+            _id: '$panelId',
+            totalPaid: { $sum: '$amountReceived' },
+            totalBill: { $sum: '$billAmount' },
+          },
+        },
+      ]),
+    ]);
 
-        return {
-          ...panel.toObject(),
-          totalPaid,
-          outstanding,
+    // Create a lookup map of totalPaid and totalBill by panel ID
+    const summaryMap = {};
+    paymentsSummary.forEach((item) => {
+      if (item._id) {
+        summaryMap[item._id.toString()] = {
+          totalPaid: item.totalPaid || 0,
+          totalBill: item.totalBill || 0,
         };
-      })
-    );
+      }
+    });
+
+    // Compute outstanding balance for each panel
+    const computedPanels = panels.map((panel) => {
+      const summary = summaryMap[panel._id.toString()] || { totalPaid: 0, totalBill: 0 };
+      const outstanding = (panel.openingBalance || 0) + summary.totalBill - summary.totalPaid;
+
+      return {
+        ...panel,
+        totalPaid: summary.totalPaid,
+        outstanding,
+      };
+    });
 
     res.json({ success: true, count: computedPanels.length, panels: computedPanels });
   } catch (error) {
@@ -40,12 +57,12 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
 // @access  Private (view_panels permission)
 router.get('/:id', protect, hasPermission('view_panels'), async (req, res) => {
   try {
-    const panel = await Panel.findById(req.params.id);
+    const panel = await Panel.findById(req.params.id).lean();
     if (!panel) {
       return res.status(404).json({ success: false, message: 'Panel not found' });
     }
 
-    const payments = await Payment.find({ panelId: panel._id }).populate('addedBy', 'name email').sort({ timestamp: -1 });
+    const payments = await Payment.find({ panelId: panel._id }).populate('addedBy', 'name email').sort({ timestamp: -1 }).lean();
     const totalPaid = payments.reduce((sum, p) => sum + (p.amountReceived || 0), 0);
     const totalBill = payments.reduce((sum, p) => sum + (p.billAmount || 0), 0);
     const outstanding = (panel.openingBalance || 0) + totalBill - totalPaid;
@@ -53,7 +70,7 @@ router.get('/:id', protect, hasPermission('view_panels'), async (req, res) => {
     res.json({
       success: true,
       panel: {
-        ...panel.toObject(),
+        ...panel,
         totalPaid,
         outstanding,
       },

@@ -56,4 +56,7 @@ const paymentSchema = new mongoose.Schema(
   }
 );
 
+paymentSchema.index({ panelId: 1, timestamp: -1 });
+paymentSchema.index({ timestamp: -1 });
+
 module.exports = mongoose.model('Payment', paymentSchema);

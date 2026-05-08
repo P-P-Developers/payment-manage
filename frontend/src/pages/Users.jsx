@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiRequest } from '@/utils/api';
+import ConfirmModal from '@/components/ConfirmModal';
 import {
   UserPlus,
   Edit2,
@@ -14,6 +15,36 @@ import {
   History,
 } from 'lucide-react';
 
+const SkeletonRow = () => (
+  <tr className="animate-pulse">
+    <td className="px-6 py-4">
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 rounded-full bg-slate-800"></div>
+        <div className="space-y-2">
+          <div className="h-4 w-28 rounded bg-slate-800"></div>
+          <div className="h-3 w-40 rounded bg-slate-800/60"></div>
+        </div>
+      </div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="h-6 w-16 rounded bg-slate-800"></div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="flex gap-1.5">
+        <div className="h-5 w-20 rounded bg-slate-800"></div>
+        <div className="h-5 w-24 rounded bg-slate-800"></div>
+      </div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="flex justify-center gap-2">
+        <div className="h-9 w-9 rounded-lg bg-slate-800"></div>
+        <div className="h-9 w-9 rounded-lg bg-slate-800"></div>
+        <div className="h-9 w-9 rounded-lg bg-slate-800"></div>
+      </div>
+    </td>
+  </tr>
+);
+
 export default function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,6 +54,9 @@ export default function Users() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editUserId, setEditUserId] = useState(null); // null = adding user, string = editing user
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   
   // Activity Log Modal State
   const [selectedLogUser, setSelectedLogUser] = useState(null);
@@ -59,9 +93,9 @@ export default function Users() {
     { id: 'edit_payments', label: 'Edit Payments' },
   ];
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent) setLoading(true);
       const data = await apiRequest('/auth/users');
       if (data.success) {
         setUsers(data.users);
@@ -69,7 +103,7 @@ export default function Users() {
     } catch (err) {
       setError(err.message || 'Failed to fetch users list');
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
@@ -109,6 +143,7 @@ export default function Users() {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setSubmitting(true);
 
     try {
       const payload = {
@@ -130,13 +165,14 @@ export default function Users() {
         });
         if (data.success) {
           setSuccess(`User account "${name}" updated successfully!`);
-          fetchUsers();
+          fetchUsers(true);
           setIsModalOpen(false);
         }
       } else {
         // Add User
         if (!password) {
           setError('Password is required for new users.');
+          setSubmitting(false);
           return;
         }
         payload.password = password;
@@ -146,29 +182,34 @@ export default function Users() {
         });
         if (data.success) {
           setSuccess(`User account "${name}" created successfully!`);
-          fetchUsers();
+          fetchUsers(true);
           setIsModalOpen(false);
         }
       }
     } catch (err) {
       setError(err.message || 'Action failed');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleDeleteUser = async (user) => {
-    if (!confirm(`Are you absolutely sure you want to delete user: ${user.name}?`)) {
-      return;
-    }
+  const handleDeleteUser = (user) => {
+    setUserToDelete(user);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDeleteUser = async () => {
+    if (!userToDelete) return;
     setError('');
     setSuccess('');
 
     try {
-      const data = await apiRequest(`/auth/users/${user._id}`, {
+      const data = await apiRequest(`/auth/users/${userToDelete._id}`, {
         method: 'DELETE',
       });
       if (data.success) {
-        setSuccess(`User "${user.name}" removed successfully.`);
-        fetchUsers();
+        setSuccess(`User "${userToDelete.name}" removed successfully.`);
+        fetchUsers(true);
       }
     } catch (err) {
       setError(err.message || 'Failed to delete user');
@@ -180,7 +221,12 @@ export default function Users() {
       {/* Action Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Staff User accounts</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-white tracking-tight">Staff User accounts</h2>
+            {loading && users.length > 0 && (
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent shrink-0"></div>
+            )}
+          </div>
           <p className="text-sm text-slate-400">Manage admin and limited staff users and configure system permissions.</p>
         </div>
 
@@ -209,27 +255,26 @@ export default function Users() {
       )}
 
       {/* Users Table */}
-      {loading ? (
-        <div className="flex h-[40vh] items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
-            <p className="text-slate-400 font-medium">Fetching User accounts...</p>
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-2xl glass-card border border-slate-800 overflow-hidden shadow-xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-900/80 border-b border-slate-800 text-slate-400 text-xs uppercase font-semibold tracking-wider">
-                  <th className="px-6 py-4">User Info</th>
-                  <th className="px-6 py-4">System Role</th>
-                  <th className="px-6 py-4">Enabled Permissions</th>
-                  <th className="px-6 py-4 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800 text-sm">
-                {users.map((user) => (
+      <div className="rounded-2xl glass-card border border-slate-800 overflow-hidden shadow-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-900/80 border-b border-slate-800 text-slate-400 text-xs uppercase font-semibold tracking-wider">
+                <th className="px-6 py-4">User Info</th>
+                <th className="px-6 py-4">System Role</th>
+                <th className="px-6 py-4">Enabled Permissions</th>
+                <th className="px-6 py-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800 text-sm">
+              {loading && users.length === 0 ? (
+                <>
+                  <SkeletonRow />
+                  <SkeletonRow />
+                  <SkeletonRow />
+                </>
+              ) : users.length > 0 ? (
+                users.map((user) => (
                   <tr key={user._id} className="hover:bg-slate-800/20 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -299,19 +344,18 @@ export default function Users() {
                       </div>
                     </td>
                   </tr>
-                ))}
-                {users.length === 0 && (
-                  <tr>
-                    <td colSpan="4" className="text-center py-8 text-slate-400">
-                      No staff accounts found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="text-center py-8 text-slate-400">
+                    No staff accounts found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
 
       {/* CREATE / EDIT USER MODAL */}
       {isModalOpen && (
@@ -450,9 +494,20 @@ export default function Users() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 py-3 text-sm font-semibold text-white shadow-lg hover:from-indigo-600 transition-all duration-300"
+                  disabled={submitting}
+                  className={`flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 py-3 text-sm font-semibold text-white shadow-lg hover:from-indigo-600 transition-all duration-300 ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {editUserId ? 'Update Account' : 'Register Account'}
+                  {submitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      {editUserId ? 'Updating...' : 'Registering...'}
+                    </span>
+                  ) : (
+                    editUserId ? 'Update Account' : 'Register Account'
+                  )}
                 </button>
               </div>
             </form>
@@ -538,6 +593,16 @@ export default function Users() {
           </div>
         </div>
       )}
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={handleConfirmDeleteUser}
+        title="Delete Staff Account"
+        message={`Are you absolutely sure you want to delete staff account: ${userToDelete?.name}? This action cannot be undone!`}
+      />
     </div>
   );
 }

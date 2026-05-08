@@ -21,7 +21,8 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
       .populate('addedBy', 'name email')
       .sort({ timestamp: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     res.json({
       success: true,

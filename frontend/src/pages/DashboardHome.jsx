@@ -12,6 +12,76 @@ import {
   Landmark,
 } from 'lucide-react';
 
+const DashboardSkeleton = () => (
+  <div className="space-y-8 animate-pulse">
+    {/* Welcome Banner Skeleton */}
+    <div className="rounded-2xl bg-slate-900/40 border border-slate-800/80 p-6 md:p-8 space-y-3">
+      <div className="h-7 w-2/3 rounded bg-slate-800"></div>
+      <div className="h-4 w-1/2 rounded bg-slate-800/60"></div>
+    </div>
+
+    {/* Stats Cards Skeleton Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div key={i} className="rounded-2xl bg-slate-900/40 border border-slate-800 p-6 flex justify-between items-start">
+          <div className="space-y-3 flex-1">
+            <div className="h-3 w-1/2 rounded bg-slate-800"></div>
+            <div className="h-6 w-3/4 rounded bg-slate-800"></div>
+            <div className="h-3 w-2/3 rounded bg-slate-800/60"></div>
+          </div>
+          <div className="h-12 w-12 rounded-xl bg-slate-800 shrink-0 ml-4"></div>
+        </div>
+      ))}
+    </div>
+
+    {/* Visual Analytics & Breakdown Skeleton */}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Category Share Spans 2 cols */}
+      <div className="lg:col-span-2 rounded-2xl bg-slate-900/40 border border-slate-800 p-6 md:p-8 space-y-6">
+        <div className="space-y-2">
+          <div className="h-5 w-48 rounded bg-slate-800"></div>
+          <div className="h-3.5 w-64 rounded bg-slate-800/60"></div>
+        </div>
+        <div className="space-y-5">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="space-y-2">
+              <div className="flex justify-between">
+                <div className="h-4 w-20 rounded bg-slate-800"></div>
+                <div className="h-4 w-24 rounded bg-slate-800"></div>
+              </div>
+              <div className="h-4 w-full rounded bg-slate-800"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Registry Overview Spans 1 col */}
+      <div className="lg:col-span-1 rounded-2xl bg-slate-900/40 border border-slate-800 p-6 md:p-8 space-y-6">
+        <div className="space-y-2">
+          <div className="h-5 w-40 rounded bg-slate-800"></div>
+          <div className="h-3.5 w-56 rounded bg-slate-800/60"></div>
+        </div>
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 border border-slate-800/80 p-4 rounded-xl">
+            <div className="h-10 w-10 rounded-full bg-slate-800 shrink-0"></div>
+            <div className="space-y-2 flex-1">
+              <div className="h-3 w-16 rounded bg-slate-800"></div>
+              <div className="h-5 w-24 rounded bg-slate-800"></div>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 border border-slate-800/80 p-4 rounded-xl">
+            <div className="h-10 w-10 rounded-full bg-slate-800 shrink-0"></div>
+            <div className="space-y-2 flex-1">
+              <div className="h-3 w-16 rounded bg-slate-800"></div>
+              <div className="h-5 w-24 rounded bg-slate-800"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function DashboardHome() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,14 +105,7 @@ export default function DashboardHome() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
-          <p className="text-slate-400 font-medium">Aggregating Sales Accounting Metrics...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {

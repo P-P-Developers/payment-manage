@@ -16,7 +16,8 @@ router.get('/', protect, adminOnly, async (req, res) => {
     const logs = await Log.find(query)
       .populate('userId', 'name email role')
       .sort({ timestamp: -1 })
-      .limit(200);
+      .limit(200)
+      .lean();
 
     res.json({ success: true, count: logs.length, logs });
   } catch (error) {

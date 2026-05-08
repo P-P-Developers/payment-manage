@@ -9,8 +9,8 @@ const { protect, hasPermission } = require('../middleware/auth');
 // @access  Private (view_panels permission)
 router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
   try {
-    const panels = await Panel.find({});
-    const payments = await Payment.find({});
+    const panels = await Panel.find({}).lean();
+    const payments = await Payment.find({}).lean();
 
     // Calculate sum of panel charges
     let totalOpeningBalance = 0;
