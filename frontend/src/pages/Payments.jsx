@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Hash,
   Printer,
+  Eye,
 } from 'lucide-react';
 import ReceiptModal from '@/components/ReceiptModal';
 
@@ -120,6 +121,7 @@ export default function Payments() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);
+  const [viewingPayment, setViewingPayment] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -752,14 +754,22 @@ export default function Payments() {
                         )}
                       </td> */}
                       <td className="py-3 px-4 text-center">
-                        <button
-                          onClick={() => setSelectedReceiptPayment(p)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-600 text-indigo-400 hover:text-white border border-indigo-500/10 hover:border-transparent text-xs font-bold transition-all shadow-md active:scale-95"
-                          title="Generate Receipt"
-                        >
-                          <Printer className="h-3.5 w-3.5" />
-                          {/* <span>Receipt</span> */}
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => setViewingPayment(p)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition-all shadow-md active:scale-95"
+                            title="View Full Details"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setSelectedReceiptPayment(p)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-600 text-indigo-400 hover:text-white border border-indigo-500/10 hover:border-transparent text-xs font-bold transition-all shadow-md active:scale-95"
+                            title="Generate Receipt"
+                          >
+                            <Printer className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -1006,7 +1016,7 @@ export default function Payments() {
                   </div>
                   <div className="text-right">
                     <p className="text-slate-400">Ledger Outstanding Dues:</p>
-                    <p className="font-bold text-rose-400 text-sm mt-0.5">₹{selectedPanelDetails.outstanding?.toLocaleString()}</p>
+                    <p className={`font-bold text-sm mt-0.5 ${selectedPanelDetails.outstanding > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>₹{selectedPanelDetails.outstanding?.toLocaleString()}</p>
                   </div>
                 </div>
               )}
@@ -1193,6 +1203,181 @@ export default function Payments() {
         onClose={() => setSelectedReceiptPayment(null)}
         payment={selectedReceiptPayment}
       />
+
+      {/* View Full Transaction Details Modal */}
+      {viewingPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div onClick={() => setViewingPayment(null)} className="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+
+          <div className="relative w-full max-w-2xl rounded-2xl bg-slate-950 p-6 md:p-8 border border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 text-white glass-card">
+            <button
+              onClick={() => setViewingPayment(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="h-6 w-6" />
+            </button>
+
+            {/* Header */}
+            <div className="flex items-center gap-3.5 mb-6 border-b border-slate-800 pb-5">
+              <div className={`h-11 w-11 rounded-xl flex items-center justify-center border shadow-inner ${viewingPayment.billAmount > 0
+                ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+                : 'bg-emerald-600/10 text-emerald-400 border-emerald-500/20'
+                }`}>
+                <Layers className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white tracking-wide">
+                  {viewingPayment.billAmount > 0 ? 'Transaction Details (Bill Generated)' : 'Transaction Details (Payment Collected)'}
+                </h3>
+                <p className="text-xs text-slate-400 font-mono mt-0.5">ID: {viewingPayment._id}</p>
+              </div>
+            </div>
+
+            {/* Content Details Grid */}
+            <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-1 scrollbar-thin">
+              {/* Panel Client Info */}
+              <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 space-y-3.5">
+                <div className="text-[10px] uppercase font-bold tracking-widest text-indigo-400">Panel Client Details</div>
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="text-slate-400 block mb-1">Panel Name</span>
+                    <span className="font-bold text-white text-sm">{viewingPayment.panelId?.panelName || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block mb-1">Owner Name</span>
+                    <span className="font-bold text-white text-sm">{viewingPayment.panelId?.ownerName || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block mb-1">Owner Email</span>
+                    <span className="font-semibold text-slate-200">{viewingPayment.panelId?.ownerEmail || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block mb-1">Phone Number</span>
+                    <span className="font-semibold text-slate-200">{viewingPayment.panelId?.phoneNumber || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transaction / Financial Details */}
+              <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 space-y-3.5">
+                <div className="text-[10px] uppercase font-bold tracking-widest text-indigo-400">Financial Ledger Details</div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+                  <div>
+                    <span className="text-slate-400 block mb-1">Billing Type</span>
+                    <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                      {viewingPayment.paymentType}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block mb-1">Date & Time</span>
+                    <span className="font-semibold text-slate-200">{new Date(viewingPayment.timestamp).toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block mb-1">Status</span>
+                    {viewingPayment.billAmount > 0 ? (
+                      viewingPayment.amountReceived === 0 ? (
+                        <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-rose-500/10 text-rose-400 border border-rose-500/15">
+                          Unpaid
+                        </span>
+                      ) : viewingPayment.amountReceived < viewingPayment.billAmount ? (
+                        <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/15">
+                          Partially Paid
+                        </span>
+                      ) : (
+                        <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/15">
+                          Fully Paid
+                        </span>
+                      )
+                    ) : (
+                      <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/15">
+                        Direct Payment
+                      </span>
+                    )}
+                  </div>
+                  {viewingPayment.billAmount > 0 && (
+                    <>
+                      <div>
+                        <span className="text-slate-400 block mb-1">Quantity</span>
+                        <span className="font-bold text-white font-mono">{viewingPayment.quantity !== undefined && viewingPayment.quantity !== null ? viewingPayment.quantity : 1}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block mb-1">Unit Price</span>
+                        <span className="font-bold text-white font-mono">₹{viewingPayment.unitPrice?.toLocaleString() || '0'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block mb-1">Total Bill Amount</span>
+                        <span className="font-extrabold text-indigo-300 font-mono text-sm">₹{viewingPayment.billAmount?.toLocaleString() || '0'}</span>
+                      </div>
+                    </>
+                  )}
+                  <div>
+                    <span className="text-slate-400 block mb-1">Amount Paid / Received</span>
+                    <span className="font-extrabold text-emerald-400 font-mono text-sm">₹{viewingPayment.amountReceived?.toLocaleString() || '0'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block mb-1">Payment Mode</span>
+                    <span className="font-bold text-slate-200">{viewingPayment.paymentMode}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block mb-1">Bank Name</span>
+                    <span className="font-semibold text-slate-300">{viewingPayment.bankName || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Added By & Remarks */}
+              <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 space-y-3.5">
+                <div className="text-[10px] uppercase font-bold tracking-widest text-indigo-400">Audit & Comments</div>
+                <div className="space-y-3 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400 w-24 block shrink-0">Recorded By:</span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-5 w-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-[9px] uppercase border border-slate-700">
+                        {viewingPayment.addedBy?.name?.substring(0, 2)}
+                      </div>
+                      <span className="font-bold text-white">{viewingPayment.addedBy?.name || 'Staff User'}</span>
+                      <span className="text-[10px] text-slate-500 font-medium">({viewingPayment.addedBy?.email || 'System Staff'})</span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block mb-1.5">Remarks / Remarks Description:</span>
+                    <div className="bg-slate-950/80 rounded-lg p-3 text-slate-300 font-medium italic border border-slate-800/60 leading-relaxed">
+                      {viewingPayment.remark ? (
+                        <div className="flex items-start gap-2">
+                          <MessageSquare className="h-4 w-4 text-indigo-400 shrink-0 mt-0.5" />
+                          <span>{viewingPayment.remark}</span>
+                        </div>
+                      ) : (
+                        <span className="text-slate-500 font-semibold">No remark provided for this transaction.</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer buttons */}
+            <div className="flex items-center justify-end gap-3 mt-6 pt-5 border-t border-slate-800">
+              <button
+                onClick={() => setViewingPayment(null)}
+                className="rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-5 py-2.5 text-sm transition-all border border-slate-700"
+              >
+                Close View
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedReceiptPayment(viewingPayment);
+                  setViewingPayment(null);
+                }}
+                className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2.5 text-sm transition-all shadow-lg shadow-indigo-600/10"
+              >
+                <Printer className="h-4.5 w-4.5" />
+                <span>Print Receipt</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
