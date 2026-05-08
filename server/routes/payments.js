@@ -42,7 +42,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
 // @route   POST /api/payments
 // @access  Private (add_payments permission)
 router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
-  const { panelId, paymentType, amountReceived, paymentMode, bankName, quantity, remark, unitPrice, billAmount } = req.body;
+  const { panelId, paymentType, amountReceived, paymentMode, bankName, quantity, remark, unitPrice, billAmount, timestamp } = req.body;
 
   try {
     if (!panelId || !paymentType || amountReceived === undefined || !paymentMode) {
@@ -66,6 +66,7 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
       billAmount: Number(billAmount) || 0,
       remark: remark || '',
       addedBy: req.user._id,
+      timestamp: timestamp ? new Date(timestamp) : undefined,
     });
 
     // Create activity log
@@ -86,7 +87,7 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
 // @route   PUT /api/payments/:id
 // @access  Private (edit_payments permission)
 router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => {
-  const { paymentType, amountReceived, paymentMode, bankName, quantity, remark } = req.body;
+  const { paymentType, amountReceived, paymentMode, bankName, quantity, remark, timestamp } = req.body;
 
   try {
     const payment = await Payment.findById(req.params.id).populate('panelId', 'panelName');
@@ -102,6 +103,7 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
     const oldPrice = payment.unitPrice;
     const oldBill = payment.billAmount;
     const oldRemark = payment.remark;
+    const oldTimestamp = payment.timestamp;
 
     payment.paymentType = paymentType || payment.paymentType;
     payment.amountReceived = amountReceived !== undefined ? Number(amountReceived) : payment.amountReceived;
@@ -111,6 +113,9 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
     payment.unitPrice = req.body.unitPrice !== undefined ? Number(req.body.unitPrice) : payment.unitPrice;
     payment.billAmount = req.body.billAmount !== undefined ? Number(req.body.billAmount) : payment.billAmount;
     payment.remark = remark !== undefined ? remark : payment.remark;
+    if (timestamp) {
+      payment.timestamp = new Date(timestamp);
+    }
 
     // Track changes
     const changesArray = [];
@@ -122,6 +127,9 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
     if (oldPrice !== payment.unitPrice) changesArray.push(`Price: ₹${oldPrice} ➔ ₹${payment.unitPrice}`);
     if (oldBill !== payment.billAmount) changesArray.push(`Bill: ₹${oldBill} ➔ ₹${payment.billAmount}`);
     if (oldRemark !== payment.remark) changesArray.push(`Remark: "${oldRemark || 'N/A'}" ➔ "${payment.remark || 'N/A'}"`);
+    if (timestamp && new Date(oldTimestamp).getTime() !== new Date(payment.timestamp).getTime()) {
+      changesArray.push(`Date: ${new Date(oldTimestamp).toLocaleDateString()} ➔ ${new Date(payment.timestamp).toLocaleDateString()}`);
+    }
 
     if (changesArray.length > 0) {
       payment.editHistory.push({

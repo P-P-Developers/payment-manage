@@ -210,50 +210,24 @@ export default function PanelLedger() {
 
   const getLast30DaysData = () => {
     const data = [];
-    const today = new Date();
+    const sortedPayments = [...(payments || [])].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-    for (let i = 0; i < 30; i++) {
-      const d = new Date();
-      d.setDate(today.getDate() - i);
-      const dateStr = d.toLocaleDateString();
-
-      const dayPayments = payments.filter(p => {
-        const pDate = new Date(p.timestamp).toLocaleDateString();
-        return pDate === dateStr;
+    sortedPayments.forEach((p, pIndex) => {
+      const dateStr = new Date(p.timestamp).toLocaleDateString();
+      data.push({
+        id: p._id || `${dateStr}-${pIndex}`,
+        date: dateStr,
+        displayDate: dateStr,
+        paymentType: p.paymentType,
+        quantity: p.quantity,
+        unitPrice: p.unitPrice,
+        billAmount: p.billAmount || 0,
+        amountReceived: p.amountReceived || 0,
+        remark: p.remark || '-',
+        addedBy: p.addedBy?.name || 'Staff User',
+        hasData: true,
       });
-
-      if (dayPayments.length > 0) {
-        dayPayments.forEach((p, pIndex) => {
-          data.push({
-            id: `${p._id || dateStr}-${pIndex}`,
-            date: dateStr,
-            displayDate: pIndex === 0 ? dateStr : '',
-            paymentType: p.paymentType,
-            quantity: p.quantity,
-            unitPrice: p.unitPrice,
-            billAmount: p.billAmount || 0,
-            amountReceived: p.amountReceived || 0,
-            remark: p.remark || '-',
-            addedBy: p.addedBy?.name || 'Staff User',
-            hasData: true,
-          });
-        });
-      } else {
-        data.push({
-          id: `${dateStr}-empty`,
-          date: dateStr,
-          displayDate: dateStr,
-          paymentType: '-',
-          quantity: '-',
-          unitPrice: '-',
-          billAmount: 0,
-          amountReceived: 0,
-          remark: '-',
-          addedBy: '-',
-          hasData: false,
-        });
-      }
-    }
+    });
     return data;
   };
 
@@ -598,9 +572,9 @@ export default function PanelLedger() {
             <div className="flex items-center justify-between mb-3 text-[11px] font-mono">
               <div className="flex items-center gap-3">
                 <span className="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold rounded">Sheet1</span>
-                <span className="text-slate-500">Continuous 30-Day Ledger</span>
+                <span className="text-slate-500">Transaction Ledger</span>
               </div>
-              <span className="text-slate-500">Formula Bar: <span className="text-indigo-400 font-bold">f(x)</span> = SUM(F2:F31) - SUM(G2:G31)</span>
+              <span className="text-slate-500">Formula Bar: <span className="text-indigo-400 font-bold">f(x)</span> = SUM(E2:E{getLast30DaysData().length + 1}) - SUM(F2:F{getLast30DaysData().length + 1})</span>
             </div>
 
             <table className="w-full text-left border border-slate-700/60 font-mono text-[11px] border-collapse bg-slate-900/40">
@@ -686,10 +660,10 @@ export default function PanelLedger() {
                 {/* Excel Sheet Summary Row (Formulas) */}
                 <tr className="bg-slate-800/60 border-t-2 border-slate-700 font-bold text-white text-xs">
                   <td className="border-r border-slate-700 text-center text-slate-400 bg-slate-800 py-2.5">
-                    32
+                    {getLast30DaysData().length + 2}
                   </td>
                   <td className="border-r border-slate-700 px-3 py-2.5 uppercase tracking-wider text-slate-400 text-[10px]" colSpan="4">
-                    =SUM(F2:F31) / SUM(G2:G31)
+                    =SUM(E2:E{getLast30DaysData().length + 1}) - SUM(F2:F{getLast30DaysData().length + 1})
                   </td>
                   <td className="border-r border-slate-700 px-3 py-2.5 text-right text-amber-400 bg-amber-500/5">
                     ₹{getLast30DaysData().reduce((sum, r) => sum + r.billAmount, 0).toLocaleString()}
@@ -712,7 +686,7 @@ export default function PanelLedger() {
                     );
                   })()}
                   <td className="px-3 py-2.5 text-indigo-400 font-semibold italic text-[11px]">
-                    Last 30 Days Net Activity
+                    Total Ledger Activity Summary
                   </td>
                 </tr>
               </tbody>
@@ -752,9 +726,9 @@ export default function PanelLedger() {
           <div className="flex items-center justify-between mb-3 text-xs font-mono bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
             <div className="flex items-center gap-3">
               <span className="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold rounded">Sheet1</span>
-              <span className="text-slate-400">Continuous 30-Day Ledger</span>
+              <span className="text-slate-400">Transaction Ledger</span>
             </div>
-            <span className="text-slate-400">Formula Bar: <span className="text-indigo-400 font-bold">f(x)</span> = SUM(F2:F31) - SUM(G2:G31)</span>
+            <span className="text-slate-400">Formula Bar: <span className="text-indigo-400 font-bold">f(x)</span> = SUM(E2:E{getLast30DaysData().length + 1}) - SUM(F2:F{getLast30DaysData().length + 1})</span>
           </div>
 
           {/* Table Container wrapped in scrollable flex-1 */}
@@ -842,10 +816,10 @@ export default function PanelLedger() {
                 {/* Excel Summary row in Fullscreen */}
                 <tr className="bg-slate-800/80 border-t-2 border-slate-700 font-bold text-white text-xs sticky bottom-0">
                   <td className="border-r border-slate-700 text-center text-slate-400 bg-slate-800 py-3 w-12">
-                    32
+                    {getLast30DaysData().length + 2}
                   </td>
                   <td className="border-r border-slate-700 px-4 py-3 uppercase tracking-wider text-slate-400 text-xs bg-slate-800" colSpan="4">
-                    =SUM(E2:E31) / SUM(G2:G31)
+                    =SUM(E2:E{getLast30DaysData().length + 1}) - SUM(F2:F{getLast30DaysData().length + 1})
                   </td>
                   <td className="border-r border-slate-700 px-4 py-3 text-right text-amber-400 bg-amber-500/10">
                     ₹{getLast30DaysData().reduce((sum, r) => sum + r.billAmount, 0).toLocaleString()}
@@ -868,7 +842,7 @@ export default function PanelLedger() {
                     );
                   })()}
                   <td className="px-4 py-3 text-indigo-400 font-semibold italic text-xs bg-slate-800">
-                    Last 30 Days Net Activity Summary
+                    Total Ledger Activity Summary
                   </td>
                 </tr>
               </tbody>
