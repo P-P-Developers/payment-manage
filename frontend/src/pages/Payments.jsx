@@ -364,17 +364,17 @@ export default function Payments() {
   const getLast30DaysData = (panelPayments) => {
     const data = [];
     const today = new Date();
-    
+
     for (let i = 0; i < 30; i++) {
       const d = new Date();
       d.setDate(today.getDate() - i);
       const dateStr = d.toLocaleDateString();
-      
+
       const dayPayments = (panelPayments || []).filter(p => {
         const pDate = new Date(p.timestamp).toLocaleDateString();
         return pDate === dateStr;
       });
-      
+
       if (dayPayments.length > 0) {
         dayPayments.forEach((p, pIndex) => {
           data.push({
@@ -1092,11 +1092,10 @@ export default function Payments() {
                     <td className="px-4 py-2.5 text-center">
                       <button
                         onClick={() => toggleExpandPanel(p._id)}
-                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded text-[10px] uppercase font-extrabold tracking-wider transition-all shadow active:scale-95 border ${
-                          expandedPanelId === p._id
+                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded text-[10px] uppercase font-extrabold tracking-wider transition-all shadow active:scale-95 border ${expandedPanelId === p._id
                             ? 'bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white border-rose-500/20'
                             : 'bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white border-indigo-500/20'
-                        }`}
+                          }`}
                       >
                         {expandedPanelId === p._id ? 'Close Ledger' : 'View Ledger'}
                       </button>
@@ -1169,15 +1168,14 @@ export default function Payments() {
                                 </thead>
                                 <tbody>
                                   {getLast30DaysData(expandedPanelPayments).map((row, hIdx) => (
-                                    <tr 
-                                      key={row.id} 
-                                      className={`border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors ${
-                                        row.hasData 
-                                          ? 'bg-indigo-500/5 font-semibold text-white' 
-                                          : hIdx % 2 === 0 
-                                            ? 'bg-slate-950/10' 
+                                    <tr
+                                      key={row.id}
+                                      className={`border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors ${row.hasData
+                                          ? 'bg-indigo-500/5 font-semibold text-white'
+                                          : hIdx % 2 === 0
+                                            ? 'bg-slate-950/10'
                                             : 'bg-slate-950/30'
-                                      }`}
+                                        }`}
                                     >
                                       <td className="border-r border-slate-700/40 text-center text-slate-500 bg-slate-800/10 py-1.5 font-bold">
                                         {hIdx + 2}
@@ -1187,16 +1185,19 @@ export default function Payments() {
                                       </td>
                                       <td className="border-r border-slate-700/40 px-3 py-1.5">
                                         {row.paymentType !== '-' ? (
-                                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                                            row.paymentType === 'License'
-                                              ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                                              : row.paymentType === 'IP Charges'
-                                              ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
-                                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                          }`}>
+                                          <span
+                                            className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${row.paymentType === 'License'
+                                                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/40'
+                                                : row.paymentType === 'IP Charges'
+                                                  ? 'bg-violet-500/20 text-violet-300 border border-violet-400/40'
+                                                  : 'bg-amber-400/20 text-amber-200 border border-amber-400/50 shadow-sm'
+                                              }`}
+                                          >
                                             {row.paymentType}
                                           </span>
-                                        ) : '-'}
+                                        ) : (
+                                          '-'
+                                        )}
                                       </td>
                                       <td className="border-r border-slate-700/40 px-3 py-1.5 text-center text-slate-400">
                                         {row.quantity}
@@ -1204,7 +1205,7 @@ export default function Payments() {
                                       <td className="border-r border-slate-700/40 px-3 py-1.5 text-right text-slate-400">
                                         {row.unitPrice !== '-' ? `₹${row.unitPrice.toLocaleString()}` : '-'}
                                       </td>
-                                      <td 
+                                      <td
                                         className={`border-r border-slate-700/40 px-3 py-1.5 text-right font-bold ${row.billAmount > 0 ? 'text-amber-400 bg-amber-400/5' : 'text-slate-500'} ${row.hasData ? 'cursor-pointer hover:bg-slate-800/40 hover:text-white group' : ''}`}
                                         onClick={() => row.hasData && setEditingCell({ paymentId: row.originalPayment._id, field: 'billAmount', value: row.billAmount })}
                                       >
@@ -1229,7 +1230,7 @@ export default function Payments() {
                                           </div>
                                         )}
                                       </td>
-                                      <td 
+                                      <td
                                         className={`border-r border-slate-700/40 px-3 py-1.5 text-right font-bold ${row.amountReceived > 0 ? 'text-emerald-400 bg-emerald-400/5' : 'text-slate-500'} ${row.hasData ? 'cursor-pointer hover:bg-slate-800/40 hover:text-emerald-300 group' : ''}`}
                                         onClick={() => row.hasData && setEditingCell({ paymentId: row.originalPayment._id, field: 'amountReceived', value: row.amountReceived })}
                                       >
