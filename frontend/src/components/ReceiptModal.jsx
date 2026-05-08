@@ -321,8 +321,8 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
                     <CreditCard className="h-3.5 w-3.5 text-slate-400" />
                     <span>Payment Method</span>
                   </div>
-                  <p className="font-bold text-slate-800 text-sm">{payment.paymentMode}</p>
-                  {payment.bankName && <p className="text-[10px] text-slate-500 font-semibold">{payment.bankName}</p>}
+                  <p className="font-bold text-slate-800 text-sm">{payment.amountReceived > 0 ? payment.paymentMode : '-'}</p>
+                  {payment.amountReceived > 0 && payment.bankName && <p className="text-[10px] text-slate-500 font-semibold">{payment.bankName}</p>}
                 </div>
               </div>
 

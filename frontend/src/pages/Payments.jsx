@@ -869,17 +869,17 @@ export default function Payments() {
                                 <span className="text-[10px] text-slate-500 font-semibold uppercase w-8">Bill:</span>
                                 <span className="font-bold text-slate-400 font-mono">₹{p.billAmount?.toLocaleString()}</span>
                               </div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] text-slate-500 font-semibold uppercase w-8">Paid:</span>
-                                <span className={`font-extrabold font-mono ${p.amountReceived === 0
-                                  ? 'text-rose-400'
-                                  : p.amountReceived < p.billAmount
+                              {p.amountReceived > 0 && (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] text-slate-500 font-semibold uppercase w-8">Paid:</span>
+                                  <span className={`font-extrabold font-mono ${p.amountReceived < p.billAmount
                                     ? 'text-amber-400'
                                     : 'text-emerald-400'
-                                  }`}>
-                                  ₹{p.amountReceived?.toLocaleString()}
-                                </span>
-                              </div>
+                                    }`}>
+                                    ₹{p.amountReceived?.toLocaleString()}
+                                  </span>
+                                </div>
+                              )}
                               <div className="mt-1">
                                 {p.amountReceived === 0 ? (
                                   <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-rose-500/10 text-rose-400 border border-rose-500/15">
@@ -911,12 +911,16 @@ export default function Payments() {
                         </div>
                       </td>
                       <td className="py-3 px-5">
-                        <div className="flex items-center gap-1.5 text-slate-300">
-                          <div className="text-[9px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5 uppercase tracking-wide">
-                            <CreditCard className="h-3 w-3 shrink-0 text-slate-600" />
-                            <span>{p.paymentMode} {p.bankName && `(${p.bankName})`}</span>
+                        {p.amountReceived > 0 ? (
+                          <div className="flex items-center gap-1.5 text-slate-300">
+                            <div className="text-[9px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5 uppercase tracking-wide">
+                              <CreditCard className="h-3 w-3 shrink-0 text-slate-600" />
+                              <span>{p.paymentMode} {p.bankName && `(${p.bankName})`}</span>
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <span className="text-slate-600 font-semibold font-mono">-</span>
+                        )}
                       </td>
 
 
@@ -1093,8 +1097,8 @@ export default function Payments() {
                       <button
                         onClick={() => toggleExpandPanel(p._id)}
                         className={`inline-flex items-center gap-1 px-3 py-1.5 rounded text-[10px] uppercase font-extrabold tracking-wider transition-all shadow active:scale-95 border ${expandedPanelId === p._id
-                            ? 'bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white border-rose-500/20'
-                            : 'bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white border-indigo-500/20'
+                          ? 'bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white border-rose-500/20'
+                          : 'bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white border-indigo-500/20'
                           }`}
                       >
                         {expandedPanelId === p._id ? 'Close Ledger' : 'View Ledger'}
@@ -1171,10 +1175,10 @@ export default function Payments() {
                                     <tr
                                       key={row.id}
                                       className={`border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors ${row.hasData
-                                          ? 'bg-indigo-500/5 font-semibold text-white'
-                                          : hIdx % 2 === 0
-                                            ? 'bg-slate-950/10'
-                                            : 'bg-slate-950/30'
+                                        ? 'bg-indigo-500/5 font-semibold text-white'
+                                        : hIdx % 2 === 0
+                                          ? 'bg-slate-950/10'
+                                          : 'bg-slate-950/30'
                                         }`}
                                     >
                                       <td className="border-r border-slate-700/40 text-center text-slate-500 bg-slate-800/10 py-1.5 font-bold">
@@ -1187,10 +1191,10 @@ export default function Payments() {
                                         {row.paymentType !== '-' ? (
                                           <span
                                             className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${row.paymentType === 'License'
-                                                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/40'
-                                                : row.paymentType === 'IP Charges'
-                                                  ? 'bg-violet-500/20 text-violet-300 border border-violet-400/40'
-                                                  : 'bg-amber-400/20 text-amber-200 border border-amber-400/50 shadow-sm'
+                                              ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/40'
+                                              : row.paymentType === 'IP Charges'
+                                                ? 'bg-violet-500/20 text-violet-300 border border-violet-400/40'
+                                                : 'bg-amber-400/20 text-amber-200 border border-amber-400/50 shadow-sm'
                                               }`}
                                           >
                                             {row.paymentType}
@@ -1561,7 +1565,7 @@ export default function Payments() {
                     className="w-full rounded-xl px-4 py-3 text-sm glass-input bg-slate-950 border border-slate-800 text-white cursor-pointer font-medium"
                     required
                   >
-                    <option value="" disabled>-- Select Receiving Bank --</option>
+                    <option value="" className="bg-slate-900 text-white" >-- Select Receiving Bank --</option>
                     {BANK_LIST.map((bank) => (
                       <option key={bank} value={bank} className="bg-slate-900 text-white">
                         {bank}
@@ -1736,14 +1740,15 @@ export default function Payments() {
                     <span className="text-slate-400 block mb-1">Amount Paid / Received</span>
                     <span className="font-extrabold text-emerald-400 font-mono text-sm">₹{viewingPayment.amountReceived?.toLocaleString() || '0'}</span>
                   </div>
-                  <div>
-                    <span className="text-slate-400 block mb-1">Payment Mode</span>
-                    <span className="font-bold text-slate-200">{viewingPayment.paymentMode}</span>
-                  </div>
-                  <div>
+                  {viewingPayment.amountReceived > 0 && (
+                    <div>
+                      <span className="text-slate-400 block mb-1">Payment Mode</span>
+                      <span className="font-bold text-slate-200">{viewingPayment.amountReceived > 0 ? viewingPayment.paymentMode : '-'}</span>
+                    </div>)}
+                  {viewingPayment.amountReceived > 0 && <div>
                     <span className="text-slate-400 block mb-1">Bank Name</span>
-                    <span className="font-semibold text-slate-300">{viewingPayment.bankName || 'N/A'}</span>
-                  </div>
+                    <span className="font-semibold text-slate-300">{viewingPayment.amountReceived > 0 ? (viewingPayment.bankName || 'N/A') : '-'}</span>
+                  </div>}
                 </div>
               </div>
 

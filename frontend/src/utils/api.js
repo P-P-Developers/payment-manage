@@ -89,6 +89,12 @@ export const apiRequest = async (endpoint, options = {}) => {
   const data = await response.json();
 
   if (!response.ok) {
+    if (response.status === 401 || (data && (data.success === false || data.message === 'Not authorized, token failed'))) {
+      clearAuth();
+      if (typeof window !== 'undefined') {
+        window.location.href = '#/login';
+      }
+    }
     throw new Error(data.message || 'Something went wrong');
   }
 
