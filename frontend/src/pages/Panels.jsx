@@ -180,8 +180,6 @@ export default function Panels() {
       errors.phoneNumber = 'Phone number is required.';
     } else if (cleanPhone.length !== 10) {
       errors.phoneNumber = 'Phone number must be exactly 10 digits.';
-    } else if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
-      errors.phoneNumber = 'Invalid 10-digit phone number. Must start with a digit between 6 and 9.';
     }
 
     if (Number(licenseCharges) < 0) {

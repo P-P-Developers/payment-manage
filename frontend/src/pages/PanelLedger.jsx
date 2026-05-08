@@ -333,14 +333,35 @@ export default function PanelLedger() {
         </div>
 
         {/* Card 4: Remaining Balance */}
-        <div className="rounded-2xl bg-rose-500/5 border border-rose-500/10 p-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-rose-500/5 blur-xl"></div>
+        <div className={`rounded-2xl border p-6 flex flex-col justify-between shadow-xl relative overflow-hidden transition-all duration-300 ${
+          (panel?.outstanding || 0) > 0
+            ? 'bg-rose-500/5 border-rose-500/10'
+            : (panel?.outstanding || 0) < 0
+              ? 'bg-emerald-500/5 border-emerald-500/10'
+              : 'bg-slate-500/5 border-slate-500/10'
+        }`}>
+          <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-slate-500/5 blur-xl"></div>
           <div>
-            <span className="text-xs uppercase tracking-wider font-bold text-slate-400">Remaining Balance Due</span>
-            <p className="text-[10px] text-slate-500 mt-1">Remaining outstanding dues pending collection</p>
+            <span className="text-xs uppercase tracking-wider font-bold text-slate-400">
+              {(panel?.outstanding || 0) < 0 ? 'Advance Credit Balance' : 'Remaining Balance Due'}
+            </span>
+            <p className="text-[10px] text-slate-500 mt-1">
+              {(panel?.outstanding || 0) < 0 ? 'Extra amount paid by client in advance' : 'Remaining outstanding dues pending collection'}
+            </p>
           </div>
           <div className="mt-6 sm:mt-8">
-            <span className="text-3xl font-extrabold text-rose-400">₹{panel?.outstanding?.toLocaleString()}</span>
+            <span className={`text-3xl font-extrabold ${
+              (panel?.outstanding || 0) > 0
+                ? 'text-rose-400'
+                : (panel?.outstanding || 0) < 0
+                  ? 'text-emerald-400'
+                  : 'text-slate-400'
+            }`}>
+              {(panel?.outstanding || 0) < 0
+                ? `₹${Math.abs(panel.outstanding).toLocaleString()} `
+                : `₹${(panel?.outstanding || 0).toLocaleString()}`
+              }
+            </span>
           </div>
         </div>
       </div>
@@ -676,9 +697,20 @@ export default function PanelLedger() {
                   <td className="border-r border-slate-700 px-3 py-2.5 text-right text-emerald-400 bg-emerald-500/5">
                     ₹{getLast30DaysData().reduce((sum, r) => sum + r.amountReceived, 0).toLocaleString()}
                   </td>
-                  <td className="border-r border-slate-700 px-3 py-2.5 text-right text-rose-400 bg-rose-500/5">
-                    ₹{getLast30DaysData().reduce((sum, r) => sum + (r.billAmount - r.amountReceived), 0).toLocaleString()}
-                  </td>
+                  {(() => {
+                    const netVal = getLast30DaysData().reduce((sum, r) => sum + (r.billAmount - r.amountReceived), 0);
+                    return (
+                      <td className={`border-r border-slate-700 px-3 py-2.5 text-right font-bold transition-all ${
+                        netVal > 0
+                          ? 'text-rose-400 bg-rose-500/5'
+                          : netVal < 0
+                            ? 'text-emerald-400 bg-emerald-500/5'
+                            : 'text-slate-500 bg-slate-800/10'
+                      }`}>
+                        {netVal < 0 ? `₹${Math.abs(netVal).toLocaleString()}` : `₹${netVal.toLocaleString()}`}
+                      </td>
+                    );
+                  })()}
                   <td className="px-3 py-2.5 text-indigo-400 font-semibold italic text-[11px]">
                     Last 30 Days Net Activity
                   </td>
@@ -821,9 +853,20 @@ export default function PanelLedger() {
                   <td className="border-r border-slate-700 px-4 py-3 text-right text-emerald-400 bg-emerald-500/10">
                     ₹{getLast30DaysData().reduce((sum, r) => sum + r.amountReceived, 0).toLocaleString()}
                   </td>
-                  <td className="border-r border-slate-700 px-4 py-3 text-right text-rose-400 bg-rose-500/10">
-                    ₹{getLast30DaysData().reduce((sum, r) => sum + (r.billAmount - r.amountReceived), 0).toLocaleString()}
-                  </td>
+                  {(() => {
+                    const netVal = getLast30DaysData().reduce((sum, r) => sum + (r.billAmount - r.amountReceived), 0);
+                    return (
+                      <td className={`border-r border-slate-700 px-4 py-3 text-right font-bold transition-all ${
+                        netVal > 0
+                          ? 'text-rose-400 bg-rose-500/10'
+                          : netVal < 0
+                            ? 'text-emerald-400 bg-emerald-500/10'
+                            : 'text-slate-500 bg-slate-800/20'
+                      }`}>
+                        {netVal < 0 ? `₹${Math.abs(netVal).toLocaleString()}` : `₹${netVal.toLocaleString()}`}
+                      </td>
+                    );
+                  })()}
                   <td className="px-4 py-3 text-indigo-400 font-semibold italic text-xs bg-slate-800">
                     Last 30 Days Net Activity Summary
                   </td>

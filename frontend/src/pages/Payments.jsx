@@ -1090,8 +1090,16 @@ export default function Payments() {
                     <td className="border-r border-slate-700/40 px-4 py-2.5 text-right font-black text-emerald-300 bg-emerald-500/15">
                       ₹{p.totalPaid?.toLocaleString() || '0'}
                     </td>
-                    <td className={`border-r border-slate-700/40 px-4 py-2.5 text-right font-black bg-rose-500/15 ${p.outstanding > 0 ? 'text-rose-300' : 'text-emerald-300'}`}>
-                      ₹{p.outstanding?.toLocaleString() || '0'}
+                    <td className={`border-r border-slate-700/40 px-4 py-2.5 text-right font-black transition-all ${p.outstanding > 0
+                        ? 'bg-rose-500/15 text-rose-300'
+                        : p.outstanding < 0
+                          ? 'bg-emerald-500/15 text-emerald-300'
+                          : 'bg-slate-800/20 text-slate-400'
+                      }`}>
+                      {p.outstanding < 0
+                        ? `₹${Math.abs(p.outstanding).toLocaleString()} (Adv)`
+                        : `₹${(p.outstanding || 0).toLocaleString()}`
+                      }
                     </td>
                     <td className="px-4 py-2.5 text-center">
                       <button
@@ -1304,9 +1312,20 @@ export default function Payments() {
                                     <td className="border-r border-slate-800 px-3 py-2.5 text-right text-emerald-400 bg-emerald-500/5">
                                       ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.amountReceived, 0).toLocaleString()}
                                     </td>
-                                    <td className="border-r border-slate-800 px-3 py-2.5 text-right text-rose-400 bg-rose-500/5">
-                                      ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + (r.billAmount - r.amountReceived), 0).toLocaleString()}
-                                    </td>
+                                    {(() => {
+                                      const netVal = getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + (r.billAmount - r.amountReceived), 0);
+                                      return (
+                                        <td className={`border-r border-slate-800 px-3 py-2.5 text-right font-bold transition-all ${
+                                          netVal > 0
+                                            ? 'text-rose-400 bg-rose-500/5'
+                                            : netVal < 0
+                                              ? 'text-emerald-400 bg-emerald-500/5'
+                                              : 'text-slate-500 bg-slate-800/10'
+                                        }`}>
+                                          {netVal < 0 ? `₹${Math.abs(netVal).toLocaleString()}` : `₹${netVal.toLocaleString()}`}
+                                        </td>
+                                      );
+                                    })()}
                                     <td className="px-3 py-2.5 text-indigo-400 font-semibold italic text-[10px]" colSpan="2">
                                       Last 30 Days Net Activity
                                     </td>
@@ -1441,8 +1460,18 @@ export default function Payments() {
                     <p className="font-bold text-white text-sm mt-0.5">{selectedPanelDetails.ownerName}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-slate-400">Ledger Outstanding Dues:</p>
-                    <p className={`font-bold text-sm mt-0.5 ${selectedPanelDetails.outstanding > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>₹{selectedPanelDetails.outstanding?.toLocaleString()}</p>
+                    <p className="text-slate-400">{(selectedPanelDetails?.outstanding || 0) < 0 ? 'Advance Credit Balance:' : 'Ledger Outstanding Dues:'}</p>
+                    <p className={`font-bold text-sm mt-0.5 ${(selectedPanelDetails?.outstanding || 0) > 0
+                        ? 'text-rose-400'
+                        : (selectedPanelDetails?.outstanding || 0) < 0
+                          ? 'text-emerald-400'
+                          : 'text-slate-400'
+                      }`}>
+                      {(selectedPanelDetails?.outstanding || 0) < 0
+                        ? `₹${Math.abs(selectedPanelDetails.outstanding).toLocaleString()}`
+                        : `₹${(selectedPanelDetails?.outstanding || 0).toLocaleString()}`
+                      }
+                    </p>
                   </div>
                 </div>
               )}
