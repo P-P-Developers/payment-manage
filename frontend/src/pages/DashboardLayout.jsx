@@ -224,7 +224,7 @@ export default function DashboardLayout() {
           </h1>
 
           <div className="flex items-center gap-4 relative">
-      
+
 
             {/* User Profile Dropdown Button */}
             <div className="relative">
@@ -255,7 +255,7 @@ export default function DashboardLayout() {
                       <p className="text-xs text-indigo-400 font-medium uppercase mt-0.5">{user?.role}</p>
                     </div>
 
-                     <button
+                    <button
                       onClick={() => {
                         setIsProfileOpen(false);
                         setIsChangePasswordOpen(true);

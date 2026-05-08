@@ -278,7 +278,6 @@ export default function DashboardHome() {
               </div>
             </div>
 
-            {/* Payment Mode Micro-Breakdown */}
             <div className="pt-4 border-t border-slate-800/80 space-y-3">
               <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Breakdown by Payment Mode</p>
               <div className="grid grid-cols-2 gap-2 text-xs font-mono">

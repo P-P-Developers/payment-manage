@@ -843,7 +843,6 @@ export default function Payments() {
               </select>
             </div>
 
-            {/* Payment Mode Filter */}
             <div className="shrink-0">
               <select
                 value={modeFilter}
@@ -889,7 +888,6 @@ export default function Payments() {
                     <th className="py-3.5 px-5">Financial Details</th>
                     <th className="py-3.5 px-5">Payment Mode</th>
                     <th className="py-3.5 px-5">Collected By</th>
-                    {/* <th className="py-3.5 px-5">Remarks</th> */}
                     <th className="py-3.5 px-4 text-center w-28">Action</th>
                   </tr>
                 </thead>
@@ -990,7 +988,7 @@ export default function Payments() {
                       <td className="py-3 px-5">
                         {p.amountReceived > 0 ? (
                           <div className="flex items-center gap-1.5 text-slate-300">
-                            <div className="text-[9px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5 uppercase tracking-wide">
+                            <div className="text-[12px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5 uppercase tracking-wide">
                               <CreditCard className="h-3 w-3 shrink-0 text-slate-600" />
                               <span>{p.paymentMode} {p.bankName && `(${p.bankName})`}</span>
                             </div>
