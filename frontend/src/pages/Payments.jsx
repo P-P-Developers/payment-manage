@@ -23,7 +23,7 @@ import {
 import ReceiptModal from '@/components/ReceiptModal';
 
 const BANK_LIST = [
-  'HDFC Bank',
+  'Union Bank',
   'Indian Bank'
 ];
 
@@ -224,7 +224,7 @@ export default function Payments() {
           setModalMode('receive');
           setQuantity(0);
           setPaymentMode('UPI');
-          setBankName('HDFC Bank');
+          setBankName('Union Bank');
           setPaymentType('License');
           setAmountReceived('');
           setRemark('');
@@ -310,7 +310,7 @@ export default function Payments() {
     setPaymentType('Other');
     setAmountReceived('');
     setPaymentMode('UPI');
-    setBankName('HDFC Bank');
+    setBankName('Union Bank');
     setQuantity(0);
     setUnitPrice(0);
     setBillAmountInput('');

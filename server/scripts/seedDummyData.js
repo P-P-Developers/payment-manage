@@ -21,7 +21,7 @@ const connectDB = async () => {
   }
 };
 
-const bankNames = ['HDFC Bank', 'ICICI Bank', 'State Bank of India', 'Axis Bank', 'KOTAK Mahindra Bank'];
+const bankNames = ['Indian Bank', 'Union Bank'];
 const paymentModes = ['UPI', 'Bank Transfer', 'Online'];
 
 const getRandomElement = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -175,7 +175,7 @@ const seedData = async () => {
 
     for (let i = 0; i < panelsData.length; i++) {
       const pData = panelsData[i];
-      
+
       // 1. Create Panel
       const panel = await Panel.create(pData);
       console.log(`[${i + 1}/10] Created panel: ${panel.panelName} (Owner: ${panel.ownerName})`);
@@ -268,7 +268,7 @@ const seedData = async () => {
       // Month 1: IP Charges Payment Received (40 days ago)
       let ipReceived = panel.ipCharges;
       if (i === 2 || i === 9) ipReceived = 0; // Unpaid IP charges to show outstanding variety
-      
+
       if (ipReceived > 0) {
         const mode = getRandomElement(paymentModes);
         const bank = mode === 'Cash' ? '' : getRandomElement(bankNames);

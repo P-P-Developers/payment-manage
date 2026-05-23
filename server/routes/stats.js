@@ -10,7 +10,7 @@ const { protect, hasPermission } = require('../middleware/auth');
 router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
   try {
     const panels = await Panel.find({}).lean();
-    const payments = await Payment.find({}).lean();
+    const payments = await Payment.find({}).populate('panelId', 'panelName').lean();
 
     // Calculate sum of panel charges
     let totalOpeningBalance = 0;
@@ -76,6 +76,8 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
         totalPanels: panels.length,
         totalPayments: payments.length,
       },
+      panels,
+      payments,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
