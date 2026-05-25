@@ -90,6 +90,12 @@ export default function DashboardHome() {
   const [selectedQuarter, setSelectedQuarter] = useState(`${curYear}-Q${curQ}`);
   const [showInactive, setShowInactive] = useState(false);
 
+  // Performance Table & Card States
+  const [selectedCatFilter, setSelectedCatFilter] = useState('All');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState('All');
+  const [perfSortField, setPerfSortField] = useState('totalBilled'); // default sort by billed
+  const [perfSortOrder, setPerfSortOrder] = useState('desc'); // default descending order
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -196,6 +202,7 @@ export default function DashboardHome() {
         _id: p._id,
         panelName: p.panelName,
         ownerName: p.ownerName,
+        category: p.category || 'Algo',
         totalPaid: 0,
         totalBilled: 0,
         billCount: 0,
@@ -243,6 +250,7 @@ export default function DashboardHome() {
             _id: pId,
             panelName: p.panelId?.panelName || 'Deleted Panel',
             ownerName: 'N/A',
+            category: p.panelId?.category || 'Algo',
             totalPaid: 0,
             totalBilled: 0,
             billCount: 0,
@@ -269,7 +277,29 @@ export default function DashboardHome() {
       }
     });
 
-    const panelStats = Object.values(map);
+    const panelStats = Object.values(map).map((panel) => {
+      const rate = panel.totalBilled > 0 ? Math.round((panel.totalPaid / panel.totalBilled) * 100) : 0;
+      const outstanding = panel.totalBilled - panel.totalPaid;
+      
+      let status = 'Critically Inactive';
+      if (panel.totalBilled > 0 || panel.totalPaid > 0) {
+        if (rate >= 90) {
+          status = 'Excellent';
+        } else if (rate >= 50) {
+          status = 'Healthy';
+        } else {
+          status = 'Needs Attention';
+        }
+      }
+      
+      return {
+        ...panel,
+        recoveryRate: rate,
+        outstanding,
+        status,
+      };
+    });
+    
     const recRate = totalBilled > 0 ? Math.round((totalPaid / totalBilled) * 100) : 0;
     const netBal = totalBilled - totalPaid;
 
@@ -371,6 +401,57 @@ export default function DashboardHome() {
     }
   }, [filteredPayments, filterType, selectedQuarter]);
 
+  const uniqueCategories = useMemo(() => {
+    const rawPanels = stats?.panels || [];
+    const set = new Set(rawPanels.map((p) => p.category || 'Algo'));
+    return Array.from(set);
+  }, [stats]);
+
+  const processedPerfPanels = useMemo(() => {
+    let list = [...panelStatsArray];
+
+    // Filter by Category
+    if (selectedCatFilter !== 'All') {
+      list = list.filter((p) => p.category === selectedCatFilter);
+    }
+
+    // Filter by Status
+    if (selectedStatusFilter !== 'All') {
+      list = list.filter((p) => p.status === selectedStatusFilter);
+    }
+
+    // Sort list
+    list.sort((a, b) => {
+      let valA = a[perfSortField];
+      let valB = b[perfSortField];
+
+      if (typeof valA === 'string') {
+        return perfSortOrder === 'asc'
+          ? valA.localeCompare(valB)
+          : valB.localeCompare(valA);
+      }
+
+      return perfSortOrder === 'asc' ? valA - valB : valB - valA;
+    });
+
+    return list;
+  }, [panelStatsArray, selectedCatFilter, selectedStatusFilter, perfSortField, perfSortOrder]);
+
+  // worstPerforming (recoveryRate < 50, billed > 0) or fallback to highest outstanding
+  const worstPerforming = useMemo(() => {
+    const attention = [...panelStatsArray]
+      .filter((p) => p.totalBilled > 0 && p.recoveryRate < 50)
+      .sort((a, b) => a.recoveryRate - b.recoveryRate);
+
+    if (attention.length > 0) return attention.slice(0, 3);
+
+    // fallback to highest outstanding
+    return [...panelStatsArray]
+      .filter((p) => p.outstanding > 0)
+      .sort((a, b) => b.outstanding - a.outstanding)
+      .slice(0, 3);
+  }, [panelStatsArray]);
+
   if (loading) {
     return <DashboardSkeleton />;
   }
@@ -409,6 +490,16 @@ export default function DashboardHome() {
     .slice(0, 5);
 
   const inactivePanels = panelStatsArray.filter(p => p.totalBilled === 0 && p.totalPaid === 0);
+
+  // Sorting & Filtering for Client Performance Grid Table
+  const handleSort = (field) => {
+    if (perfSortField === field) {
+      setPerfSortOrder(perfSortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setPerfSortField(field);
+      setPerfSortOrder('desc'); // Default sort descending
+    }
+  };
 
   const cards = [
     {
@@ -463,19 +554,7 @@ export default function DashboardHome() {
   return (
     <div className="space-y-8 animate-pulse-subtle">
       {/* Welcome Banner */}
-      <div className="relative rounded-2xl glass-card overflow-hidden p-6 md:p-8 border border-slate-800">
-        <div className="absolute -right-16 -bottom-16 h-48 w-48 rounded-full bg-indigo-500/10 blur-3xl"></div>
-        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Financial Summary Dashboard</h2>
-            <p className="text-slate-400 text-sm mt-1">Real-time ledger overview for Software Panel Sales, billing tracking, and collected dues.</p>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-indigo-400 font-semibold bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-xl self-start md:self-auto">
-            <TrendingUp className="h-4 w-4" />
-            <span>Last Updated: Real-time Live</span>
-          </div>
-        </div>
-      </div>
+
 
       {/* Filter Toolbar Card */}
       <div className="rounded-2xl glass-card border border-slate-800 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
@@ -500,11 +579,10 @@ export default function DashboardHome() {
               <button
                 key={t.id}
                 onClick={() => setFilterType(t.id)}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                  filterType === t.id
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${filterType === t.id
                     ? 'bg-indigo-600 text-white shadow-md'
                     : 'text-slate-400 hover:text-white'
-                }`}
+                  }`}
               >
                 {t.label}
               </button>
@@ -963,6 +1041,189 @@ export default function DashboardHome() {
                 );
               })
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Stacked Full-Width Section for Performance Alerts & Client Performance Grid Table */}
+      <div className="space-y-8 pt-4 border-t border-slate-800/60">
+        
+        {/* Row 1: Worst Performing Clients Alerts (Full-Width Card with 3-Column horizontal grid) */}
+        {worstPerforming.length > 0 && (
+          <div className="rounded-2xl bg-rose-500/5 border border-rose-500/10 p-6 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rose-500/10 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20">
+                  <AlertCircle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-base text-white">Performance Alerts</h4>
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Clients with lowest recovery rates or critical dues in this period</p>
+                </div>
+              </div>
+              <div className="text-[10px] font-bold px-3 py-1 rounded uppercase bg-rose-500/10 border border-rose-500/20 text-rose-400 tracking-wider text-center sm:text-right shrink-0">
+                ⚠️ Critically Inactive: {inactivePanels.length} Panels
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {worstPerforming.map((item, idx) => (
+                <div key={item._id} className="bg-slate-950/60 border border-slate-900/80 p-5 md:p-6 rounded-xl hover:border-slate-800 transition-all duration-300 relative overflow-hidden group hover:-translate-y-0.5">
+                  <div className="flex justify-between items-start gap-2">
+                    <div>
+                      <span className="text-slate-200 font-bold text-sm block truncate max-w-[190px]">{idx + 1}. {item.panelName}</span>
+                      <span className="text-[10px] text-slate-500 mt-0.5 block font-semibold uppercase">{item.category} Category</span>
+                    </div>
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded uppercase bg-rose-500/10 border border-rose-500/20 text-rose-400 shrink-0">
+                      {item.totalBilled > 0 ? `Recovery: ${item.recoveryRate}%` : 'Outstanding'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 mt-4 pt-3.5 border-t border-slate-900/60 text-xs font-mono">
+                    <div>
+                      <span className="text-slate-500 block text-[9px] uppercase font-bold">Billed</span>
+                      <span className="text-slate-300 font-bold">₹{item.totalBilled.toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block text-[9px] uppercase font-bold">Dues Pending</span>
+                      <span className="text-rose-400 font-bold">₹{item.outstanding.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Row 2: Client Performance Ledger Grid Table (Full Width) */}
+        <div className="rounded-2xl glass-card border border-slate-800 p-6 md:p-8 shadow-xl flex flex-col justify-between">
+          {/* Table Header with Filters */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+            <div>
+              <h3 className="font-bold text-lg text-white">Client Performance Ledger Grid</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Click column headers to toggle ascending/descending sorting</p>
+            </div>
+
+            {/* Grid Filters */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Category Filter */}
+              <div className="flex items-center gap-2 rounded-xl bg-slate-900/60 border border-slate-800 px-3.5 py-2 text-xs text-slate-400">
+                <span className="font-semibold uppercase tracking-wider text-[10px]">Category:</span>
+                <select
+                  value={selectedCatFilter}
+                  onChange={(e) => setSelectedCatFilter(e.target.value)}
+                  className="bg-transparent border-none text-white font-bold cursor-pointer outline-none text-xs"
+                >
+                  <option value="All" className="bg-slate-950 text-white">All Categories</option>
+                  {uniqueCategories.map((c) => (
+                    <option key={c} value={c} className="bg-slate-950 text-white">{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex items-center gap-2 rounded-xl bg-slate-900/60 border border-slate-800 px-3.5 py-2 text-xs text-slate-400">
+                <span className="font-semibold uppercase tracking-wider text-[10px]">Status:</span>
+                <select
+                  value={selectedStatusFilter}
+                  onChange={(e) => setSelectedStatusFilter(e.target.value)}
+                  className="bg-transparent border-none text-white font-bold cursor-pointer outline-none text-xs"
+                >
+                  <option value="All" className="bg-slate-950 text-white">All Statuses</option>
+                  <option value="Excellent" className="bg-slate-950 text-emerald-400">Excellent (≥90%)</option>
+                  <option value="Healthy" className="bg-slate-950 text-indigo-400">Healthy (50-89%)</option>
+                  <option value="Needs Attention" className="bg-slate-950 text-amber-400">Needs Attention (&lt;50%)</option>
+                  <option value="Critically Inactive" className="bg-slate-950 text-rose-400">Inactive (₹0)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Table Container */}
+          <div className="overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/20 max-h-[550px] overflow-y-auto">
+            <table className="w-full text-left border-collapse text-xs min-w-[850px]">
+              <thead>
+                <tr className="bg-slate-900/95 border-b border-slate-800 text-slate-400 uppercase font-bold tracking-wider select-none sticky top-0 z-10 backdrop-blur-md">
+                  <th className="px-4 py-3.5 text-center w-14">S.No.</th>
+                  <th onClick={() => handleSort('panelName')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-900 transition-colors">
+                    <div className="flex items-center gap-1.5">
+                      <span>Client Panel</span>
+                      {perfSortField === 'panelName' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
+                    </div>
+                  </th>
+                  <th className="px-5 py-3.5">Category</th>
+                  <th onClick={() => handleSort('totalBilled')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-900 transition-colors text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <span>Sales Billed</span>
+                      {perfSortField === 'totalBilled' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
+                    </div>
+                  </th>
+                  <th onClick={() => handleSort('totalPaid')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-900 transition-colors text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <span>Payments Paid</span>
+                      {perfSortField === 'totalPaid' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
+                    </div>
+                  </th>
+                  <th onClick={() => handleSort('outstanding')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-900 transition-colors text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <span>Outstanding</span>
+                      {perfSortField === 'outstanding' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
+                    </div>
+                  </th>
+                  <th onClick={() => handleSort('recoveryRate')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-900 transition-colors text-center">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <span>Recovery</span>
+                      {perfSortField === 'recoveryRate' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
+                    </div>
+                  </th>
+                  <th className="px-5 py-3.5 text-center">Performance</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-850">
+                {processedPerfPanels.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="text-center py-12 text-slate-500 font-semibold uppercase">
+                      No client records match the criteria
+                    </td>
+                  </tr>
+                ) : (
+                  processedPerfPanels.map((p, idx) => {
+                    const statusColors = {
+                      Excellent: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+                      Healthy: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
+                      'Needs Attention': 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+                      'Critically Inactive': 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+                    };
+                    const categoryColors = {
+                      Algo: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
+                      Sop: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+                      crypto: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+                    };
+
+                    return (
+                      <tr key={p._id} className="hover:bg-slate-900/20 transition-colors">
+                        <td className="px-4 py-3.5 text-center font-bold text-slate-500 w-14">{idx + 1}</td>
+                        <td className="px-5 py-3.5 font-bold text-slate-200 whitespace-nowrap">{p.panelName}</td>
+                        <td className="px-5 py-3.5">
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${categoryColors[p.category] || 'bg-slate-500/10 text-slate-400 border border-slate-500/20'}`}>
+                            {p.category}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 font-semibold text-right text-slate-300 whitespace-nowrap">₹{p.totalBilled.toLocaleString()}</td>
+                        <td className="px-5 py-3.5 font-bold text-right text-emerald-400 whitespace-nowrap">₹{p.totalPaid.toLocaleString()}</td>
+                        <td className="px-5 py-3.5 font-bold text-right text-rose-400 whitespace-nowrap">₹{p.outstanding.toLocaleString()}</td>
+                        <td className="px-5 py-3.5 font-bold text-center text-slate-300">{p.recoveryRate}%</td>
+                        <td className="px-5 py-3.5 text-center">
+                          <span className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider inline-block min-w-[90px] text-center ${statusColors[p.status]}`}>
+                            {p.status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

@@ -43,6 +43,10 @@ const panelSchema = new mongoose.Schema(
       required: [true, 'Please add opening balance'],
       default: 0,
     },
+    category: {
+      type: String,
+      default: 'Algo',
+    },
   },
   {
     timestamps: true,

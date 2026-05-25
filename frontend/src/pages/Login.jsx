@@ -8,11 +8,24 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [logo, setLogo] = useState('');
+  const [orgName, setOrgName] = useState('Panel Accounting');
 
   useEffect(() => {
     const token = getAuthToken();
     if (token) {
       navigate('/dashboard', { replace: true });
+    }
+
+    try {
+      const savedSettings = localStorage.getItem('app_system_settings');
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        if (parsed.logo) setLogo(parsed.logo);
+        if (parsed.orgName) setOrgName(parsed.orgName);
+      }
+    } catch (e) {
+      console.error('Failed to parse saved settings', e);
     }
   }, [navigate]);
 
@@ -57,13 +70,19 @@ export default function Login() {
         <div className="absolute -top-12 -left-12 h-36 w-36 rounded-full bg-indigo-600/30 blur-2xl"></div>
         <div className="absolute -bottom-12 -right-12 h-36 w-36 rounded-full bg-violet-600/30 blur-2xl"></div>
 
-        <div className="text-center mb-8 relative">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 text-white shadow-lg mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold tracking-tight text-white">Panel Accounting</h2>
+        <div className="text-center mb-8 relative flex flex-col items-center">
+          {logo ? (
+            <img src={logo} alt="Logo" className="h-20 max-w-full object-contain mb-4" />
+          ) : (
+            <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 text-white shadow-lg mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+          )}
+          {!logo && (
+            <h2 className="text-2xl font-bold tracking-tight text-white">{orgName}</h2>
+          )}
           <p className="text-sm text-slate-400 mt-1">Digitized ledger & software sales manager</p>
         </div>
 

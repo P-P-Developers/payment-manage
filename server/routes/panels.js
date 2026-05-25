@@ -98,6 +98,7 @@ router.post('/', protect, adminOnly, async (req, res) => {
     ipCharges,
     maintenanceCharges,
     openingBalance,
+    category,
   } = req.body;
 
   try {
@@ -115,6 +116,7 @@ router.post('/', protect, adminOnly, async (req, res) => {
       ipCharges: Number(ipCharges) || 0,
       maintenanceCharges: Number(maintenanceCharges) || 0,
       openingBalance: Number(openingBalance) || 0,
+      category: category || 'Algo',
     });
 
     // Create activity log
@@ -151,6 +153,7 @@ router.put('/:id', protect, adminOnly, async (req, res) => {
       'ipCharges',
       'maintenanceCharges',
       'openingBalance',
+      'category',
     ];
 
     keys.forEach((key) => {

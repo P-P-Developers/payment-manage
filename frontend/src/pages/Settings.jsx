@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiRequest } from '@/utils/api';
 import {
   Settings as SettingsIcon,
   Building2,
@@ -11,11 +12,30 @@ import {
   ShieldCheck,
   Upload,
   Trash2,
+  Layers,
+  Plus,
+  Edit2,
+  X,
+  Landmark,
 } from 'lucide-react';
 
 export default function Settings() {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+
+  // Categories CRUD States
+  const [categories, setCategories] = useState([]);
+  const [catName, setCatName] = useState('');
+  const [editCatId, setEditCatId] = useState(null);
+  const [editCatName, setEditCatName] = useState('');
+  const [loadingCats, setLoadingCats] = useState(false);
+
+  // Banks CRUD States
+  const [banks, setBanks] = useState([]);
+  const [bankNameInput, setBankNameInput] = useState('');
+  const [editBankId, setEditBankId] = useState(null);
+  const [editBankName, setEditBankName] = useState('');
+  const [loadingBanks, setLoadingBanks] = useState(false);
 
   // Settings State with default values
   const [orgName, setOrgName] = useState('Deepmind Infotech');
@@ -92,6 +112,165 @@ export default function Settings() {
     }
   }, []);
 
+  const fetchCategories = async () => {
+    setLoadingCats(true);
+    try {
+      const data = await apiRequest('/categories');
+      if (data.success) {
+        setCategories(data.categories);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to load categories');
+    } finally {
+      setLoadingCats(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSubTab === 'categories') {
+      fetchCategories();
+    }
+  }, [activeSubTab]);
+
+  const handleAddCategory = async (e) => {
+    e.preventDefault();
+    if (!catName || catName.trim() === '') return;
+    setSuccess('');
+    setError('');
+    
+    try {
+      const data = await apiRequest('/categories', {
+        method: 'POST',
+        body: JSON.stringify({ name: catName }),
+      });
+      if (data.success) {
+        setSuccess(`Category "${catName}" created successfully!`);
+        setCatName('');
+        fetchCategories();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to create category');
+    }
+  };
+
+  const handleEditCategory = async (catId) => {
+    if (!editCatName || editCatName.trim() === '') return;
+    setSuccess('');
+    setError('');
+
+    try {
+      const data = await apiRequest(`/categories/${catId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ name: editCatName }),
+      });
+      if (data.success) {
+        setSuccess('Category renamed successfully!');
+        setEditCatId(null);
+        setEditCatName('');
+        fetchCategories();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to rename category');
+    }
+  };
+
+  const handleDeleteCategory = async (catId, name) => {
+    setSuccess('');
+    setError('');
+
+    try {
+      const data = await apiRequest(`/categories/${catId}`, {
+        method: 'DELETE',
+      });
+      if (data.success) {
+        setSuccess(`Category "${name}" deleted successfully.`);
+        fetchCategories();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to delete category');
+    }
+  };
+
+  // Banks CRUD functions
+  const fetchBanks = async () => {
+    setLoadingBanks(true);
+    try {
+      const data = await apiRequest('/banks');
+      if (data.success) {
+        setBanks(data.banks);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to load banks');
+    } finally {
+      setLoadingBanks(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSubTab === 'banks') {
+      fetchBanks();
+    }
+  }, [activeSubTab]);
+
+  const handleAddBank = async (e) => {
+    e.preventDefault();
+    if (!bankNameInput || bankNameInput.trim() === '') return;
+    setSuccess('');
+    setError('');
+    
+    try {
+      const data = await apiRequest('/banks', {
+        method: 'POST',
+        body: JSON.stringify({ name: bankNameInput }),
+      });
+      if (data.success) {
+        setSuccess(`Bank "${bankNameInput}" added successfully!`);
+        setBankNameInput('');
+        fetchBanks();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to add bank');
+    }
+  };
+
+  const handleEditBank = async (bankId) => {
+    if (!editBankName || editBankName.trim() === '') return;
+    setSuccess('');
+    setError('');
+
+    try {
+      const data = await apiRequest(`/banks/${bankId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ name: editBankName }),
+      });
+      if (data.success) {
+        setSuccess('Bank renamed successfully!');
+        setEditBankId(null);
+        setEditBankName('');
+        fetchBanks();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to rename bank');
+    }
+  };
+
+  const handleDeleteBank = async (bankId, name) => {
+    setSuccess('');
+    setError('');
+
+    try {
+      const data = await apiRequest(`/banks/${bankId}`, {
+        method: 'DELETE',
+      });
+      if (data.success) {
+        setSuccess(`Bank "${name}" deleted successfully.`);
+        fetchBanks();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to delete bank');
+    }
+  };
+
   const handleSaveSettings = (e) => {
     e.preventDefault();
     setSuccess('');
@@ -115,6 +294,19 @@ export default function Settings() {
       };
 
       localStorage.setItem('app_system_settings', JSON.stringify(settingsPayload));
+      
+      if (logo) {
+        let link = document.querySelector("link[rel~='icon']");
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.head.appendChild(link);
+        }
+        link.href = logo;
+      }
+
+      window.dispatchEvent(new Event('settingsUpdated'));
+
       setSuccess('System configurations and parameters saved successfully!');
       setTimeout(() => setSuccess(''), 4000);
     } catch (err) {
@@ -185,9 +377,36 @@ export default function Settings() {
                 ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
                 : 'text-slate-400 border-transparent hover:bg-slate-900 hover:text-white'
             }`}
+            type="button"
           >
             {autoReminder || smsAlerts ? <ToggleRight className="h-4.5 w-4.5 text-indigo-400" /> : <ToggleLeft className="h-4.5 w-4.5" />}
             <span>Feature Toggles</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('categories')}
+            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${
+              activeSubTab === 'categories'
+                ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+                : 'text-slate-400 border-transparent hover:bg-slate-900 hover:text-white'
+            }`}
+            type="button"
+          >
+            <Layers className="h-4.5 w-4.5" />
+            <span>Manage Categories</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('banks')}
+            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${
+              activeSubTab === 'banks'
+                ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+                : 'text-slate-400 border-transparent hover:bg-slate-900 hover:text-white'
+            }`}
+            type="button"
+          >
+            <Landmark className="h-4.5 w-4.5" />
+            <span>Manage Banks</span>
           </button>
 
           <div className="p-4 bg-slate-900/40 rounded-xl border border-slate-800 text-xs text-slate-500 mt-6">
@@ -445,16 +664,276 @@ export default function Settings() {
             </div>
           )}
 
+          {/* CATEGORIES SUBTAB */}
+          {activeSubTab === 'categories' && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <div className="border-b border-slate-800 pb-3">
+                <h3 className="text-base font-bold text-white">Manage Client Panel Categories</h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Add, edit, or delete categories used to classify software panel clients.
+                </p>
+              </div>
+
+              {/* Add Category Form */}
+              <div className="bg-slate-950/40 border border-slate-900/60 p-5 rounded-2xl space-y-4">
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Create New Category</h4>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1 relative">
+                    <Layers className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-500" />
+                    <input
+                      type="text"
+                      value={catName}
+                      onChange={(e) => setCatName(e.target.value)}
+                      placeholder="E.g., Forex, Binary, Crypto..."
+                      className="w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    />
+                  </div>
+                  <button
+                    onClick={handleAddCategory}
+                    type="button"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-3 text-sm transition-all shadow-md shrink-0"
+                  >
+                    <Plus className="h-4.5 w-4.5" />
+                    <span>Add Category</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Categories list */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active System Categories</h4>
+                
+                {loadingCats ? (
+                  <div className="flex items-center justify-center py-10">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></div>
+                  </div>
+                ) : categories.length === 0 ? (
+                  <div className="text-center py-10 bg-slate-950/20 border border-slate-800/50 rounded-2xl text-slate-500 text-sm">
+                    No categories registered. Click above to add!
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {categories.map((cat) => (
+                      <div
+                        key={cat._id}
+                        className="flex items-center justify-between bg-slate-950/30 border border-slate-900/60 p-4 rounded-xl hover:border-slate-800 transition-colors"
+                      >
+                        {editCatId === cat._id ? (
+                          <div className="flex items-center gap-2 w-full">
+                            <input
+                              type="text"
+                              value={editCatName}
+                              onChange={(e) => setEditCatName(e.target.value)}
+                              className="flex-1 rounded-lg px-3 py-2 text-xs glass-input focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                              placeholder="New name..."
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleEditCategory(cat._id)}
+                              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditCatId(null);
+                                setEditCatName('');
+                              }}
+                              className="p-2 bg-slate-850 hover:bg-slate-750 text-slate-400 rounded-lg transition-all"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2.5">
+                              <span className={`h-2.5 w-2.5 rounded-full ${
+                                cat.name === 'Algo'
+                                  ? 'bg-indigo-500'
+                                  : cat.name === 'Sop'
+                                    ? 'bg-emerald-500'
+                                    : cat.name === 'crypto' || cat.name === 'Crypto'
+                                      ? 'bg-amber-500'
+                                      : 'bg-indigo-500/80'
+                              }`}></span>
+                              <span className="font-bold text-white text-sm">{cat.name}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditCatId(cat._id);
+                                  setEditCatName(cat.name);
+                                }}
+                                className="h-8 w-8 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center border border-slate-800/80 transition-colors"
+                                title="Rename Category"
+                              >
+                                <Edit2 className="h-3.5 w-3.5" />
+                              </button>
+                              
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm(`Are you sure you want to delete category "${cat.name}"?`)) {
+                                    handleDeleteCategory(cat._id, cat.name);
+                                  }
+                                }}
+                                className="h-8 w-8 rounded-lg bg-slate-900/60 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 flex items-center justify-center border border-slate-800/80 transition-colors"
+                                title="Delete Category"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* BANKS SUBTAB */}
+          {activeSubTab === 'banks' && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <div className="border-b border-slate-800 pb-3">
+                <h3 className="text-base font-bold text-white">Manage System Bank Accounts</h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Add, edit, or delete bank options used to select receiving banks when collecting subscription payments.
+                </p>
+              </div>
+
+              {/* Add Bank Form */}
+              <div className="bg-slate-950/40 border border-slate-900/60 p-5 rounded-2xl space-y-4">
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Add New Receiving Bank</h4>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1 relative">
+                    <Landmark className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-500" />
+                    <input
+                      type="text"
+                      value={bankNameInput}
+                      onChange={(e) => setBankNameInput(e.target.value)}
+                      placeholder="E.g., Union Bank, State Bank of India, Axis Bank..."
+                      className="w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    />
+                  </div>
+                  <button
+                    onClick={handleAddBank}
+                    type="button"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-3 text-sm transition-all shadow-md shrink-0"
+                  >
+                    <Plus className="h-4.5 w-4.5" />
+                    <span>Add Bank</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Banks list */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active System Banks</h4>
+                
+                {loadingBanks ? (
+                  <div className="flex items-center justify-center py-10">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></div>
+                  </div>
+                ) : banks.length === 0 ? (
+                  <div className="text-center py-10 bg-slate-950/20 border border-slate-800/50 rounded-2xl text-slate-500 text-sm">
+                    No banks registered. Add a receiving bank above!
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {banks.map((b) => (
+                      <div
+                        key={b._id}
+                        className="flex items-center justify-between bg-slate-950/30 border border-slate-900/60 p-4 rounded-xl hover:border-slate-800 transition-colors"
+                      >
+                        {editBankId === b._id ? (
+                          <div className="flex items-center gap-2 w-full">
+                            <input
+                              type="text"
+                              value={editBankName}
+                              onChange={(e) => setEditBankName(e.target.value)}
+                              className="flex-1 rounded-lg px-3 py-2 text-xs glass-input focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                              placeholder="New name..."
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleEditBank(b._id)}
+                              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditBankId(null);
+                                setEditBankName('');
+                              }}
+                              className="p-2 bg-slate-850 hover:bg-slate-750 text-slate-400 rounded-lg transition-all"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2.5">
+                              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                              <span className="font-bold text-white text-sm">{b.name}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditBankId(b._id);
+                                  setEditBankName(b.name);
+                                }}
+                                className="h-8 w-8 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center border border-slate-800/80 transition-colors"
+                                title="Rename Bank"
+                              >
+                                <Edit2 className="h-3.5 w-3.5" />
+                              </button>
+                              
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm(`Are you sure you want to delete bank "${b.name}"?`)) {
+                                    handleDeleteBank(b._id, b.name);
+                                  }
+                                }}
+                                className="h-8 w-8 rounded-lg bg-slate-900/60 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 flex items-center justify-center border border-slate-800/80 transition-colors"
+                                title="Delete Bank"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Form Actions Footer */}
-          <div className="flex justify-end pt-4 border-t border-slate-800">
-            <button
-              type="submit"
-              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 text-white font-bold px-6 py-3 text-sm transition-all shadow-lg shadow-indigo-600/10"
-            >
-              <Save className="h-4.5 w-4.5" />
-              <span>Save Changes</span>
-            </button>
-          </div>
+          {activeSubTab !== 'categories' && activeSubTab !== 'banks' && (
+            <div className="flex justify-end pt-4 border-t border-slate-800">
+              <button
+                type="submit"
+                className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 text-white font-bold px-6 py-3 text-sm transition-all shadow-lg shadow-indigo-600/10"
+              >
+                <Save className="h-4.5 w-4.5" />
+                <span>Save Changes</span>
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>

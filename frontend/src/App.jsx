@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import DashboardLayout from './pages/DashboardLayout';
@@ -11,6 +12,26 @@ import SmtpSettings from './pages/SmtpSettings';
 import Settings from './pages/Settings';
 
 export default function App() {
+  useEffect(() => {
+    try {
+      const savedSettings = localStorage.getItem('app_system_settings');
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        if (parsed.logo) {
+          let link = document.querySelector("link[rel~='icon']");
+          if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
+          }
+          link.href = parsed.logo;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse settings for favicon', e);
+    }
+  }, []);
+
   return (
     <Router>
       <Routes>

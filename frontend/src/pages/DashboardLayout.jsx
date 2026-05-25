@@ -26,6 +26,8 @@ export default function DashboardLayout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [logo, setLogo] = useState('');
+  const [orgName, setOrgName] = useState('DEEP MIND');
 
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -92,6 +94,23 @@ export default function DashboardLayout() {
       setUser(loggedUser);
       setLoading(false);
     }
+
+    const loadSettings = () => {
+      try {
+        const savedSettings = localStorage.getItem('app_system_settings');
+        if (savedSettings) {
+          const parsed = JSON.parse(savedSettings);
+          if (parsed.logo) setLogo(parsed.logo);
+          if (parsed.orgName) setOrgName(parsed.orgName);
+        }
+      } catch (e) {
+        console.error('Failed to parse saved settings', e);
+      }
+    };
+    
+    loadSettings();
+    window.addEventListener('settingsUpdated', loadSettings);
+    return () => window.removeEventListener('settingsUpdated', loadSettings);
   }, [navigate]);
 
   const handleLogout = () => {
@@ -152,13 +171,19 @@ export default function DashboardLayout() {
         <div className={`h-16 flex items-center border-b border-slate-800 transition-all duration-300 ${isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-6'
           }`}>
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold shadow-md shrink-0">
-              D
-            </div>
-            {!isSidebarCollapsed && (
-              <span className="font-bold text-lg tracking-wider bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent animate-fadeIn">
-                DEEP MIND
-              </span>
+            {logo ? (
+              <img src={logo} alt="Logo" className={`object-contain shrink-0 ${isSidebarCollapsed ? 'h-8 w-8' : 'h-10 max-w-full'}`} />
+            ) : (
+              <>
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold shadow-md shrink-0">
+                  {orgName ? orgName.substring(0, 1).toUpperCase() : 'D'}
+                </div>
+                {!isSidebarCollapsed && (
+                  <span className="font-bold text-lg tracking-wider bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent animate-fadeIn truncate max-w-[140px]" title={orgName}>
+                    {orgName || 'DEEP MIND'}
+                  </span>
+                )}
+              </>
             )}
           </div>
           {!isSidebarCollapsed && (
@@ -305,7 +330,7 @@ export default function DashboardLayout() {
         </header>
 
         {/* WORKSPACE AREA */}
-        <main className="p-6 md:p-8 max-w-7xl w-full mx-auto flex-1">
+        <main className="p-6 md:p-8 w-full flex-1">
           <Outlet />
         </main>
       </div>
@@ -327,10 +352,18 @@ export default function DashboardLayout() {
             </button>
 
             <div className="flex items-center gap-2 mb-8">
-              <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">
-                P
-              </div>
-              <span className="font-bold text-lg tracking-wider text-white">PANEL ACCT</span>
+              {logo ? (
+                <img src={logo} alt="Logo" className="h-12 max-w-full object-contain shrink-0" />
+              ) : (
+                <>
+                  <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold shrink-0">
+                    {orgName ? orgName.substring(0, 1).toUpperCase() : 'P'}
+                  </div>
+                  <span className="font-bold text-lg tracking-wider text-white truncate" title={orgName}>
+                    {orgName || 'PANEL ACCT'}
+                  </span>
+                </>
+              )}
             </div>
 
             <nav className="flex-1 space-y-2">

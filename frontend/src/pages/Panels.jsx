@@ -66,6 +66,10 @@ export default function Panels() {
   const [success, setSuccess] = useState('');
   const [user, setUser] = useState(null);
 
+  // Categories State
+  const [categories, setCategories] = useState([]);
+  const [category, setCategory] = useState('Algo');
+
   // Search Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [balanceFilter, setBalanceFilter] = useState('All'); // 'All', 'Outstanding', 'Advance'
@@ -103,8 +107,20 @@ export default function Panels() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const data = await apiRequest('/categories');
+      if (data.success) {
+        setCategories(data.categories);
+      }
+    } catch (err) {
+      console.error('Failed to fetch categories list:', err);
+    }
+  };
+
   useEffect(() => {
     fetchPanels();
+    fetchCategories();
     setUser(getLoggedUser());
   }, []);
 
@@ -116,6 +132,7 @@ export default function Panels() {
     setOwnerName('');
     setOwnerEmail('');
     setPhoneNumber('');
+    setCategory('Algo');
 
     // Load Billing Defaults from system settings
     let defaultL = 0;
@@ -149,6 +166,7 @@ export default function Panels() {
     setOwnerName(panel.ownerName);
     setOwnerEmail(panel.ownerEmail);
     setPhoneNumber(panel.phoneNumber);
+    setCategory(panel.category || 'Algo');
     setLicenseCharges(panel.licenseCharges);
     setIpCharges(panel.ipCharges);
     setMaintenanceCharges(panel.maintenanceCharges);
@@ -208,6 +226,7 @@ export default function Panels() {
         ownerName,
         ownerEmail,
         phoneNumber,
+        category,
         licenseCharges: Number(licenseCharges),
         ipCharges: Number(ipCharges),
         maintenanceCharges: Number(maintenanceCharges),
@@ -409,8 +428,21 @@ export default function Panels() {
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <p className="font-bold text-white text-base">{panel.panelName}</p>
-                        <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                        <div className="flex items-center gap-2.5">
+                          <p className="font-bold text-white text-base">{panel.panelName}</p>
+                          <span className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
+                            panel.category === 'Algo'
+                              ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                              : panel.category === 'Sop'
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                : panel.category === 'crypto' || panel.category === 'Crypto'
+                                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                  : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                          }`}>
+                            {panel.category || 'Algo'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
                           <UserIcon className="h-3 w-3" /> {panel.ownerName}
                         </p>
                         <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
@@ -591,6 +623,30 @@ export default function Panels() {
                     />
                   </div>
                   {formErrors.phoneNumber && <p className="text-xs text-rose-400 mt-1 font-medium">{formErrors.phoneNumber}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                    Panel Category
+                  </label>
+                  <div className="relative">
+                    <Layers className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input focus:outline-none appearance-none cursor-pointer"
+                    >
+                      {categories.length === 0 ? (
+                        <option value="Algo">Algo</option>
+                      ) : (
+                        categories.map((cat) => (
+                          <option key={cat._id} value={cat.name} className="bg-slate-950 text-white">
+                            {cat.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
                 </div>
               </div>
 

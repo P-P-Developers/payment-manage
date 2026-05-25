@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import ReceiptModal from '@/components/ReceiptModal';
 
-const BANK_LIST = [
+const FALLBACK_BANK_LIST = [
   'Union Bank',
   'Indian Bank'
 ];
@@ -113,6 +113,22 @@ const SkeletonSpreadsheetRow = () => (
 
 export default function Payments() {
   const [payments, setPayments] = useState([]);
+  const [banks, setBanks] = useState(FALLBACK_BANK_LIST);
+
+  const fetchBanks = async () => {
+    try {
+      const data = await apiRequest('/banks');
+      if (data.success) {
+        setBanks(data.banks.map(b => b.name));
+      }
+    } catch (err) {
+      console.error('Failed to load banks list:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchBanks();
+  }, []);
   const [panels, setPanels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -1751,7 +1767,7 @@ export default function Payments() {
                     required
                   >
                     <option value="" className="bg-slate-900 text-white" >-- Select Receiving Bank --</option>
-                    {BANK_LIST.map((bank) => (
+                    {banks.map((bank) => (
                       <option key={bank} value={bank} className="bg-slate-900 text-white">
                         {bank}
                       </option>
@@ -2177,7 +2193,7 @@ export default function Payments() {
                         className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-semibold"
                       >
                         <option value="">N/A (Cash / None)</option>
-                        {BANK_LIST.map((bank) => (
+                        {banks.map((bank) => (
                           <option key={bank} value={bank}>{bank}</option>
                         ))}
                       </select>
