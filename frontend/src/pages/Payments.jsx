@@ -251,6 +251,16 @@ export default function Payments() {
     }
   }, [panels, searchParams, setSearchParams]);
 
+  useEffect(() => {
+    const transactionTypeParam = searchParams.get('transactionType');
+    const typeParam = searchParams.get('type');
+    const modeParam = searchParams.get('mode');
+    
+    setTransactionTypeFilter(transactionTypeParam !== null ? transactionTypeParam : 'all');
+    setTypeFilter(typeParam !== null ? typeParam : 'All');
+    setModeFilter(modeParam !== null ? modeParam : 'All');
+  }, [searchParams]);
+
   // Form Fields
   const [selectedPanelId, setSelectedPanelId] = useState('');
   const [paymentType, setPaymentType] = useState('License');

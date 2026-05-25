@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { apiRequest } from '@/utils/api';
 import {
   TrendingUp,
@@ -280,7 +281,7 @@ export default function DashboardHome() {
     const panelStats = Object.values(map).map((panel) => {
       const rate = panel.totalBilled > 0 ? Math.round((panel.totalPaid / panel.totalBilled) * 100) : 0;
       const outstanding = panel.totalBilled - panel.totalPaid;
-      
+
       let status = 'Critically Inactive';
       if (panel.totalBilled > 0 || panel.totalPaid > 0) {
         if (rate >= 90) {
@@ -291,7 +292,7 @@ export default function DashboardHome() {
           status = 'Needs Attention';
         }
       }
-      
+
       return {
         ...panel,
         recoveryRate: rate,
@@ -299,7 +300,7 @@ export default function DashboardHome() {
         status,
       };
     });
-    
+
     const recRate = totalBilled > 0 ? Math.round((totalPaid / totalBilled) * 100) : 0;
     const netBal = totalBilled - totalPaid;
 
@@ -503,48 +504,54 @@ export default function DashboardHome() {
 
   const cards = [
     {
-      title: 'Sales Invoiced (Billed)',
+      title: 'Total Sales',
       value: `₹${totalBilledAmount.toLocaleString()}`,
       desc: `${totalBillsCount} Bills Generated`,
       icon: FileSpreadsheet,
       color: 'from-indigo-500/20 to-blue-500/10 text-indigo-400 border-indigo-500/30',
+      link: '/dashboard/payments?transactionType=bill',
     },
     {
-      title: 'Revenue Collected',
+      title: 'Total Revenue',
       value: `₹${totalPaymentsReceived.toLocaleString()}`,
       desc: `Recovery Rate: ${recoveryRate}%`,
       icon: CircleDollarSign,
       color: 'from-emerald-500/20 to-teal-500/10 text-emerald-400 border-emerald-500/30',
+      link: '/dashboard/payments?transactionType=received',
     },
     {
-      title: 'Cash Collections',
+      title: 'Total Cash Collections',
       value: `₹${cashCollections.toLocaleString()}`,
       desc: `Online/UPI: ₹${onlineCollections.toLocaleString()}`,
       icon: Wallet,
       color: 'from-amber-500/20 to-lime-500/10 text-amber-400 border-amber-500/30',
+      link: '/dashboard/payments?mode=Cash',
     },
     {
-      title: 'SaaS License Sales',
+      title: 'License Bills',
       value: `₹${licensePayments.toLocaleString()}`,
       desc: `${licenseQtyTotal} Licenses Issued`,
       icon: Layers,
       color: 'from-cyan-500/20 to-blue-500/10 text-cyan-400 border-cyan-500/30',
+      link: '/dashboard/payments?type=License',
     },
     {
-      title: 'SLA Maintenance',
+      title: 'Maintenance Bills',
       value: `₹${maintenancePayments.toLocaleString()}`,
-      desc: 'Annual Support SLA fees',
+      desc: 'Annual Support',
       icon: Wrench,
       color: 'from-amber-500/20 to-orange-500/10 text-amber-400 border-amber-500/30',
+      link: '/dashboard/payments?type=Maintenance',
     },
     {
-      title: filterType === 'all' ? 'Cumulative Outstanding' : 'Period Net Outstanding',
+      title: filterType === 'all' ? 'Remaining Bills' : 'Period Remaining Bills',
       value: `₹${outstandingBalance.toLocaleString()}`,
       desc: filterType === 'all' ? 'Ledger opening + new billing' : 'Billed minus collected',
       icon: Landmark,
       color: outstandingBalance > 0
         ? 'from-rose-500/20 to-red-500/10 text-rose-400 border-rose-500/30'
         : 'from-emerald-500/20 to-teal-500/10 text-emerald-400 border-emerald-500/30',
+      link: '/dashboard/panels?balance=Outstanding',
     },
   ];
 
@@ -580,8 +587,8 @@ export default function DashboardHome() {
                 key={t.id}
                 onClick={() => setFilterType(t.id)}
                 className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${filterType === t.id
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-slate-400 hover:text-white'
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white'
                   }`}
               >
                 {t.label}
@@ -631,19 +638,20 @@ export default function DashboardHome() {
         {cards.map((card, i) => {
           const Icon = card.icon;
           return (
-            <div
+            <Link
               key={i}
-              className={`rounded-2xl bg-gradient-to-br ${card.color} border p-6 flex items-start justify-between shadow-lg relative overflow-hidden group hover:-translate-y-1 transition-all duration-300`}
+              to={card.link}
+              className={`rounded-2xl bg-gradient-to-br ${card.color} border p-6 flex items-start justify-between shadow-lg relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 cursor-pointer`}
             >
               <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{card.title}</p>
+                <p className="text-xl font-semibold tracking-wider text-slate-100">{card.title}</p>
                 <p className="text-2xl font-bold text-white tracking-tight">{card.value}</p>
-                <p className="text-xs text-slate-400">{card.desc}</p>
+                <p className="text-xl text-slate-400">{card.desc}</p>
               </div>
               <div className="h-12 w-12 rounded-xl bg-slate-900/60 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-300 border border-slate-800/80">
                 <Icon className="h-6 w-6" />
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
@@ -796,7 +804,7 @@ export default function DashboardHome() {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center gap-4 bg-slate-900/50 border border-slate-800/80 p-4 rounded-xl hover:border-slate-700 transition-colors">
+            <Link to="/dashboard/panels" className="flex items-center gap-4 bg-slate-900/50 border border-slate-800/80 p-4 rounded-xl hover:border-slate-700 transition-colors cursor-pointer">
               <div className="h-10 w-10 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
                 <Layers className="h-5 w-5" />
               </div>
@@ -804,9 +812,9 @@ export default function DashboardHome() {
                 <p className="text-xs text-slate-400 font-semibold uppercase">Total Registered Panels</p>
                 <p className="text-lg font-bold text-white mt-0.5">{stats?.counts?.totalPanels || 0} Clients</p>
               </div>
-            </div>
+            </Link>
 
-            <div className="flex items-center gap-4 bg-slate-900/50 border border-slate-800/80 p-4 rounded-xl hover:border-slate-700 transition-colors">
+            <Link to="/dashboard/payments" className="flex items-center gap-4 bg-slate-900/50 border border-slate-800/80 p-4 rounded-xl hover:border-slate-700 transition-colors cursor-pointer">
               <div className="h-10 w-10 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
                 <FileSpreadsheet className="h-5 w-5" />
               </div>
@@ -814,7 +822,7 @@ export default function DashboardHome() {
                 <p className="text-xs text-slate-400 font-semibold uppercase">Active Transactions</p>
                 <p className="text-lg font-bold text-white mt-0.5">{filteredPayments.length} Actions</p>
               </div>
-            </div>
+            </Link>
 
             <div className="pt-4 border-t border-slate-800/80 space-y-3">
               <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Payments Mode Distribution</p>
@@ -909,7 +917,9 @@ export default function DashboardHome() {
                 return (
                   <div key={item._id} className="space-y-1.5">
                     <div className="flex justify-between text-xs font-semibold">
-                      <span className="text-slate-300 truncate max-w-[120px]">{idx + 1}. {item.panelName}</span>
+                      <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[120px] cursor-pointer">
+                        {idx + 1}. {item.panelName}
+                      </Link>
                       <span className="text-emerald-400 font-bold">₹{item.totalPaid.toLocaleString()}</span>
                     </div>
                     <div className="w-full bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-800">
@@ -948,7 +958,9 @@ export default function DashboardHome() {
                 return (
                   <div key={item._id} className="space-y-1.5">
                     <div className="flex justify-between text-xs font-semibold">
-                      <span className="text-slate-300 truncate max-w-[120px]">{idx + 1}. {item.panelName}</span>
+                      <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[120px] cursor-pointer">
+                        {idx + 1}. {item.panelName}
+                      </Link>
                       <span className="text-indigo-400 font-bold">₹{item.totalBilled.toLocaleString()}</span>
                     </div>
                     <div className="w-full bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-800">
@@ -988,7 +1000,9 @@ export default function DashboardHome() {
                 return (
                   <div key={item._id} className="space-y-1.5">
                     <div className="flex justify-between text-xs font-semibold col-span-2">
-                      <span className="text-slate-300 truncate max-w-[110px]">{idx + 1}. {item.panelName}</span>
+                      <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[110px] cursor-pointer">
+                        {idx + 1}. {item.panelName}
+                      </Link>
                       <span className="text-cyan-400 font-bold">{item.licenseQty} Qty <span className="text-[10px] text-slate-400 font-normal">(₹{(item.licenseBilled || item.licensePaid).toLocaleString()})</span></span>
                     </div>
                     <div className="w-full bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-800">
@@ -1028,7 +1042,9 @@ export default function DashboardHome() {
                 return (
                   <div key={item._id} className="space-y-1.5">
                     <div className="flex justify-between text-xs font-semibold">
-                      <span className="text-slate-300 truncate max-w-[120px]">{idx + 1}. {item.panelName}</span>
+                      <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[120px] cursor-pointer">
+                        {idx + 1}. {item.panelName}
+                      </Link>
                       <span className="text-amber-400 font-bold">₹{(item.maintenanceBilled || item.maintenancePaid).toLocaleString()}</span>
                     </div>
                     <div className="w-full bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-800">
@@ -1047,7 +1063,7 @@ export default function DashboardHome() {
 
       {/* Stacked Full-Width Section for Performance Alerts & Client Performance Grid Table */}
       <div className="space-y-8 pt-4 border-t border-slate-800/60">
-        
+
         {/* Row 1: Worst Performing Clients Alerts (Full-Width Card with 3-Column horizontal grid) */}
         {worstPerforming.length > 0 && (
           <div className="rounded-2xl bg-rose-500/5 border border-rose-500/10 p-6 shadow-xl space-y-4">
@@ -1071,8 +1087,12 @@ export default function DashboardHome() {
                 <div key={item._id} className="bg-slate-950/60 border border-slate-900/80 p-5 md:p-6 rounded-xl hover:border-slate-800 transition-all duration-300 relative overflow-hidden group hover:-translate-y-0.5">
                   <div className="flex justify-between items-start gap-2">
                     <div>
-                      <span className="text-slate-200 font-bold text-sm block truncate max-w-[190px]">{idx + 1}. {item.panelName}</span>
-                      <span className="text-[10px] text-slate-500 mt-0.5 block font-semibold uppercase">{item.category} Category</span>
+                      <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-200 hover:text-indigo-400 font-bold text-sm block truncate max-w-[190px] cursor-pointer">
+                        {idx + 1}. {item.panelName}
+                      </Link>
+                      <Link to={`/dashboard/panels?category=${encodeURIComponent(item.category || 'Algo')}`} className="text-[10px] text-slate-500 hover:text-indigo-400 mt-0.5 block font-semibold uppercase cursor-pointer">
+                        {item.category || 'Algo'} Category
+                      </Link>
                     </div>
                     <span className="text-[9px] font-bold px-2 py-0.5 rounded uppercase bg-rose-500/10 border border-rose-500/20 text-rose-400 shrink-0">
                       {item.totalBilled > 0 ? `Recovery: ${item.recoveryRate}%` : 'Outstanding'}
@@ -1203,11 +1223,17 @@ export default function DashboardHome() {
                     return (
                       <tr key={p._id} className="hover:bg-slate-900/20 transition-colors">
                         <td className="px-4 py-3.5 text-center font-bold text-slate-500 w-14">{idx + 1}</td>
-                        <td className="px-5 py-3.5 font-bold text-slate-200 whitespace-nowrap">{p.panelName}</td>
+                        <td className="px-5 py-3.5 font-bold text-slate-200 whitespace-nowrap">
+                          <Link to={`/dashboard/panels?search=${encodeURIComponent(p.panelName)}`} className="hover:text-indigo-400 transition-colors cursor-pointer">
+                            {p.panelName}
+                          </Link>
+                        </td>
                         <td className="px-5 py-3.5">
-                          <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${categoryColors[p.category] || 'bg-slate-500/10 text-slate-400 border border-slate-500/20'}`}>
-                            {p.category}
-                          </span>
+                          <Link to={`/dashboard/panels?category=${encodeURIComponent(p.category || 'Algo')}`} className="cursor-pointer">
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${categoryColors[p.category || 'Algo'] || 'bg-slate-500/10 text-slate-400 border border-slate-500/20'}`}>
+                              {p.category || 'Algo'}
+                            </span>
+                          </Link>
                         </td>
                         <td className="px-5 py-3.5 font-semibold text-right text-slate-300 whitespace-nowrap">₹{p.totalBilled.toLocaleString()}</td>
                         <td className="px-5 py-3.5 font-bold text-right text-emerald-400 whitespace-nowrap">₹{p.totalPaid.toLocaleString()}</td>

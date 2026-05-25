@@ -3,12 +3,16 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const User = require('./models/User');
+const cronScheduler = require('./cron/cronScheduler');
 
 // Load environment variables
 dotenv.config();
 
 // Connect to Database
 connectDB();
+
+// Initialize scheduled cron jobs
+cronScheduler.init();
 
 const app = express();
 

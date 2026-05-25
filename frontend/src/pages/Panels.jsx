@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { apiRequest, getLoggedUser } from '@/utils/api';
 import ConfirmModal from '@/components/ConfirmModal';
 import {
@@ -60,6 +60,7 @@ const SkeletonRow = () => (
 );
 
 export default function Panels() {
+  const location = useLocation();
   const [panels, setPanels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -73,6 +74,7 @@ export default function Panels() {
   // Search Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [balanceFilter, setBalanceFilter] = useState('All'); // 'All', 'Outstanding', 'Advance'
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('All');
   const [sortBy, setSortBy] = useState('latest'); // 'latest', 'name-asc', 'name-desc', 'balance-desc', 'balance-asc'
 
   // Modal State
@@ -123,6 +125,17 @@ export default function Panels() {
     fetchCategories();
     setUser(getLoggedUser());
   }, []);
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const searchParam = queryParams.get('search');
+    const categoryParam = queryParams.get('category');
+    const balanceParam = queryParams.get('balance');
+    
+    setSearchQuery(searchParam !== null ? searchParam : '');
+    setSelectedCategoryFilter(categoryParam !== null ? categoryParam : 'All');
+    setBalanceFilter(balanceParam !== null ? balanceParam : 'All');
+  }, [location.search]);
 
   const handleOpenAddModal = () => {
     setError('');
@@ -295,7 +308,11 @@ export default function Panels() {
         (balanceFilter === 'Outstanding' && p.outstanding > 0) ||
         (balanceFilter === 'Advance' && p.outstanding <= 0);
 
-      return matchesSearch && matchesBalance;
+      const matchesCategory =
+        selectedCategoryFilter === 'All' ||
+        (p.category || 'Algo').toLowerCase() === selectedCategoryFilter.toLowerCase();
+
+      return matchesSearch && matchesBalance && matchesCategory;
     })
     .sort((a, b) => {
       if (sortBy === 'name-asc') {
@@ -366,6 +383,23 @@ export default function Panels() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          {/* Category Filter */}
+          <div className="flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-xs text-slate-300 shadow-sm shrink-0">
+            <span className="font-bold text-slate-500 uppercase tracking-wide">Category:</span>
+            <select
+              value={selectedCategoryFilter}
+              onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+              className="bg-transparent border-none text-white focus:ring-0 font-semibold cursor-pointer outline-none"
+            >
+              <option value="All" className="bg-slate-900">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat._id} value={cat.name} className="bg-slate-900">
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Balance Status Filter */}
           <div className="flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-xs text-slate-300 shadow-sm shrink-0">
             <span className="font-bold text-slate-500 uppercase tracking-wide">Status:</span>
