@@ -37,6 +37,14 @@ const paymentSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    billDiscount: {
+      type: Number,
+      default: 0,
+    },
+    paymentDiscount: {
+      type: Number,
+      default: 0,
+    },
     remark: {
       type: String,
       default: '',

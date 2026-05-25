@@ -367,17 +367,36 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
                     </div>
                   )}
 
+                  {payment.billDiscount > 0 && (
+                    <div className="flex justify-between text-orange-650 font-semibold">
+                      <span>Bill Discount:</span>
+                      <span className="font-bold text-orange-600">-₹{payment.billDiscount.toLocaleString()}</span>
+                    </div>
+                  )}
+
                   <div className="flex justify-between font-extrabold text-sm text-slate-900 border-t border-slate-200/60 pt-2.5">
                     <span>Amount Paid:</span>
                     <span className="text-emerald-600 text-base">₹{payment.amountReceived.toLocaleString()}</span>
                   </div>
 
+                  {payment.paymentDiscount > 0 && (
+                    <div className="flex justify-between text-rose-650 font-semibold">
+                      <span>Payment Discount:</span>
+                      <span className="font-bold text-rose-600">-₹{payment.paymentDiscount.toLocaleString()}</span>
+                    </div>
+                  )}
+
                   {payment.billAmount > 0 && (
                     <div className="flex justify-between border-t border-slate-200/60 pt-2.5 text-xs">
                       <span className="text-slate-500 font-semibold">Balance Due:</span>
-                      <span className={`font-extrabold ${payment.billAmount - payment.amountReceived > 0 ? 'text-rose-600 animate-pulse' : 'text-slate-400'}`}>
-                        ₹{(payment.billAmount - payment.amountReceived).toLocaleString()}
-                      </span>
+                      {(() => {
+                        const due = (payment.billAmount - (payment.billDiscount || 0)) - (payment.amountReceived + (payment.paymentDiscount || 0));
+                        return (
+                          <span className={`font-extrabold ${due > 0 ? 'text-rose-600' : 'text-slate-400'}`}>
+                            ₹{due.toLocaleString()}
+                          </span>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>

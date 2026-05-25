@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { apiRequest } from '@/utils/api';
+import { apiRequest, getLoggedUser } from '@/utils/api';
 import {
   CircleDollarSign,
   Plus,
@@ -275,6 +275,16 @@ export default function Payments() {
   // Dual Option States
   const [modalMode, setModalMode] = useState('receive'); // 'receive' or 'bill'
   const [billAmountInput, setBillAmountInput] = useState('');
+  const [billDiscount, setBillDiscount] = useState('');
+  const [paymentDiscount, setPaymentDiscount] = useState('');
+  const [userRole, setUserRole] = useState('Staff');
+
+  useEffect(() => {
+    const user = getLoggedUser();
+    if (user && user.role) {
+      setUserRole(user.role);
+    }
+  }, []);
 
   useEffect(() => {
     if (selectedPanelId) {
@@ -340,6 +350,8 @@ export default function Payments() {
     setQuantity(0);
     setUnitPrice(0);
     setBillAmountInput('');
+    setBillDiscount('');
+    setPaymentDiscount('');
     setRemark('');
     setPaymentDate(getTodayDateString());
     setIsModalOpen(true);
@@ -450,7 +462,9 @@ export default function Payments() {
         quantity: p.quantity,
         unitPrice: p.unitPrice,
         billAmount: p.billAmount || 0,
+        billDiscount: p.billDiscount || 0,
         amountReceived: p.amountReceived || 0,
+        paymentDiscount: p.paymentDiscount || 0,
         remark: p.remark || '-',
         addedBy: p.addedBy?.name || 'Staff User',
         hasData: true,
@@ -470,6 +484,8 @@ export default function Payments() {
     setQuantity(1);
     setUnitPrice(0);
     setBillAmountInput('');
+    setBillDiscount('');
+    setPaymentDiscount('');
     setRemark('');
     setPaymentDate(getTodayDateString());
     setIsModalOpen(true);
@@ -533,6 +549,33 @@ export default function Payments() {
         }
       }
 
+      // Validations for discounts
+      const finalBillDiscount = modalMode === 'bill' ? (billDiscount === '' ? 0 : Number(billDiscount)) : 0;
+      if (finalBillDiscount < 0) {
+        setError('Bill discount cannot be negative.');
+        setSubmitting(false);
+        return;
+      }
+      if (finalBillDiscount > calculatedBillAmount) {
+        setError('Bill discount cannot exceed bill amount.');
+        setSubmitting(false);
+        return;
+      }
+
+      const finalPaymentDiscount = modalMode === 'receive' ? (paymentDiscount === '' ? 0 : Number(paymentDiscount)) : 0;
+      if (finalPaymentDiscount < 0) {
+        setError('Payment discount cannot be negative.');
+        setSubmitting(false);
+        return;
+      }
+      const activeUser = getLoggedUser();
+      const role = activeUser?.role || 'Staff';
+      if (finalPaymentDiscount > 0 && role !== 'Admin') {
+        setError('Only Admin users are permitted to apply payment discounts.');
+        setSubmitting(false);
+        return;
+      }
+
       const combineDateWithCurrentTime = (dateStr) => {
         if (!dateStr) return new Date();
         const [year, month, day] = dateStr.split('-').map(Number);
@@ -554,6 +597,8 @@ export default function Payments() {
         quantity: finalQuantity,
         unitPrice: finalUnitPrice,
         billAmount: calculatedBillAmount,
+        billDiscount: finalBillDiscount,
+        paymentDiscount: finalPaymentDiscount,
         remark,
         timestamp: finalTimestamp.toISOString(),
       };
@@ -592,7 +637,9 @@ export default function Payments() {
         p.paymentType,
         p.quantity !== undefined && p.quantity !== null ? p.quantity : 1,
         p.billAmount || 0,
+        p.billDiscount || 0,
         p.amountReceived || 0,
+        p.paymentDiscount || 0,
         p.paymentMode,
         p.bankName || 'N/A',
         p.addedBy?.name || 'Staff User',
@@ -620,22 +667,22 @@ export default function Payments() {
           <style>
             table { border-collapse: collapse; margin-top: 10px; }
             th { 
-              background-color: #4f46e5; 
-              color: #ffffff; 
-              font-family: Arial, sans-serif; 
-              font-size: 11pt; 
-              font-weight: bold; 
-              text-align: center; 
-              border: 1px solid #cbd5e1;
-              height: 35px;
+               background-color: #4f46e5; 
+               color: #ffffff; 
+               font-family: Arial, sans-serif; 
+               font-size: 11pt; 
+               font-weight: bold; 
+               text-align: center; 
+               border: 1px solid #cbd5e1;
+               height: 35px;
             }
             td { 
-              font-family: Arial, sans-serif; 
-              font-size: 10pt; 
-              text-align: left; 
-              border: 1px solid #cbd5e1;
-              height: 28px;
-              padding: 6px 10px;
+               font-family: Arial, sans-serif; 
+               font-size: 10pt; 
+               text-align: left; 
+               border: 1px solid #cbd5e1;
+               height: 28px;
+               padding: 6px 10px;
             }
             .zebra {
               background-color: #f8fafc;
@@ -655,13 +702,15 @@ export default function Payments() {
               <col width="130" />
               <col width="130" />
               <col width="130" />
+              <col width="130" />
+              <col width="130" />
               <col width="150" />
               <col width="140" />
               <col width="280" />
             </colgroup>
             <thead>
               <tr style="height: 45px;">
-                <th colspan="10" style="font-size: 14pt; font-weight: bold; background-color: #1e1b4b; color: #ffffff; text-align: center; border: 1px solid #cbd5e1;">
+                <th colspan="12" style="font-size: 14pt; font-weight: bold; background-color: #1e1b4b; color: #ffffff; text-align: center; border: 1px solid #cbd5e1;">
                   PANEL SALES & LEDGER TRANSACTION REPORT
                 </th>
               </tr>
@@ -671,7 +720,9 @@ export default function Payments() {
                 <th>Charge Type</th>
                 <th>Quantity</th>
                 <th>Bill Amount (₹)</th>
+                <th>Bill Discount (₹)</th>
                 <th>Amount Paid (₹)</th>
+                <th>Payment Discount (₹)</th>
                 <th>Payment Mode</th>
                 <th>Bank Name</th>
                 <th>Collected By</th>
@@ -686,11 +737,13 @@ export default function Payments() {
                   <td>${row[2]}</td>
                   <td class="num-cell">${row[3]}</td>
                   <td class="num-cell" style="color: #475569;">₹${Number(row[4]).toLocaleString()}</td>
-                  <td class="num-cell" style="font-weight: bold; color: ${Number(row[5]) > 0 ? '#10b981' : '#ef4444'};">₹${Number(row[5]).toLocaleString()}</td>
-                  <td>${row[6]}</td>
-                  <td>${row[7]}</td>
+                  <td class="num-cell" style="color: #ea580c;">₹${Number(row[5]).toLocaleString()}</td>
+                  <td class="num-cell" style="font-weight: bold; color: ${Number(row[6]) > 0 ? '#10b981' : '#ef4444'};">₹${Number(row[6]).toLocaleString()}</td>
+                  <td class="num-cell" style="color: #e11d48;">₹${Number(row[7]).toLocaleString()}</td>
                   <td>${row[8]}</td>
-                  <td style="color: #64748b; font-style: italic;">${row[9]}</td>
+                  <td>${row[9]}</td>
+                  <td>${row[10]}</td>
+                  <td style="color: #64748b; font-style: italic;">${row[11]}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -970,10 +1023,16 @@ export default function Payments() {
                                 <span className="text-[10px] text-slate-500 font-semibold uppercase w-8">Bill:</span>
                                 <span className=" text-slate-400 font-mono">₹{p.billAmount?.toLocaleString()}</span>
                               </div>
+                              {p.billDiscount > 0 && (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] text-slate-500 font-semibold uppercase w-8">Disc:</span>
+                                  <span className="text-orange-400 font-mono">₹{p.billDiscount?.toLocaleString()}</span>
+                                </div>
+                              )}
                               {p.amountReceived > 0 && (
                                 <div className="flex items-center gap-1.5">
                                   <span className="text-[10px] text-slate-500 font-semibold uppercase w-8">Paid:</span>
-                                  <span className={`font-extrabold font-mono ${p.amountReceived < p.billAmount
+                                  <span className={`font-extrabold font-mono ${p.amountReceived < (p.billAmount - p.billDiscount)
                                     ? 'text-amber-400'
                                     : 'text-emerald-400'
                                     }`}>
@@ -986,9 +1045,9 @@ export default function Payments() {
                                   <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-rose-500/10 text-rose-400 border border-rose-500/15">
                                     Unpaid
                                   </span>
-                                ) : p.amountReceived < p.billAmount ? (
+                                ) : p.amountReceived < (p.billAmount - p.billDiscount) ? (
                                   <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/15">
-                                    Partial (₹{(p.billAmount - p.amountReceived).toLocaleString()} due)
+                                    Partial (₹{(p.billAmount - p.billDiscount - p.amountReceived).toLocaleString()} due)
                                   </span>
                                 ) : (
                                   <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/15">
@@ -1003,6 +1062,12 @@ export default function Payments() {
                                 <span className="text-[10px] text-slate-500 font-semibold uppercase w-8">Paid:</span>
                                 <span className="font-extrabold text-white font-mono">₹{p.amountReceived?.toLocaleString()}</span>
                               </div>
+                              {p.paymentDiscount > 0 && (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] text-slate-500 font-semibold uppercase w-8">Disc:</span>
+                                  <span className="text-rose-400 font-mono">₹{p.paymentDiscount?.toLocaleString()}</span>
+                                </div>
+                              )}
                               <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/15 w-fit">
                                 Direct Payment
                               </span>
@@ -1317,34 +1382,38 @@ export default function Payments() {
                                   <span className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400  rounded">Sheet2</span>
                                   <span className="text-slate-400 ">Transaction Ledger</span>
                                 </div>
-                                <span className="text-slate-500 text-[9px] hidden sm:inline">Formula Bar: <span className="text-indigo-400 ">f(x)</span> = SUM(E2:E{getLast30DaysData(expandedPanelPayments).length + 1}) - SUM(F2:F{getLast30DaysData(expandedPanelPayments).length + 1})</span>
+                                <span className="text-slate-500 text-[9px] hidden sm:inline">Formula Bar: <span className="text-indigo-400 ">f(x)</span> = Outstanding = SUM(E - F) - SUM(G + H)</span>
                               </div>
 
                               <table className="w-full text-left border border-slate-800 font-mono text-xs md:text-[13px] border-collapse bg-slate-900/10">
                                 <thead>
                                   <tr className="bg-slate-900 border-b border-slate-800 text-slate-600 text-center text-[9px]">
                                     <th className="border-r border-slate-800/60 py-1 w-[4%] bg-slate-950"></th>
-                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">A</th>
-                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">B</th>
-                                    <th className="border-r border-slate-800/60 py-1 w-[6%] bg-slate-950">C</th>
-                                    <th className="border-r border-slate-800/60 py-1 w-[10%] bg-slate-950">D</th>
-                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">E</th>
-                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">F</th>
-                                    <th className="border-r border-slate-800/60 py-1 w-[12%] bg-slate-950">G</th>
-                                    <th className="border-r border-slate-800/60 py-1 w-[22%] bg-slate-950">H</th>
-                                    <th className="py-1 w-[10%] bg-slate-950">I</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[10%] bg-slate-950">A</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[10%] bg-slate-950">B</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[5%] bg-slate-950">C</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[8%] bg-slate-950">D</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[10%] bg-slate-950">E</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[10%] bg-slate-950">F</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[10%] bg-slate-950">G</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[10%] bg-slate-950">H</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[10%] bg-slate-950">I</th>
+                                    <th className="border-r border-slate-800/60 py-1 w-[18%] bg-slate-950">J</th>
+                                    <th className="py-1 w-[8%] bg-slate-950">K</th>
                                   </tr>
                                   <tr className="bg-slate-900/80 text-slate-400 border-b border-slate-800  uppercase tracking-wider text-xs md:text-[13px]">
                                     <th className="border-r border-slate-800/60 text-center text-slate-600 bg-slate-900 py-2 w-[4%]">#</th>
-                                    <th className="border-r border-slate-800/60 px-3 py-2 w-[12%] bg-slate-900/50">Date</th>
-                                    <th className="border-r border-slate-800/60 px-3 py-2 w-[12%] bg-slate-900/50">Type</th>
-                                    <th className="border-r border-slate-800/60 px-3 py-2 text-center w-[6%] bg-slate-900/50">Qty</th>
-                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[10%] bg-slate-900/50">Rate</th>
-                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[12%] bg-slate-900/50">Bill Amount</th>
-                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[12%] bg-slate-900/50">Amt Paid</th>
-                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[12%] bg-slate-900/50">Net Due</th>
-                                    <th className="border-r border-slate-800/60 px-3 py-2 bg-slate-900/50 w-[22%]">Remarks / Note</th>
-                                    <th className="px-3 py-2 text-center bg-slate-900/50 w-[10%]">Actions</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 w-[10%] bg-slate-900/50">Date</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 w-[10%] bg-slate-900/50">Type</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-center w-[5%] bg-slate-900/50">Qty</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[8%] bg-slate-900/50">Rate</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[10%] bg-slate-900/50">Bill Amount</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[10%] bg-slate-900/50">Bill Discount</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[10%] bg-slate-900/50">Amt Paid</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[10%] bg-slate-900/50">Pay Discount</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 text-right w-[10%] bg-slate-900/50">Net Due</th>
+                                    <th className="border-r border-slate-800/60 px-3 py-2 bg-slate-900/50 w-[18%]">Remarks / Note</th>
+                                    <th className="px-3 py-2 text-center bg-slate-900/50 w-[8%]">Actions</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -1412,6 +1481,9 @@ export default function Payments() {
                                           </div>
                                         )}
                                       </td>
+                                      <td className={`border-r border-slate-700/40 px-3 py-1.5 text-right  ${row.billDiscount > 0 ? 'text-orange-400 bg-orange-400/5' : 'text-slate-500'}`}>
+                                        ₹{row.billDiscount.toLocaleString()}
+                                      </td>
                                       <td
                                         className={`border-r border-slate-700/40 px-3 py-1.5 text-right  ${row.amountReceived > 0 ? 'text-emerald-400 bg-emerald-400/5' : 'text-slate-500'} ${row.hasData ? 'cursor-pointer hover:bg-slate-800/40 hover:text-emerald-300 group' : ''}`}
                                         onClick={() => row.hasData && setEditingCell({ paymentId: row.originalPayment._id, field: 'amountReceived', value: row.amountReceived })}
@@ -1437,8 +1509,11 @@ export default function Payments() {
                                           </div>
                                         )}
                                       </td>
-                                      <td className={`border-r border-slate-700/40 px-3 py-1.5 text-right  ${row.billAmount - row.amountReceived > 0 ? 'text-rose-400 bg-rose-400/5' : 'text-slate-500'}`}>
-                                        ₹{(row.billAmount - row.amountReceived).toLocaleString()}
+                                      <td className={`border-r border-slate-700/40 px-3 py-1.5 text-right  ${row.paymentDiscount > 0 ? 'text-rose-400 bg-rose-400/5' : 'text-slate-500'}`}>
+                                        ₹{row.paymentDiscount.toLocaleString()}
+                                      </td>
+                                      <td className={`border-r border-slate-700/40 px-3 py-1.5 text-right  ${(row.billAmount - row.billDiscount) - (row.amountReceived + row.paymentDiscount) > 0 ? 'text-rose-400 bg-rose-400/5' : 'text-slate-500'}`}>
+                                        ₹{((row.billAmount - row.billDiscount) - (row.amountReceived + row.paymentDiscount)).toLocaleString()}
                                       </td>
                                       <td className="border-r border-slate-700/40 px-3 py-1.5 text-slate-400 truncate max-w-[200px] font-sans" title={row.remark}>
                                         {row.remark}
@@ -1473,17 +1548,23 @@ export default function Payments() {
                                     <td className="border-r border-slate-800 text-center text-slate-500 bg-slate-900 py-2.5">
                                       {getLast30DaysData(expandedPanelPayments).length + 2}
                                     </td>
-                                    <td className="border-r border-slate-800 px-3 py-2.5 uppercase tracking-wider text-slate-400 text-[9px]" colSpan="4">
-                                      =SUM(E2:E{getLast30DaysData(expandedPanelPayments).length + 1}) - SUM(F2:F{getLast30DaysData(expandedPanelPayments).length + 1})
+                                    <td className="border-r border-slate-800 px-3 py-2.5 uppercase tracking-wider text-slate-400 text-[9px]" colSpan="5">
+                                      =SUM(E2:E{getLast30DaysData(expandedPanelPayments).length + 1}) - SUM(F2:F{getLast30DaysData(expandedPanelPayments).length + 1}) - SUM(G2:G{getLast30DaysData(expandedPanelPayments).length + 1}) - SUM(H2:H{getLast30DaysData(expandedPanelPayments).length + 1})
                                     </td>
                                     <td className="border-r border-slate-800 px-3 py-2.5 text-right text-amber-400 bg-amber-500/5">
                                       ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.billAmount, 0).toLocaleString()}
                                     </td>
+                                    <td className="border-r border-slate-800 px-3 py-2.5 text-right text-orange-400 bg-orange-500/5">
+                                      ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.billDiscount, 0).toLocaleString()}
+                                    </td>
                                     <td className="border-r border-slate-800 px-3 py-2.5 text-right text-emerald-400 bg-emerald-500/5">
                                       ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.amountReceived, 0).toLocaleString()}
                                     </td>
+                                    <td className="border-r border-slate-800 px-3 py-2.5 text-right text-rose-400 bg-rose-500/5">
+                                      ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.paymentDiscount, 0).toLocaleString()}
+                                    </td>
                                     {(() => {
-                                      const netVal = getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + (r.billAmount - r.amountReceived), 0);
+                                      const netVal = getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + (r.billAmount - r.billDiscount) - (r.amountReceived + r.paymentDiscount), 0);
                                       return (
                                         <td className={`border-r border-slate-800 px-3 py-2.5 text-right  transition-all ${netVal > 0
                                           ? 'text-rose-400 bg-rose-500/5'
@@ -1697,6 +1778,28 @@ export default function Payments() {
                 </div>
               )}
 
+              {/* Payment Discount (Admin Only) */}
+              {modalMode === 'receive' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-1">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                      Payment Discount (₹) {userRole !== 'Admin' && <span className="text-rose-400 font-mono text-[9px] lowercase">(Admin Only)</span>}
+                    </label>
+                    <input
+                      type="number"
+                      value={paymentDiscount}
+                      onChange={(e) => setPaymentDiscount(e.target.value)}
+                      placeholder={userRole === 'Admin' ? "e.g. 1000" : "Requires Admin permissions"}
+                      disabled={userRole !== 'Admin'}
+                      className={`w-full rounded-xl px-4 py-3 text-sm glass-input text-rose-400 text-base font-mono ${
+                        userRole !== 'Admin' ? 'opacity-40 cursor-not-allowed bg-slate-950/60' : ''
+                      }`}
+                      min="0"
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Bill Mode Specific fields */}
               {modalMode === 'bill' && (
                 <>
@@ -1761,6 +1864,22 @@ export default function Payments() {
                       />
                     </div>
                   )}
+                  {/* Bill Discount Input Field */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 animate-in slide-in-from-top-1">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                        Bill Discount (₹) (Optional)
+                      </label>
+                      <input
+                        type="number"
+                        value={billDiscount}
+                        onChange={(e) => setBillDiscount(e.target.value)}
+                        placeholder="e.g. 500"
+                        className="w-full rounded-xl px-4 py-3 text-sm glass-input text-rose-400 text-base font-mono"
+                        min="0"
+                      />
+                    </div>
+                  </div>
                 </>
               )}
 

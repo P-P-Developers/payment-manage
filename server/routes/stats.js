@@ -27,7 +27,9 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
 
     const totalPaymentsReceived = payments.reduce((sum, p) => sum + (p.amountReceived || 0), 0);
     const totalBillAmount = payments.reduce((sum, p) => sum + (p.billAmount || 0), 0);
-    const totalOutstanding = totalOpeningBalance + totalBillAmount - totalPaymentsReceived;
+    const totalBillDiscount = payments.reduce((sum, p) => sum + (p.billDiscount || 0), 0);
+    const totalPaymentDiscount = payments.reduce((sum, p) => sum + (p.paymentDiscount || 0), 0);
+    const totalOutstanding = totalOpeningBalance + (totalBillAmount - totalBillDiscount) - (totalPaymentsReceived + totalPaymentDiscount);
 
     // Breakdown payments by type for beautiful charts
     const paymentBreakdown = {
@@ -69,6 +71,8 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
         totalMaintenanceCharges,
         totalOpeningBalance,
         totalOutstanding,
+        totalBillDiscount,
+        totalPaymentDiscount,
       },
       paymentBreakdown,
       paymentModeBreakdown,

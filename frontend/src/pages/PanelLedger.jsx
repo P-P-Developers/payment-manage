@@ -222,7 +222,9 @@ export default function PanelLedger() {
         quantity: p.quantity,
         unitPrice: p.unitPrice,
         billAmount: p.billAmount || 0,
+        billDiscount: p.billDiscount || 0,
         amountReceived: p.amountReceived || 0,
+        paymentDiscount: p.paymentDiscount || 0,
         remark: p.remark || '-',
         addedBy: p.addedBy?.name || 'Staff User',
         hasData: true,
@@ -574,7 +576,7 @@ export default function PanelLedger() {
                 <span className="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold rounded">Sheet1</span>
                 <span className="text-slate-500">Transaction Ledger</span>
               </div>
-              <span className="text-slate-500">Formula Bar: <span className="text-indigo-400 font-bold">f(x)</span> = SUM(E2:E{getLast30DaysData().length + 1}) - SUM(F2:F{getLast30DaysData().length + 1})</span>
+              <span className="text-slate-500">Formula Bar: <span className="text-indigo-400 font-bold">f(x)</span> = Outstanding = SUM(E - F) - SUM(G + H)</span>
             </div>
 
             <table className="w-full text-left border border-slate-700/60 font-mono text-xs md:text-[13px] border-collapse bg-slate-900/40">
@@ -588,7 +590,9 @@ export default function PanelLedger() {
                   <th className="border-r border-slate-700/60 py-1 w-28">E</th>
                   <th className="border-r border-slate-700/60 py-1 w-28">F</th>
                   <th className="border-r border-slate-700/60 py-1 w-24">G</th>
-                  <th className="py-1">H</th>
+                  <th className="border-r border-slate-700/60 py-1 w-24">H</th>
+                  <th className="border-r border-slate-700/60 py-1 w-24">I</th>
+                  <th className="py-1">J</th>
                 </tr>
                 <tr className="bg-slate-800 text-slate-300 border-b border-slate-700 text-xs md:text-[13px] font-bold uppercase tracking-wider">
                   <th className="border-r border-slate-700/60 text-center text-slate-500 bg-slate-800/50 py-2 w-10">#</th>
@@ -597,7 +601,9 @@ export default function PanelLedger() {
                   <th className="border-r border-slate-700/60 px-3 py-2 text-center w-16">Qty</th>
                   <th className="border-r border-slate-700/60 px-3 py-2 text-right w-20">Rate</th>
                   <th className="border-r border-slate-700/60 px-3 py-2 text-right w-28">Bill Amount</th>
+                  <th className="border-r border-slate-700/60 px-3 py-2 text-right w-24">Bill Discount</th>
                   <th className="border-r border-slate-700/60 px-3 py-2 text-right w-24">Amt Paid</th>
+                  <th className="border-r border-slate-700/60 px-3 py-2 text-right w-24">Pay Discount</th>
                   <th className="border-r border-slate-700/60 px-3 py-2 text-right w-24">Net Due</th>
                   <th className="px-3 py-2">Remarks / Note</th>
                 </tr>
@@ -640,11 +646,17 @@ export default function PanelLedger() {
                     <td className={`border-r border-slate-700/40 px-3 py-1.5 text-right font-bold w-28 ${row.billAmount > 0 ? 'text-amber-400 bg-amber-400/5' : 'text-slate-500'}`}>
                       ₹{row.billAmount.toLocaleString()}
                     </td>
+                    <td className={`border-r border-slate-700/40 px-3 py-1.5 text-right font-bold w-28 ${row.billDiscount > 0 ? 'text-orange-400 bg-orange-400/5' : 'text-slate-500'}`}>
+                      ₹{row.billDiscount.toLocaleString()}
+                    </td>
                     <td className={`border-r border-slate-700/40 px-3 py-1.5 text-right font-bold w-24 ${row.amountReceived > 0 ? 'text-emerald-400 bg-emerald-400/5' : 'text-slate-500'}`}>
                       ₹{row.amountReceived.toLocaleString()}
                     </td>
-                    <td className={`border-r border-slate-700/40 px-3 py-1.5 text-right font-bold w-24 ${row.billAmount - row.amountReceived > 0 ? 'text-rose-400 bg-rose-400/5' : 'text-slate-500'}`}>
-                      ₹{(row.billAmount - row.amountReceived).toLocaleString()}
+                    <td className={`border-r border-slate-700/40 px-3 py-1.5 text-right font-bold w-24 ${row.paymentDiscount > 0 ? 'text-rose-400 bg-rose-400/5' : 'text-slate-500'}`}>
+                      ₹{row.paymentDiscount.toLocaleString()}
+                    </td>
+                    <td className={`border-r border-slate-700/40 px-3 py-1.5 text-right font-bold w-24 ${(row.billAmount - row.billDiscount) - (row.amountReceived + row.paymentDiscount) > 0 ? 'text-rose-400 bg-rose-400/5' : 'text-slate-500'}`}>
+                      ₹{((row.billAmount - row.billDiscount) - (row.amountReceived + row.paymentDiscount)).toLocaleString()}
                     </td>
                     <td className="px-3 py-1.5 text-slate-400 truncate max-w-xs" title={`${row.remark} (by ${row.addedBy})`}>
                       {row.remark !== '-' ? (
@@ -662,17 +674,23 @@ export default function PanelLedger() {
                   <td className="border-r border-slate-700 text-center text-slate-400 bg-slate-800 py-2.5">
                     {getLast30DaysData().length + 2}
                   </td>
-                  <td className="border-r border-slate-700 px-3 py-2.5 uppercase tracking-wider text-slate-400 text-[10px]" colSpan="4">
-                    =SUM(E2:E{getLast30DaysData().length + 1}) - SUM(F2:F{getLast30DaysData().length + 1})
+                  <td className="border-r border-slate-700 px-3 py-2.5 uppercase tracking-wider text-slate-400 text-[10px]" colSpan="5">
+                    =SUM(E2:E{getLast30DaysData().length + 1}) - SUM(F2:F{getLast30DaysData().length + 1}) - SUM(G2:G{getLast30DaysData().length + 1}) - SUM(H2:H{getLast30DaysData().length + 1})
                   </td>
                   <td className="border-r border-slate-700 px-3 py-2.5 text-right text-amber-400 bg-amber-500/5">
                     ₹{getLast30DaysData().reduce((sum, r) => sum + r.billAmount, 0).toLocaleString()}
                   </td>
+                  <td className="border-r border-slate-700 px-3 py-2.5 text-right text-orange-400 bg-orange-500/5">
+                    ₹{getLast30DaysData().reduce((sum, r) => sum + r.billDiscount, 0).toLocaleString()}
+                  </td>
                   <td className="border-r border-slate-700 px-3 py-2.5 text-right text-emerald-400 bg-emerald-500/5">
                     ₹{getLast30DaysData().reduce((sum, r) => sum + r.amountReceived, 0).toLocaleString()}
                   </td>
+                  <td className="border-r border-slate-700 px-3 py-2.5 text-right text-rose-400 bg-rose-500/5">
+                    ₹{getLast30DaysData().reduce((sum, r) => sum + r.paymentDiscount, 0).toLocaleString()}
+                  </td>
                   {(() => {
-                    const netVal = getLast30DaysData().reduce((sum, r) => sum + (r.billAmount - r.amountReceived), 0);
+                    const netVal = getLast30DaysData().reduce((sum, r) => sum + (r.billAmount - r.billDiscount) - (r.amountReceived + r.paymentDiscount), 0);
                     return (
                       <td className={`border-r border-slate-700 px-3 py-2.5 text-right font-bold transition-all ${
                         netVal > 0
@@ -728,7 +746,7 @@ export default function PanelLedger() {
               <span className="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold rounded">Sheet1</span>
               <span className="text-slate-400">Transaction Ledger</span>
             </div>
-            <span className="text-slate-400">Formula Bar: <span className="text-indigo-400 font-bold">f(x)</span> = SUM(E2:E{getLast30DaysData().length + 1}) - SUM(F2:F{getLast30DaysData().length + 1})</span>
+            <span className="text-slate-400">Formula Bar: <span className="text-indigo-400 font-bold">f(x)</span> = Outstanding = SUM(E - F) - SUM(G + H)</span>
           </div>
 
           {/* Table Container wrapped in scrollable flex-1 */}
@@ -744,7 +762,9 @@ export default function PanelLedger() {
                   <th className="border-r border-slate-700/60 py-1 w-36 bg-slate-900">E</th>
                   <th className="border-r border-slate-700/60 py-1 w-36 bg-slate-900">F</th>
                   <th className="border-r border-slate-700/60 py-1 w-32 bg-slate-900">G</th>
-                  <th className="py-1 bg-slate-900">H</th>
+                  <th className="border-r border-slate-700/60 py-1 w-32 bg-slate-900">H</th>
+                  <th className="border-r border-slate-700/60 py-1 w-32 bg-slate-900">I</th>
+                  <th className="py-1 bg-slate-900">J</th>
                 </tr>
                 <tr className="bg-slate-800 text-slate-300 border-b border-slate-700 font-bold uppercase tracking-wider text-xs md:text-[13px] sticky top-[22px]">
                   <th className="border-r border-slate-700/60 text-center text-slate-500 bg-slate-800/50 py-2 w-12">#</th>
@@ -753,7 +773,9 @@ export default function PanelLedger() {
                   <th className="border-r border-slate-700/60 px-4 py-2 text-center w-20 bg-slate-800">Qty</th>
                   <th className="border-r border-slate-700/60 px-4 py-2 text-right w-24 bg-slate-800">Rate</th>
                   <th className="border-r border-slate-700/60 px-4 py-2 text-right w-36 bg-slate-800">Bill Amount</th>
+                  <th className="border-r border-slate-700/60 px-4 py-2 text-right w-32 bg-slate-800">Bill Discount</th>
                   <th className="border-r border-slate-700/60 px-4 py-2 text-right w-32 bg-slate-800">Amt Paid</th>
+                  <th className="border-r border-slate-700/60 px-4 py-2 text-right w-32 bg-slate-800">Pay Discount</th>
                   <th className="border-r border-slate-700/60 px-4 py-2 text-right w-32 bg-slate-800">Net Due</th>
                   <th className="px-4 py-2 bg-slate-800">Remarks / Note</th>
                 </tr>
@@ -796,11 +818,17 @@ export default function PanelLedger() {
                     <td className={`border-r border-slate-700/40 px-4 py-2 text-right font-bold w-36 ${row.billAmount > 0 ? 'text-amber-400 bg-amber-400/5' : 'text-slate-500'}`}>
                       ₹{row.billAmount.toLocaleString()}
                     </td>
+                    <td className={`border-r border-slate-700/40 px-4 py-2 text-right font-bold w-36 ${row.billDiscount > 0 ? 'text-orange-400 bg-orange-400/5' : 'text-slate-500'}`}>
+                      ₹{row.billDiscount.toLocaleString()}
+                    </td>
                     <td className={`border-r border-slate-700/40 px-4 py-2 text-right font-bold w-32 ${row.amountReceived > 0 ? 'text-emerald-400 bg-emerald-400/5' : 'text-slate-500'}`}>
                       ₹{row.amountReceived.toLocaleString()}
                     </td>
-                    <td className={`border-r border-slate-700/40 px-4 py-2 text-right font-bold w-32 ${row.billAmount - row.amountReceived > 0 ? 'text-rose-400 bg-rose-400/5' : 'text-slate-500'}`}>
-                      ₹{(row.billAmount - row.amountReceived).toLocaleString()}
+                    <td className={`border-r border-slate-700/40 px-4 py-2 text-right font-bold w-32 ${row.paymentDiscount > 0 ? 'text-rose-400 bg-rose-400/5' : 'text-slate-500'}`}>
+                      ₹{row.paymentDiscount.toLocaleString()}
+                    </td>
+                    <td className={`border-r border-slate-700/40 px-4 py-2 text-right font-bold w-32 ${(row.billAmount - row.billDiscount) - (row.amountReceived + row.paymentDiscount) > 0 ? 'text-rose-400 bg-rose-400/5' : 'text-slate-500'}`}>
+                      ₹{((row.billAmount - row.billDiscount) - (row.amountReceived + row.paymentDiscount)).toLocaleString()}
                     </td>
                     <td className="px-4 py-2 text-slate-400 truncate max-w-sm" title={`${row.remark} (by ${row.addedBy})`}>
                       {row.remark !== '-' ? (
@@ -818,17 +846,23 @@ export default function PanelLedger() {
                   <td className="border-r border-slate-700 text-center text-slate-400 bg-slate-800 py-3 w-12">
                     {getLast30DaysData().length + 2}
                   </td>
-                  <td className="border-r border-slate-700 px-4 py-3 uppercase tracking-wider text-slate-400 text-xs bg-slate-800" colSpan="4">
-                    =SUM(E2:E{getLast30DaysData().length + 1}) - SUM(F2:F{getLast30DaysData().length + 1})
+                  <td className="border-r border-slate-700 px-4 py-3 uppercase tracking-wider text-slate-400 text-xs bg-slate-800" colSpan="5">
+                    =SUM(E2:E{getLast30DaysData().length + 1}) - SUM(F2:F{getLast30DaysData().length + 1}) - SUM(G2:G{getLast30DaysData().length + 1}) - SUM(H2:H{getLast30DaysData().length + 1})
                   </td>
                   <td className="border-r border-slate-700 px-4 py-3 text-right text-amber-400 bg-amber-500/10">
                     ₹{getLast30DaysData().reduce((sum, r) => sum + r.billAmount, 0).toLocaleString()}
                   </td>
+                  <td className="border-r border-slate-700 px-4 py-3 text-right text-orange-400 bg-orange-500/10">
+                    ₹{getLast30DaysData().reduce((sum, r) => sum + r.billDiscount, 0).toLocaleString()}
+                  </td>
                   <td className="border-r border-slate-700 px-4 py-3 text-right text-emerald-400 bg-emerald-500/10">
                     ₹{getLast30DaysData().reduce((sum, r) => sum + r.amountReceived, 0).toLocaleString()}
                   </td>
+                  <td className="border-r border-slate-700 px-4 py-3 text-right text-rose-400 bg-rose-500/10">
+                    ₹{getLast30DaysData().reduce((sum, r) => sum + r.paymentDiscount, 0).toLocaleString()}
+                  </td>
                   {(() => {
-                    const netVal = getLast30DaysData().reduce((sum, r) => sum + (r.billAmount - r.amountReceived), 0);
+                    const netVal = getLast30DaysData().reduce((sum, r) => sum + (r.billAmount - r.billDiscount) - (r.amountReceived + r.paymentDiscount), 0);
                     return (
                       <td className={`border-r border-slate-700 px-4 py-3 text-right font-bold transition-all ${
                         netVal > 0

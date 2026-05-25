@@ -18,6 +18,8 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
             _id: '$panelId',
             totalPaid: { $sum: '$amountReceived' },
             totalBill: { $sum: '$billAmount' },
+            totalBillDiscount: { $sum: '$billDiscount' },
+            totalPaymentDiscount: { $sum: '$paymentDiscount' },
           },
         },
       ]),
@@ -30,14 +32,16 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
         summaryMap[item._id.toString()] = {
           totalPaid: item.totalPaid || 0,
           totalBill: item.totalBill || 0,
+          totalBillDiscount: item.totalBillDiscount || 0,
+          totalPaymentDiscount: item.totalPaymentDiscount || 0,
         };
       }
     });
 
     // Compute outstanding balance for each panel
     const computedPanels = panels.map((panel) => {
-      const summary = summaryMap[panel._id.toString()] || { totalPaid: 0, totalBill: 0 };
-      const outstanding = (panel.openingBalance || 0) + summary.totalBill - summary.totalPaid;
+      const summary = summaryMap[panel._id.toString()] || { totalPaid: 0, totalBill: 0, totalBillDiscount: 0, totalPaymentDiscount: 0 };
+      const outstanding = (panel.openingBalance || 0) + (summary.totalBill - (summary.totalBillDiscount || 0)) - (summary.totalPaid + (summary.totalPaymentDiscount || 0));
 
       return {
         ...panel,
@@ -69,7 +73,9 @@ router.get('/:id', protect, hasPermission('view_panels'), async (req, res) => {
       .lean();
     const totalPaid = payments.reduce((sum, p) => sum + (p.amountReceived || 0), 0);
     const totalBill = payments.reduce((sum, p) => sum + (p.billAmount || 0), 0);
-    const outstanding = (panel.openingBalance || 0) + totalBill - totalPaid;
+    const totalBillDiscount = payments.reduce((sum, p) => sum + (p.billDiscount || 0), 0);
+    const totalPaymentDiscount = payments.reduce((sum, p) => sum + (p.paymentDiscount || 0), 0);
+    const outstanding = (panel.openingBalance || 0) + (totalBill - totalBillDiscount) - (totalPaid + totalPaymentDiscount);
 
     res.json({
       success: true,
