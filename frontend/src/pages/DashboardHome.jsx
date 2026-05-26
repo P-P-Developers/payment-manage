@@ -674,7 +674,7 @@ export default function DashboardHome() {
 
 
       {/* Filter Toolbar Card */}
-      <div className="rounded-2xl glass-card border border-slate-300 dark:border-slate-800 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+      <div className="rounded-2xl  glass-card border border-slate-300 dark:border-slate-800 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
             <Filter className="h-5 w-5" />
@@ -750,7 +750,7 @@ export default function DashboardHome() {
           return (
             <div
               key={i}
-              className={`rounded-3xl bg-gradient-to-b ${card.color} border p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden backdrop-blur-md transition-all duration-300 hover:border-slate-300/30 dark:hover:border-slate-700/30`}
+              className={`rounded-3xl analytics-card bg-gradient-to-b ${card.color} border p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden backdrop-blur-md transition-all duration-300 hover:border-slate-300/30 dark:hover:border-slate-700/30`}
             >
               {/* Card Header */}
               <div className="flex justify-between items-start mb-5">

@@ -837,7 +837,7 @@ export default function Payments() {
       )}
 
       {/* View Switcher Tabs */}
-      <div className="flex items-center justify-between bg-slate-100/60 dark:bg-slate-900/60 p-2 rounded-2xl border border-slate-300 dark:border-slate-800">
+      <div className="flex items-center bgw justify-between bg-slate-100/60 dark:bg-slate-900/60 p-2 rounded-2xl border border-slate-300 dark:border-slate-800">
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => setActiveTab('list')}
@@ -962,7 +962,7 @@ export default function Payments() {
           </div>
 
           {/* Payments table */}
-          <div className="rounded-2xl bg-slate-50/60 dark:bg-slate-950/60 border border-slate-300/80 dark:border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md">
+          <div className="rounded-2xl bg-slate-50/60 bgw light:bg-slate-950/60 border border-slate-300/80 dark:border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
