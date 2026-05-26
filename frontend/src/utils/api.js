@@ -1,6 +1,8 @@
-const BASE_URL = typeof window !== 'undefined'
-  ? (window.location.hostname === 'localhost' ? 'http://localhost:8005/api' : 'http://payment.deepmindinfotech.com/backend')
-  : 'http://localhost:8005/api';
+// const BASE_URL = typeof window !== 'undefined'
+//   ? (window.location.hostname === 'localhost' ? 'http://localhost:8005/api' : 'http://payment.deepmindinfotech.com/backend')
+//   : 'http://localhost:8005/api';
+
+const BASE_URL = "http://payment.deepmindinfotech.com/backend"
 
 export const getAuthToken = () => {
   if (typeof window !== 'undefined') {
