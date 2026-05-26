@@ -76,3 +76,10 @@ aside{border-right: 1px solid #E8ECF4 !important;}
 }
 
 .bgw{ background: #fff;}
+
+.bg-indigo-600 {   
+    background-color: #F2EEFF;
+}
+.bg-emerald-600 {    
+    background-color: #E9FFF7;
+}
