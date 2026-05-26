@@ -13,17 +13,17 @@ import {
 
 const LogSkeleton = () => (
   <div className="flex gap-4 animate-pulse">
-    <div className="h-10 w-10 rounded-xl bg-slate-800 shrink-0"></div>
-    <div className="flex-1 rounded-xl bg-slate-900/40 border border-slate-800/80 p-4 space-y-3">
+    <div className="h-10 w-10 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0"></div>
+    <div className="flex-1 rounded-xl bg-slate-100/40 dark:bg-slate-900/40 border border-slate-300/80 dark:border-slate-800/80 p-4 space-y-3">
       <div className="flex justify-between">
-        <div className="h-4 w-24 rounded bg-slate-800"></div>
-        <div className="h-4 w-32 rounded bg-slate-800/60"></div>
+        <div className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-800"></div>
+        <div className="h-4 w-32 rounded bg-slate-200/60 dark:bg-slate-800/60"></div>
       </div>
-      <div className="h-4 w-full rounded bg-slate-800/80"></div>
-      <div className="h-3 w-4/5 rounded bg-slate-800/40"></div>
-      <div className="flex gap-2 pt-2 border-t border-slate-800/60">
-        <div className="h-3.5 w-20 rounded bg-slate-800"></div>
-        <div className="h-3.5 w-16 rounded bg-slate-800/60"></div>
+      <div className="h-4 w-full rounded bg-slate-200/80 dark:bg-slate-800/80"></div>
+      <div className="h-3 w-4/5 rounded bg-slate-200/40 dark:bg-slate-800/40"></div>
+      <div className="flex gap-2 pt-2 border-t border-slate-300/60 dark:border-slate-800/60">
+        <div className="h-3.5 w-20 rounded bg-slate-200 dark:bg-slate-800"></div>
+        <div className="h-3.5 w-16 rounded bg-slate-200/60 dark:bg-slate-800/60"></div>
       </div>
     </div>
   </div>
@@ -84,15 +84,15 @@ export default function Logs() {
 
       <div>
         <div className="flex items-center gap-3">
-          <h2 className="text-2xl font-bold text-white tracking-tight">System Activity Logs</h2>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">System Activity Logs</h2>
           {loading && logs.length > 0 && (
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent shrink-0"></div>
           )}
         </div>
-        <p className="text-sm text-slate-400">Audit trail tracking all additions, modifications, and deletions in the ledger system.</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">Audit trail tracking all additions, modifications, and deletions in the ledger system.</p>
       </div>
 
-      <div className="rounded-2xl glass-card border border-slate-800 p-6 md:p-8 shadow-xl relative">
+      <div className="rounded-2xl glass-card border border-slate-300 dark:border-slate-800 p-6 md:p-8 shadow-xl relative">
         <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-indigo-500/5 blur-2xl"></div>
 
         <div className="relative space-y-6 max-h-[65vh] overflow-y-auto overflow-x-hidden pr-2">
@@ -115,7 +115,7 @@ export default function Logs() {
                 >
                   {/* Connecting line between log markers */}
                   {index !== logs.length - 1 && (
-                    <div className="absolute left-[19px] top-10 bottom-0 w-[2px] bg-slate-800"></div>
+                    <div className="absolute left-[19px] top-10 bottom-0 w-[2px] bg-slate-200 dark:bg-slate-800"></div>
                   )}
 
                   {/* Marker icon */}
@@ -138,7 +138,7 @@ export default function Logs() {
                   </div>
 
                   {/* Details box */}
-                  <div className="flex-1 min-w-0 rounded-xl bg-slate-900/40 border border-slate-800/80 p-4 hover:border-slate-700/60 transition-colors">
+                  <div className="flex-1 min-w-0 rounded-xl bg-slate-100/40 dark:bg-slate-900/40 border border-slate-300/80 dark:border-slate-800/80 p-4 hover:border-slate-300/60 dark:hover:border-slate-700/60 transition-colors">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2">
                         <span
@@ -152,23 +152,23 @@ export default function Logs() {
                         >
                           {actionType}
                         </span>
-                        <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">{log.module} MODULE</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-500 uppercase font-bold tracking-wider">{log.module} MODULE</span>
                       </div>
 
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-500">
                         <Calendar className="h-3.5 w-3.5" />
                         <span>{date.toLocaleDateString()}</span>
                         <span>{date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                     </div>
 
-                    <p className="text-slate-200 text-sm font-medium leading-relaxed mb-3 break-words">{log.details}</p>
+                    <p className="text-slate-800 dark:text-slate-200 text-sm font-medium leading-relaxed mb-3 break-words">{log.details}</p>
 
-                    <div className="flex items-center gap-2 text-xs border-t border-slate-800/60 pt-2.5">
-                      <User className="h-3.5 w-3.5 text-slate-500" />
-                      <span className="font-semibold text-slate-400">{log.userId?.name || 'Super Admin'}</span>
+                    <div className="flex items-center gap-2 text-xs border-t border-slate-300/60 dark:border-slate-800/60 pt-2.5">
+                      <User className="h-3.5 w-3.5 text-slate-500 dark:text-slate-500" />
+                      <span className="font-semibold text-slate-600 dark:text-slate-400">{log.userId?.name || 'Super Admin'}</span>
                       <span className="text-slate-600">•</span>
-                      <ShieldCheck className="h-3.5 w-3.5 text-slate-500" />
+                      <ShieldCheck className="h-3.5 w-3.5 text-slate-500 dark:text-slate-500" />
                       <span className="text-indigo-400 font-semibold">{log.userId?.role || 'Admin'}</span>
                     </div>
                   </div>
@@ -176,7 +176,7 @@ export default function Logs() {
               );
             })
           ) : (
-            <div className="text-center py-12 text-slate-500 flex flex-col items-center gap-3 animate-pulse">
+            <div className="text-center py-12 text-slate-500 dark:text-slate-500 flex flex-col items-center gap-3 animate-pulse">
               <ClipboardList className="h-10 w-10 text-slate-600" />
               <p className="font-semibold">No system activity logged yet.</p>
             </div>

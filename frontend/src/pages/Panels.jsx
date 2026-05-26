@@ -24,36 +24,36 @@ import {
 const SkeletonRow = () => (
   <tr className="animate-pulse">
     <td className="px-6 py-4">
-      <div className="h-4 w-6 rounded bg-slate-800"></div>
+      <div className="h-4 w-6 rounded bg-slate-200 dark:bg-slate-800"></div>
     </td>
     <td className="px-6 py-4">
       <div className="space-y-2">
-        <div className="h-5 w-32 rounded bg-slate-800"></div>
-        <div className="h-3.5 w-24 rounded bg-slate-800/60"></div>
-        <div className="h-3 w-28 rounded bg-slate-800/40"></div>
+        <div className="h-5 w-32 rounded bg-slate-200 dark:bg-slate-800"></div>
+        <div className="h-3.5 w-24 rounded bg-slate-200/60 dark:bg-slate-800/60"></div>
+        <div className="h-3 w-28 rounded bg-slate-200/40 dark:bg-slate-800/40"></div>
       </div>
     </td>
     <td className="px-6 py-4">
-      <div className="h-4 w-16 rounded bg-slate-800"></div>
+      <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-800"></div>
     </td>
     <td className="px-6 py-4">
-      <div className="h-4 w-16 rounded bg-slate-800"></div>
+      <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-800"></div>
     </td>
     <td className="px-6 py-4">
-      <div className="h-4 w-16 rounded bg-slate-800"></div>
+      <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-800"></div>
     </td>
     <td className="px-6 py-4">
       <div className="space-y-1.5">
-        <div className="h-5 w-20 rounded bg-slate-800"></div>
-        <div className="h-3 w-24 rounded bg-slate-800/60"></div>
+        <div className="h-5 w-20 rounded bg-slate-200 dark:bg-slate-800"></div>
+        <div className="h-3 w-24 rounded bg-slate-200/60 dark:bg-slate-800/60"></div>
       </div>
     </td>
     <td className="px-6 py-4">
       <div className="flex justify-center gap-2">
-        <div className="h-9 w-9 rounded bg-slate-800"></div>
-        <div className="h-9 w-9 rounded bg-slate-800"></div>
-        <div className="h-9 w-9 rounded bg-slate-800"></div>
-        <div className="h-9 w-9 rounded bg-slate-800"></div>
+        <div className="h-9 w-9 rounded bg-slate-200 dark:bg-slate-800"></div>
+        <div className="h-9 w-9 rounded bg-slate-200 dark:bg-slate-800"></div>
+        <div className="h-9 w-9 rounded bg-slate-200 dark:bg-slate-800"></div>
+        <div className="h-9 w-9 rounded bg-slate-200 dark:bg-slate-800"></div>
       </div>
     </td>
   </tr>
@@ -335,18 +335,18 @@ export default function Panels() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-white tracking-tight">Software Panels (Clients)</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Software Panels (Clients)</h2>
             {loading && panels.length > 0 && (
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent shrink-0"></div>
             )}
           </div>
-          <p className="text-sm text-slate-400">View and manage client software licenses, charges, and current ledger balances.</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">View and manage client software licenses, charges, and current ledger balances.</p>
         </div>
 
         {isAdmin && (
           <button
             onClick={handleOpenAddModal}
-            className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-3 text-sm transition-all shadow-lg shadow-indigo-600/10"
+            className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-slate-900 dark:text-white font-semibold px-4 py-3 text-sm transition-all shadow-lg shadow-indigo-600/10"
           >
             <Plus className="h-4.5 w-4.5" />
             <span>Add Panel Client</span>
@@ -372,7 +372,7 @@ export default function Panels() {
       {/* Filters bar */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:max-w-md">
-          <Search className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+          <Search className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
           <input
             type="text"
             value={searchQuery}
@@ -384,16 +384,16 @@ export default function Panels() {
 
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           {/* Category Filter */}
-          <div className="flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-xs text-slate-300 shadow-sm shrink-0">
-            <span className="font-bold text-slate-500 uppercase tracking-wide">Category:</span>
+          <div className="flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 shadow-sm shrink-0">
+            <span className="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wide">Category:</span>
             <select
               value={selectedCategoryFilter}
               onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-              className="bg-transparent border-none text-white focus:ring-0 font-semibold cursor-pointer outline-none"
+              className="bg-transparent border-none text-slate-900 dark:text-white focus:ring-0 font-semibold cursor-pointer outline-none"
             >
-              <option value="All" className="bg-slate-900">All Categories</option>
+              <option value="All" className="bg-slate-100 dark:bg-slate-900">All Categories</option>
               {categories.map((cat) => (
-                <option key={cat._id} value={cat.name} className="bg-slate-900">
+                <option key={cat._id} value={cat.name} className="bg-slate-100 dark:bg-slate-900">
                   {cat.name}
                 </option>
               ))}
@@ -401,43 +401,43 @@ export default function Panels() {
           </div>
 
           {/* Balance Status Filter */}
-          <div className="flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-xs text-slate-300 shadow-sm shrink-0">
-            <span className="font-bold text-slate-500 uppercase tracking-wide">Status:</span>
+          <div className="flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 shadow-sm shrink-0">
+            <span className="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wide">Status:</span>
             <select
               value={balanceFilter}
               onChange={(e) => setBalanceFilter(e.target.value)}
-              className="bg-transparent border-none text-white focus:ring-0 font-semibold cursor-pointer outline-none"
+              className="bg-transparent border-none text-slate-900 dark:text-white focus:ring-0 font-semibold cursor-pointer outline-none"
             >
-              <option value="All" className="bg-slate-900">All Balances</option>
-              <option value="Outstanding" className="bg-slate-900">Outstanding ( ₹0)</option>
-              <option value="Advance" className="bg-slate-900">Nil / Advance (≤ ₹0)</option>
+              <option value="All" className="bg-slate-100 dark:bg-slate-900">All Balances</option>
+              <option value="Outstanding" className="bg-slate-100 dark:bg-slate-900">Outstanding ( ₹0)</option>
+              <option value="Advance" className="bg-slate-100 dark:bg-slate-900">Nil / Advance (≤ ₹0)</option>
             </select>
           </div>
 
           {/* Sorting */}
-          <div className="flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-xs text-slate-300 shadow-sm shrink-0">
-            <span className="font-bold text-slate-500 uppercase tracking-wide">Sort By:</span>
+          <div className="flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 shadow-sm shrink-0">
+            <span className="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wide">Sort By:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-transparent border-none text-white focus:ring-0 font-semibold cursor-pointer outline-none"
+              className="bg-transparent border-none text-slate-900 dark:text-white focus:ring-0 font-semibold cursor-pointer outline-none"
             >
-              <option value="latest" className="bg-slate-900">Latest Registered</option>
-              <option value="name-asc" className="bg-slate-900">Name (A - Z)</option>
-              <option value="name-desc" className="bg-slate-900">Name (Z - A)</option>
-              <option value="balance-desc" className="bg-slate-900">Outstanding (High to Low)</option>
-              <option value="balance-asc" className="bg-slate-900">Outstanding (Low to High)</option>
+              <option value="latest" className="bg-slate-100 dark:bg-slate-900">Latest Registered</option>
+              <option value="name-asc" className="bg-slate-100 dark:bg-slate-900">Name (A - Z)</option>
+              <option value="name-desc" className="bg-slate-100 dark:bg-slate-900">Name (Z - A)</option>
+              <option value="balance-desc" className="bg-slate-100 dark:bg-slate-900">Outstanding (High to Low)</option>
+              <option value="balance-asc" className="bg-slate-100 dark:bg-slate-900">Outstanding (Low to High)</option>
             </select>
           </div>
         </div>
       </div>
 
       {/* Panels Table */}
-      <div className="rounded-2xl glass-card border border-slate-800 overflow-hidden shadow-xl">
+      <div className="rounded-2xl glass-card border border-slate-300 dark:border-slate-800 overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-900/80 border-b border-slate-800 text-slate-400 text-xs uppercase font-semibold tracking-wider">
+              <tr className="bg-slate-100/80 dark:bg-slate-900/80 border-b border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-xs uppercase font-semibold tracking-wider">
                 <th className="px-6 py-4">S No.</th>
                 <th className="px-6 py-4">Panel Details</th>
                 <th className="px-6 py-4">License Dues</th>
@@ -456,14 +456,14 @@ export default function Panels() {
                 </>
               ) : filteredPanels.length > 0 ? (
                 filteredPanels.map((panel, index) => (
-                  <tr key={panel._id} className="hover:bg-slate-800/20 transition-colors">
-                    <td className="px-6 py-4 font-semibold text-slate-300">
+                  <tr key={panel._id} className="hover:bg-slate-200/20 dark:hover:bg-slate-800/20 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
                       {index + 1}
                     </td>
                     <td className="px-6 py-4">
                       <div>
                         <div className="flex items-center gap-2.5">
-                          <p className="font-bold text-white text-base">{panel.panelName}</p>
+                          <p className="font-bold text-slate-900 dark:text-white text-base">{panel.panelName}</p>
                           <span className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
                             panel.category === 'Algo'
                               ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
@@ -471,26 +471,26 @@ export default function Panels() {
                                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                 : panel.category === 'crypto' || panel.category === 'Crypto'
                                   ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                  : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                                  : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'
                           }`}>
                             {panel.category || 'Algo'}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 flex items-center gap-1">
                           <UserIcon className="h-3 w-3" /> {panel.ownerName}
                         </p>
-                        <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5 flex items-center gap-1">
                           <Phone className="h-3 w-3" /> {panel.phoneNumber}
                         </p>
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-semibold text-slate-300">
+                    <td className="px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
                       ₹{panel.licenseCharges?.toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 font-semibold text-slate-300">
+                    <td className="px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
                       ₹{panel.ipCharges?.toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 font-semibold text-slate-300">
+                    <td className="px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
                       ₹{panel.maintenanceCharges?.toLocaleString()}
                     </td>
                     <td className="px-6 py-4">
@@ -501,7 +501,7 @@ export default function Panels() {
                         >
                           ₹{panel.outstanding?.toLocaleString()}
                         </span>
-                        <span className="text-[10px] text-slate-500 uppercase font-medium mt-0.5">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-500 uppercase font-medium mt-0.5">
                           Paid: ₹{panel.totalPaid?.toLocaleString()}
                         </span>
                       </div>
@@ -510,14 +510,14 @@ export default function Panels() {
                       <div className="flex items-center justify-center gap-2">
                         <Link
                           to={`/dashboard/panels/${panel._id}`}
-                          className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center border border-slate-700 transition-colors"
+                          className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-300 dark:border-slate-700 transition-colors"
                           title="View Panel Ledger History"
                         >
                           <Eye className="h-4 w-4" />
                         </Link>
                         <Link
                           to={`/dashboard/payments?panelId=${panel._id}&openModal=true`}
-                          className="h-9 w-9 rounded-lg bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white flex items-center justify-center border border-emerald-500/20 hover:border-emerald-500 transition-colors"
+                          className="h-9 w-9 rounded-lg bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-emerald-500/20 hover:border-emerald-500 transition-colors"
                           title="Add Payment Receipt"
                         >
                           <DollarSign className="h-4 w-4" />
@@ -526,14 +526,14 @@ export default function Panels() {
                           <>
                             <button
                               onClick={() => handleOpenEditModal(panel)}
-                              className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center border border-slate-700 transition-colors"
+                              className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-300 dark:border-slate-700 transition-colors"
                               title="Edit Panel Client"
                             >
                               <Edit2 className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => handleDeletePanel(panel)}
-                              className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-rose-600/20 text-slate-300 hover:text-rose-400 flex items-center justify-center border border-slate-700 hover:border-rose-500/30 transition-colors"
+                              className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-rose-600/20 text-slate-700 dark:text-slate-300 hover:text-rose-400 flex items-center justify-center border border-slate-300 dark:border-slate-700 hover:border-rose-500/30 transition-colors"
                               title="Delete Panel Client"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -546,7 +546,7 @@ export default function Panels() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="text-center py-8 text-slate-400">
+                  <td colSpan="7" className="text-center py-8 text-slate-600 dark:text-slate-400">
                     No matching software panels found.
                   </td>
                 </tr>
@@ -561,15 +561,15 @@ export default function Panels() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-          <div className="relative w-full max-w-2xl rounded-2xl glass-card p-6 md:p-8 border border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[85vh] md:max-h-[90vh]">
+          <div className="relative w-full max-w-2xl rounded-2xl glass-card p-6 md:p-8 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[85vh] md:max-h-[90vh]">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              className="absolute top-4 right-4 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             >
               <X className="h-6 w-6" />
             </button>
 
-            <h3 className="text-xl font-bold text-white mb-6">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">
               {editPanelId ? 'Modify Panel Client' : 'Add New Panel Client'}
             </h3>
 
@@ -583,11 +583,11 @@ export default function Panels() {
             <form onSubmit={handleSavePanel} className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
                     Panel (Client) Name
                   </label>
                   <div className="relative">
-                    <Layers className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                    <Layers className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
                     <input
                       type="text"
                       value={panelName}
@@ -601,11 +601,11 @@ export default function Panels() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
                     Owner Name
                   </label>
                   <div className="relative">
-                    <UserIcon className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                    <UserIcon className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
                     <input
                       type="text"
                       value={ownerName}
@@ -619,11 +619,11 @@ export default function Panels() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
                     Owner Email
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                    <Mail className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
                     <input
                       type="email"
                       value={ownerEmail}
@@ -637,11 +637,11 @@ export default function Panels() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
                     Phone Number
                   </label>
                   <div className="relative">
-                    <Phone className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                    <Phone className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
                     <input
                       type="text"
                       value={phoneNumber}
@@ -660,11 +660,11 @@ export default function Panels() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
                     Panel Category
                   </label>
                   <div className="relative">
-                    <Layers className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                    <Layers className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
@@ -674,7 +674,7 @@ export default function Panels() {
                         <option value="Algo">Algo</option>
                       ) : (
                         categories.map((cat) => (
-                          <option key={cat._id} value={cat.name} className="bg-slate-950 text-white">
+                          <option key={cat._id} value={cat.name} className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
                             {cat.name}
                           </option>
                         ))
@@ -684,15 +684,15 @@ export default function Panels() {
                 </div>
               </div>
 
-              <div className="border-t border-slate-800/80 pt-4">
-                <h4 className="text-sm font-bold text-white mb-4">Financial & Billing Config</h4>
+              <div className="border-t border-slate-300/80 dark:border-slate-800/80 pt-4">
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4">Financial & Billing Config</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
                       License Charges (₹)
                     </label>
                     <div className="relative">
-                      <Hash className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                      <Hash className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
                       <input
                         type="number"
                         value={licenseCharges}
@@ -706,11 +706,11 @@ export default function Panels() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
                       IP Routing Charges (₹)
                     </label>
                     <div className="relative">
-                      <Globe className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                      <Globe className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
                       <input
                         type="number"
                         value={ipCharges}
@@ -724,11 +724,11 @@ export default function Panels() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
                       Maintenance support Charges (₹)
                     </label>
                     <div className="relative">
-                      <Wrench className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                      <Wrench className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
                       <input
                         type="number"
                         value={maintenanceCharges}
@@ -742,11 +742,11 @@ export default function Panels() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
                       Opening Balance (Previous Due Dues) (₹)
                     </label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                      <DollarSign className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
                       <input
                         type="number"
                         value={openingBalance}
@@ -765,18 +765,18 @@ export default function Panels() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 rounded-xl bg-slate-800 hover:bg-slate-700 py-3 text-sm font-semibold text-slate-300 transition-colors"
+                  className="flex-1 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className={`flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 py-3 text-sm font-semibold text-white shadow-lg hover:from-indigo-600 transition-all duration-300 ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 py-3 text-sm font-semibold text-slate-900 dark:text-white shadow-lg hover:from-indigo-600 transition-all duration-300 ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {submitting ? (
                     <span className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin h-4 w-4 text-slate-900 dark:text-white" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>

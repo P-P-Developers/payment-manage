@@ -214,24 +214,24 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
       <div onClick={onClose} className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"></div>
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-xl rounded-2xl glass-card p-6 md:p-8 border border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-xl rounded-2xl glass-card p-6 md:p-8 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
 
         {/* Header Actions */}
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800/80">
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-300/80 dark:border-slate-800/80">
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
               <Printer className="h-4.5 w-4.5 animate-pulse" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Receipt Generator</h3>
-              <p className="text-[10px] text-slate-400 font-mono mt-0.5">{receiptId}</p>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Receipt Generator</h3>
+              <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono mt-0.5">{receiptId}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-3 py-2 text-xs font-bold border border-slate-700 transition-all shadow-md"
+              className="flex items-center gap-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white px-3 py-2 text-xs font-bold border border-slate-300 dark:border-slate-700 transition-all shadow-md"
               title="Print Receipt"
             >
               <Printer className="h-3.5 w-3.5" />
@@ -239,7 +239,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
             </button>
             <button
               onClick={onClose}
-              className="h-8.5 w-8.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors border border-transparent hover:border-slate-800"
+              className="h-8.5 w-8.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors border border-transparent hover:border-slate-800"
             >
               <X className="h-5 w-5" />
             </button>
@@ -277,7 +277,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
                 {settings.logo ? (
                   <img src={settings.logo} alt="Logo" className="h-16 w-auto object-contain mb-2 rounded-xl p-1 border border-slate-100 bg-slate-50" />
                 ) : (
-                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-white font-extrabold text-xl shadow-md mb-2">
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-slate-900 dark:text-white font-extrabold text-xl shadow-md mb-2">
                     {settings.orgName?.substring(0, 2).toUpperCase()}
                   </div>
                 )}
@@ -290,16 +290,16 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
               {/* Meta Grid Info */}
               <div className="grid grid-cols-2 gap-6 text-xs py-1">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
-                    <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                  <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                    <Calendar className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
                     <span>Transaction Date</span>
                   </div>
                   <p className="font-bold text-slate-800 text-sm">{timestamp}</p>
                 </div>
 
                 <div className="space-y-1 text-right">
-                  <div className="flex items-center justify-end gap-1.5 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
-                    <Tag className="h-3.5 w-3.5 text-slate-400" />
+                  <div className="flex items-center justify-end gap-1.5 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                    <Tag className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
                     <span>Receipt No</span>
                   </div>
                   <p className="font-mono font-extrabold text-indigo-600 text-sm uppercase">{receiptId}</p>
@@ -308,21 +308,21 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
 
               <div className="grid grid-cols-2 gap-6 text-xs pt-4 border-t border-slate-100">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
-                    <User className="h-3.5 w-3.5 text-slate-400" />
+                  <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                    <User className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
                     <span>Client (Bill To)</span>
                   </div>
                   <p className="font-extrabold text-slate-900 text-sm leading-tight">{payment.panelId?.panelName || 'Deleted Panel Client'}</p>
-                  <p className="text-[10px] text-slate-500 font-semibold">Owner: {payment.panelId?.ownerName || '-'}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-500 font-semibold">Owner: {payment.panelId?.ownerName || '-'}</p>
                 </div>
 
                 <div className="space-y-1 text-right">
-                  <div className="flex items-center justify-end gap-1.5 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
-                    <CreditCard className="h-3.5 w-3.5 text-slate-400" />
+                  <div className="flex items-center justify-end gap-1.5 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                    <CreditCard className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
                     <span>Payment Method</span>
                   </div>
                   <p className="font-bold text-slate-800 text-sm">{payment.amountReceived > 0 ? payment.paymentMode : '-'}</p>
-                  {payment.amountReceived > 0 && payment.bankName && <p className="text-[10px] text-slate-500 font-semibold">{payment.bankName}</p>}
+                  {payment.amountReceived > 0 && payment.bankName && <p className="text-[10px] text-slate-500 dark:text-slate-500 font-semibold">{payment.bankName}</p>}
                 </div>
               </div>
 
@@ -330,7 +330,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
               <div className="pt-2">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 dark:text-slate-500 font-bold uppercase tracking-wider text-[9px]">
                       <th className="p-3 rounded-l-lg">Description</th>
                       <th className="p-3 text-center">Qty</th>
                       <th className="p-3 text-right">Unit Rate</th>
@@ -341,12 +341,12 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
                     <tr className="hover:bg-slate-50/50 transition-colors">
                       <td className="p-3">
                         <span className="font-bold text-slate-800 block text-sm">{payment.paymentType} Fees</span>
-                        <span className="text-[10px] text-slate-400 font-medium">Software Panel Charge Module</span>
+                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-medium">Software Panel Charge Module</span>
                       </td>
                       <td className="p-3 text-center font-bold font-mono text-slate-800 text-sm">
                         {payment.paymentType === 'License' || payment.paymentType === 'IP Charges' ? payment.quantity || 1 : '1'}
                       </td>
-                      <td className="p-3 text-right font-mono font-semibold text-slate-500 text-sm">
+                      <td className="p-3 text-right font-mono font-semibold text-slate-500 dark:text-slate-500 text-sm">
                         ₹{(payment.unitPrice || (payment.billAmount || payment.amountReceived)).toLocaleString()}
                       </td>
                       <td className="p-3 text-right font-extrabold text-slate-900 font-mono text-sm">
@@ -361,7 +361,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
               <div className="flex justify-end pt-4 border-t border-slate-100">
                 <div className="w-64 space-y-2.5 text-xs bg-slate-50 rounded-2xl p-4 border border-slate-100">
                   {payment.billAmount > 0 && (
-                    <div className="flex justify-between text-slate-500 font-semibold">
+                    <div className="flex justify-between text-slate-500 dark:text-slate-500 font-semibold">
                       <span>Invoice Total (Bill):</span>
                       <span className="font-bold text-slate-700">₹{payment.billAmount.toLocaleString()}</span>
                     </div>
@@ -388,11 +388,11 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
 
                   {payment.billAmount > 0 && (
                     <div className="flex justify-between border-t border-slate-200/60 pt-2.5 text-xs">
-                      <span className="text-slate-500 font-semibold">Balance Due:</span>
+                      <span className="text-slate-500 dark:text-slate-500 font-semibold">Balance Due:</span>
                       {(() => {
                         const due = (payment.billAmount - (payment.billDiscount || 0)) - (payment.amountReceived + (payment.paymentDiscount || 0));
                         return (
-                          <span className={`font-extrabold ${due > 0 ? 'text-rose-600' : 'text-slate-400'}`}>
+                          <span className={`font-extrabold ${due > 0 ? 'text-rose-600' : 'text-slate-600 dark:text-slate-400'}`}>
                             ₹{due.toLocaleString()}
                           </span>
                         );
@@ -407,14 +407,14 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
                 {settings.stamp && (
                   <div className="mb-1 flex flex-col items-center justify-center">
                     <img src={settings.stamp} alt="Authorized Sign" className="h-14 w-auto object-contain print-stamp" />
-                    <span className="text-[8px] text-slate-400 block mt-1 tracking-wider uppercase font-extrabold">(Authorized Signatory & Stamp)</span>
+                    <span className="text-[8px] text-slate-600 dark:text-slate-400 block mt-1 tracking-wider uppercase font-extrabold">(Authorized Signatory & Stamp)</span>
                   </div>
                 )}
                 <div>
-                  <p className="text-[10px] text-slate-500 leading-relaxed font-semibold">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-500 leading-relaxed font-semibold">
                     Verified by <span className="text-slate-800 font-bold">{payment.addedBy?.name || 'Staff User'}</span> • {settings.orgName}
                   </p>
-                  <p className="text-[9px] text-slate-400 font-bold tracking-widest uppercase mt-1">Thank you for your business!</p>
+                  <p className="text-[9px] text-slate-600 dark:text-slate-400 font-bold tracking-widest uppercase mt-1">Thank you for your business!</p>
                 </div>
               </div>
 
@@ -423,10 +423,10 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
         </div>
 
         {/* Modal Footer Controls */}
-        <div className="mt-6 pt-4 border-t border-slate-800 flex justify-end">
+        <div className="mt-6 pt-4 border-t border-slate-300 dark:border-slate-800 flex justify-end">
           <button
             onClick={onClose}
-            className="rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-5 py-2.5 text-xs font-bold transition-colors border border-slate-700"
+            className="rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-5 py-2.5 text-xs font-bold transition-colors border border-slate-300 dark:border-slate-700"
           >
             Close Receipt
           </button>
