@@ -187,22 +187,29 @@ export default function Payments() {
       return;
     }
     const val = Number(newValue);
-    const originalVal = field === 'billAmount' ? (payment.billAmount || 0) : (payment.amountReceived || 0);
+    let originalVal = 0;
+    if (field === 'billAmount') originalVal = payment.billAmount || 0;
+    else if (field === 'amountReceived') originalVal = payment.amountReceived || 0;
+    else if (field === 'quantity') originalVal = payment.quantity || 0;
+
     if (val === originalVal) {
       setEditingCell(null);
       return;
     }
 
     try {
+      const fieldNameForRemark = field === 'billAmount' ? 'Bill Amount' : field === 'amountReceived' ? 'Amount Paid' : 'Quantity';
+      const formatVal = (v) => field === 'quantity' ? v : `₹${v.toLocaleString()}`;
+
       const payload = {
         paymentType: payment.paymentType,
         amountReceived: field === 'amountReceived' ? val : (payment.amountReceived || 0),
         paymentMode: payment.paymentMode,
         bankName: payment.bankName,
-        quantity: payment.quantity || 1,
+        quantity: field === 'quantity' ? val : (payment.quantity || 1),
         unitPrice: field === 'billAmount' ? val : (payment.unitPrice || val),
         billAmount: field === 'billAmount' ? val : (payment.billAmount || 0),
-        remark: `Direct cell correction of ${field === 'billAmount' ? 'Bill Amount' : 'Amount Paid'} (Value corrected from ₹${originalVal.toLocaleString()} to ₹${val.toLocaleString()})`,
+        remark: `Direct cell correction of ${fieldNameForRemark} (Value corrected from ${formatVal(originalVal)} to ${formatVal(val)})`,
       };
 
       const data = await apiRequest(`/payments/${payment._id}`, {
@@ -1450,8 +1457,30 @@ export default function Payments() {
                                           "-"
                                         )}
                                       </td>
-                                      <td className="border-r border-slate-700/40 px-3 py-1.5 text-center text-slate-400">
-                                        {row.quantity}
+                                      <td
+                                        className={`border-r border-slate-700/40 px-3 py-1.5 text-center ${row.hasData ? 'cursor-pointer hover:bg-slate-800/40 hover:text-white group' : 'text-slate-400'}`}
+                                        onClick={() => row.hasData && setEditingCell({ paymentId: row.originalPayment._id, field: 'quantity', value: row.quantity })}
+                                      >
+                                        {editingCell && editingCell.paymentId === row.originalPayment?._id && editingCell.field === 'quantity' ? (
+                                          <input
+                                            type="number"
+                                            className="w-16 bg-slate-950 border border-indigo-500 rounded px-1 text-center text-xs text-indigo-300 font-mono focus:outline-none"
+                                            value={editingCell.value}
+                                            onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                            onBlur={() => handleInlineCellSave(row.originalPayment, 'quantity', editingCell.value)}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') handleInlineCellSave(row.originalPayment, 'quantity', editingCell.value);
+                                              if (e.key === 'Escape') setEditingCell(null);
+                                            }}
+                                            autoFocus
+                                            onClick={(e) => e.stopPropagation()}
+                                          />
+                                        ) : (
+                                          <div className="flex items-center justify-center gap-1 text-slate-400">
+                                            <span>{row.quantity}</span>
+                                            {row.hasData && <span className="text-[9px] text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">✏️</span>}
+                                          </div>
+                                        )}
                                       </td>
                                       <td className="border-r border-slate-700/40 px-3 py-1.5 text-right text-slate-400">
                                         {row.unitPrice !== '-' ? `₹${row.unitPrice.toLocaleString()}` : '-'}

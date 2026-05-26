@@ -7,7 +7,7 @@ const jobs = require('./jobs');
  */
 module.exports = {
   init: () => {
-    console.log('[Cron Scheduler] Initializing cron scheduler...');
+    // console.log('[Cron Scheduler] Initializing cron scheduler...');
 
     if (!jobs || jobs.length === 0) {
       console.log('[Cron Scheduler] No cron jobs found in the registry.');
@@ -37,9 +37,9 @@ module.exports = {
         }
       });
 
-      console.log(`[Cron Scheduler] Successfully scheduled: "${job.name}" [Schedule: ${job.schedule}]`);
+      // console.log(`[Cron Scheduler] Successfully scheduled: "${job.name}" [Schedule: ${job.schedule}]`);
     });
 
-    console.log('[Cron Scheduler] All registered jobs have been scheduled.');
+    // console.log('[Cron Scheduler] All registered jobs have been scheduled.');
   }
 };
