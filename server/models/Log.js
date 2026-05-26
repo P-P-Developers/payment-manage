@@ -31,4 +31,7 @@ const logSchema = new mongoose.Schema(
   }
 );
 
+logSchema.index({ userId: 1, timestamp: -1 });
+logSchema.index({ timestamp: -1 });
+
 module.exports = mongoose.model('Log', logSchema);

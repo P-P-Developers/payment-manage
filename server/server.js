@@ -3,12 +3,16 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const User = require('./models/User');
+const cronScheduler = require('./cron/cronScheduler');
 
 // Load environment variables
 dotenv.config();
 
 // Connect to Database
 connectDB();
+
+// Initialize scheduled cron jobs
+cronScheduler.init();
 
 const app = express();
 
@@ -22,6 +26,9 @@ app.use('/api/panels', require('./routes/panels'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/stats', require('./routes/stats'));
 app.use('/api/logs', require('./routes/logs'));
+app.use('/api/smtp', require('./routes/smtp'));
+app.use('/api/categories', require('./routes/categories'));
+app.use('/api/banks', require('./routes/banks'));
 
 // Basic health check route
 app.get('/api/health', (req, res) => {

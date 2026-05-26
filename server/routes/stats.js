@@ -9,8 +9,8 @@ const { protect, hasPermission } = require('../middleware/auth');
 // @access  Private (view_panels permission)
 router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
   try {
-    const panels = await Panel.find({});
-    const payments = await Payment.find({});
+    const panels = await Panel.find({}).lean();
+    const payments = await Payment.find({}).populate('panelId', 'panelName').lean();
 
     // Calculate sum of panel charges
     let totalOpeningBalance = 0;
@@ -27,7 +27,9 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
 
     const totalPaymentsReceived = payments.reduce((sum, p) => sum + (p.amountReceived || 0), 0);
     const totalBillAmount = payments.reduce((sum, p) => sum + (p.billAmount || 0), 0);
-    const totalOutstanding = totalOpeningBalance + totalBillAmount - totalPaymentsReceived;
+    const totalBillDiscount = payments.reduce((sum, p) => sum + (p.billDiscount || 0), 0);
+    const totalPaymentDiscount = payments.reduce((sum, p) => sum + (p.paymentDiscount || 0), 0);
+    const totalOutstanding = totalOpeningBalance + (totalBillAmount - totalBillDiscount) - (totalPaymentsReceived + totalPaymentDiscount);
 
     // Breakdown payments by type for beautiful charts
     const paymentBreakdown = {
@@ -69,6 +71,8 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
         totalMaintenanceCharges,
         totalOpeningBalance,
         totalOutstanding,
+        totalBillDiscount,
+        totalPaymentDiscount,
       },
       paymentBreakdown,
       paymentModeBreakdown,
@@ -76,6 +80,8 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
         totalPanels: panels.length,
         totalPayments: payments.length,
       },
+      panels,
+      payments,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

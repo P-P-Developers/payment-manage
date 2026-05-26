@@ -37,6 +37,14 @@ const paymentSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    billDiscount: {
+      type: Number,
+      default: 0,
+    },
+    paymentDiscount: {
+      type: Number,
+      default: 0,
+    },
     remark: {
       type: String,
       default: '',
@@ -50,10 +58,30 @@ const paymentSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    editHistory: [
+      {
+        editedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        editedAt: {
+          type: Date,
+          default: Date.now,
+        },
+        changes: {
+          type: String,
+          required: true,
+        },
+      }
+    ],
   },
   {
     timestamps: true,
   }
 );
+
+paymentSchema.index({ panelId: 1, timestamp: -1 });
+paymentSchema.index({ timestamp: -1 });
 
 module.exports = mongoose.model('Payment', paymentSchema);

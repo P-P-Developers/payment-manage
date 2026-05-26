@@ -15,19 +15,62 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
     const limit = limitQuery === 'all' ? 0 : (parseInt(limitQuery) || 10);
     const skip = limit === 0 ? 0 : (page - 1) * limit;
 
-    const total = await Payment.countDocuments({});
-    const payments = await Payment.find({})
+    let filterQuery = {};
+
+    // Filter by Search Query (searches panelName)
+    if (req.query.search) {
+      const matchedPanels = await Panel.find({
+        panelName: { $regex: req.query.search, $options: 'i' }
+      }).select('_id');
+      const matchedPanelIds = matchedPanels.map(p => p._id);
+      filterQuery.panelId = { $in: matchedPanelIds };
+    }
+
+    // Filter by Payment Type
+    if (req.query.paymentType && req.query.paymentType !== 'All') {
+      filterQuery.paymentType = req.query.paymentType;
+    }
+
+    // Filter by Payment Mode
+    if (req.query.paymentMode && req.query.paymentMode !== 'All') {
+      filterQuery.paymentMode = req.query.paymentMode;
+    }
+
+    // Filter by Transaction Category
+    if (req.query.transactionType === 'bill') {
+      filterQuery.billAmount = { $gt: 0 };
+    } else if (req.query.transactionType === 'received') {
+      filterQuery.amountReceived = { $gt: 0 };
+    }
+
+    // Filter by Date Range
+    if (req.query.startDate || req.query.endDate) {
+      filterQuery.timestamp = {};
+      if (req.query.startDate) {
+        filterQuery.timestamp.$gte = new Date(req.query.startDate);
+      }
+      if (req.query.endDate) {
+        const end = new Date(req.query.endDate);
+        end.setHours(23, 59, 59, 999);
+        filterQuery.timestamp.$lte = end;
+      }
+    }
+
+    const total = await Payment.countDocuments(filterQuery);
+    const payments = await Payment.find(filterQuery)
       .populate('panelId', 'panelName ownerName ownerEmail phoneNumber')
       .populate('addedBy', 'name email')
+      .populate('editHistory.editedBy', 'name email')
       .sort({ timestamp: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     res.json({
       success: true,
       count: payments.length,
       total,
-      pages: Math.ceil(total / limit),
+      pages: limit === 0 ? 1 : Math.ceil(total / limit),
       currentPage: page,
       payments,
     });
@@ -40,7 +83,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
 // @route   POST /api/payments
 // @access  Private (add_payments permission)
 router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
-  const { panelId, paymentType, amountReceived, paymentMode, bankName, quantity, remark, unitPrice, billAmount } = req.body;
+  const { panelId, paymentType, amountReceived, paymentMode, bankName, quantity, remark, unitPrice, billAmount, billDiscount, paymentDiscount, timestamp } = req.body;
 
   try {
     if (!panelId || !paymentType || amountReceived === undefined || !paymentMode) {
@@ -51,7 +94,17 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
     if (!panel) {
       return res.status(404).json({ success: false, message: 'Panel not found' });
     }
-  
+
+    // Validate discounts
+    if (billDiscount !== undefined && Number(billDiscount) < 0) {
+      return res.status(400).json({ success: false, message: 'Bill discount cannot be negative' });
+    }
+    if (paymentDiscount !== undefined && Number(paymentDiscount) < 0) {
+      return res.status(400).json({ success: false, message: 'Payment discount cannot be negative' });
+    }
+    if (billDiscount !== undefined && billAmount !== undefined && Number(billDiscount) > Number(billAmount)) {
+      return res.status(400).json({ success: false, message: 'Bill discount cannot exceed bill amount' });
+    }
 
     const payment = await Payment.create({
       panelId,
@@ -62,16 +115,29 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
       quantity: (quantity !== undefined && quantity !== null && quantity !== '') ? Number(quantity) : 0,
       unitPrice: Number(unitPrice) || 0,
       billAmount: Number(billAmount) || 0,
+      billDiscount: Number(billDiscount) || 0,
+      paymentDiscount: Number(paymentDiscount) || 0,
       remark: remark || '',
       addedBy: req.user._id,
+      timestamp: timestamp ? new Date(timestamp) : undefined,
     });
 
-    // Create activity log
+    // Create custom detailed activity log
+    let logDetails = `Received payment of ₹${amountReceived} (${paymentType}) from panel ${panel.panelName} via ${paymentMode}`;
+    if (Number(paymentDiscount) > 0) {
+      logDetails += ` (Discount: ₹${paymentDiscount})`;
+    } else if (Number(billAmount) > 0) {
+      logDetails = `Generated bill of ₹${billAmount} (${paymentType}) for panel ${panel.panelName}`;
+      if (Number(billDiscount) > 0) {
+        logDetails += ` (Discount: ₹${billDiscount})`;
+      }
+    }
+
     await Log.create({
       userId: req.user._id,
       actionType: 'ADD',
       module: 'Payment',
-      details: `Received payment of ₹${amountReceived} (${paymentType}) from panel ${panel.panelName} via ${paymentMode}`,
+      details: logDetails,
     });
 
     res.status(201).json({ success: true, payment });
@@ -84,7 +150,7 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
 // @route   PUT /api/payments/:id
 // @access  Private (edit_payments permission)
 router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => {
-  const { paymentType, amountReceived, paymentMode, bankName, quantity, remark } = req.body;
+  const { paymentType, amountReceived, paymentMode, bankName, quantity, remark, timestamp, billDiscount, paymentDiscount } = req.body;
 
   try {
     const payment = await Payment.findById(req.params.id).populate('panelId', 'panelName');
@@ -92,8 +158,25 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
       return res.status(404).json({ success: false, message: 'Payment not found' });
     }
 
+    // Validate discounts
+    if (billDiscount !== undefined && Number(billDiscount) < 0) {
+      return res.status(400).json({ success: false, message: 'Bill discount cannot be negative' });
+    }
+    if (paymentDiscount !== undefined && Number(paymentDiscount) < 0) {
+      return res.status(400).json({ success: false, message: 'Payment discount cannot be negative' });
+    }
+
     const oldAmount = payment.amountReceived;
     const oldType = payment.paymentType;
+    const oldMode = payment.paymentMode;
+    const oldBank = payment.bankName;
+    const oldQty = payment.quantity;
+    const oldPrice = payment.unitPrice;
+    const oldBill = payment.billAmount;
+    const oldBillDiscount = payment.billDiscount || 0;
+    const oldPaymentDiscount = payment.paymentDiscount || 0;
+    const oldRemark = payment.remark;
+    const oldTimestamp = payment.timestamp;
 
     payment.paymentType = paymentType || payment.paymentType;
     payment.amountReceived = amountReceived !== undefined ? Number(amountReceived) : payment.amountReceived;
@@ -102,16 +185,56 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
     payment.quantity = quantity !== undefined ? Number(quantity) : payment.quantity;
     payment.unitPrice = req.body.unitPrice !== undefined ? Number(req.body.unitPrice) : payment.unitPrice;
     payment.billAmount = req.body.billAmount !== undefined ? Number(req.body.billAmount) : payment.billAmount;
+    payment.billDiscount = billDiscount !== undefined ? Number(billDiscount) : (payment.billDiscount || 0);
+    payment.paymentDiscount = paymentDiscount !== undefined ? Number(paymentDiscount) : (payment.paymentDiscount || 0);
     payment.remark = remark !== undefined ? remark : payment.remark;
+    if (timestamp) {
+      payment.timestamp = new Date(timestamp);
+    }
 
-    const updatedPayment = await payment.save();
+    // Validate bill discount against final bill amount
+    if (payment.billDiscount > payment.billAmount) {
+      return res.status(400).json({ success: false, message: 'Bill discount cannot exceed bill amount' });
+    }
+
+    // Track changes
+    const changesArray = [];
+    if (oldType !== payment.paymentType) changesArray.push(`Type: ${oldType} ➔ ${payment.paymentType}`);
+    if (oldAmount !== payment.amountReceived) changesArray.push(`Paid: ₹${oldAmount} ➔ ₹${payment.amountReceived}`);
+    if (oldMode !== payment.paymentMode) changesArray.push(`Mode: ${oldMode} ➔ ${payment.paymentMode}`);
+    if (oldBank !== payment.bankName) changesArray.push(`Bank: "${oldBank || 'N/A'}" ➔ "${payment.bankName || 'N/A'}"`);
+    if (oldQty !== payment.quantity) changesArray.push(`Qty: ${oldQty} ➔ ${payment.quantity}`);
+    if (oldPrice !== payment.unitPrice) changesArray.push(`Price: ₹${oldPrice} ➔ ₹${payment.unitPrice}`);
+    if (oldBill !== payment.billAmount) changesArray.push(`Bill: ₹${oldBill} ➔ ₹${payment.billAmount}`);
+    if (oldBillDiscount !== payment.billDiscount) changesArray.push(`Bill Discount: ₹${oldBillDiscount} ➔ ₹${payment.billDiscount}`);
+    if (oldPaymentDiscount !== payment.paymentDiscount) changesArray.push(`Payment Discount: ₹${oldPaymentDiscount} ➔ ₹${payment.paymentDiscount}`);
+    if (oldRemark !== payment.remark) changesArray.push(`Remark: "${oldRemark || 'N/A'}" ➔ "${payment.remark || 'N/A'}"`);
+    if (timestamp && new Date(oldTimestamp).getTime() !== new Date(payment.timestamp).getTime()) {
+      changesArray.push(`Date: ${new Date(oldTimestamp).toLocaleDateString()} ➔ ${new Date(payment.timestamp).toLocaleDateString()}`);
+    }
+
+    if (changesArray.length > 0) {
+      payment.editHistory.push({
+        editedBy: req.user._id,
+        editedAt: new Date(),
+        changes: changesArray.join(' | '),
+      });
+    }
+
+    let updatedPayment = await payment.save();
+    
+    // Populate the newly added editHistory's editedBy before returning
+    updatedPayment = await Payment.findById(updatedPayment._id)
+      .populate('panelId', 'panelName ownerName ownerEmail phoneNumber')
+      .populate('addedBy', 'name email')
+      .populate('editHistory.editedBy', 'name email');
 
     // Create activity log
     await Log.create({
       userId: req.user._id,
       actionType: 'EDIT',
       module: 'Payment',
-      details: `Edited payment for panel ${payment.panelId.panelName}. Changed from ₹${oldAmount} (${oldType}) to ₹${payment.amountReceived} (${payment.paymentType})`,
+      details: `Edited payment for panel ${payment.panelId.panelName}. Changes: ${changesArray.join(' | ')}`,
     });
 
     res.json({ success: true, payment: updatedPayment });
