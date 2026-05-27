@@ -328,7 +328,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
 
               {/* Charge Item Table */}
               <div className="pt-2">
-                <table className="w-full text-left text-xs border-collapse">
+                <table className="w-full text-left text-xs border-collapse receipt-table">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 dark:text-slate-500 font-bold uppercase tracking-wider text-[9px]">
                       <th className="p-3 rounded-l-lg">Description</th>

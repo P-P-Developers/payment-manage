@@ -262,7 +262,7 @@ export default function Payments() {
     const transactionTypeParam = searchParams.get('transactionType');
     const typeParam = searchParams.get('type');
     const modeParam = searchParams.get('mode');
-    
+
     setTransactionTypeFilter(transactionTypeParam !== null ? transactionTypeParam : 'all');
     setTypeFilter(typeParam !== null ? typeParam : 'All');
     setModeFilter(modeParam !== null ? modeParam : 'All');
@@ -781,42 +781,70 @@ export default function Payments() {
   return (
     <div className="space-y-6">
       {/* Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+        {/* Left Section */}
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl  text-slate-900 dark:text-white tracking-tight">Ledger Collections (Payments)</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
+              Ledger Collections (Payments)
+            </h2>
+
             {loading && payments.length > 0 && (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent shrink-0"></div>
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
             )}
           </div>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Receive client subscription payments, issue receipt entries, and export transaction records.</p>
+
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Receive client subscription payments, issue receipt entries, and export transaction records.
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Right Actions */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Export */}
           <button
             onClick={handleExportCSV}
             disabled={loading}
-            className="flex items-center justify-center gap-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white font-semibold px-4 py-3 text-sm border border-slate-300 dark:border-slate-700 transition-all shadow-md"
+            className="flex items-center gap-2 rounded-lg 
+      bg-white dark:bg-gray-900 
+      border border-gray-200 dark:border-gray-700 
+      px-4 py-2.5 text-sm font-medium 
+      text-gray-700 dark:text-gray-300 
+      hover:bg-gray-50 dark:hover:bg-gray-800 
+      transition-all duration-200 
+      shadow-sm hover:shadow"
             title="Download CSV file for MS Excel"
           >
-            <FileSpreadsheet className="h-4.5 w-4.5" />
-            <span>Export to Excel</span>
+            <FileSpreadsheet className="h-4 w-4 text-gray-500" />
+            Export
           </button>
 
+          {/* Receive Payment (Primary CTA) */}
           <button
             onClick={handleOpenReceiveModal}
-            className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-slate-900 dark:text-white font-semibold px-4 py-3 text-sm transition-all shadow-lg shadow-emerald-600/10"
+            className="flex items-center gap-2 rounded-lg 
+      bg-blue-600 hover:bg-blue-700 
+      px-4 py-2.5 text-sm font-semibold 
+      text-white 
+      transition-all duration-200 
+      shadow-md hover:shadow-lg hover:-translate-y-[1px]"
           >
-            <Plus className="h-4.5 w-4.5" />
-            <span>Receive Payment</span>
+            <Plus className="h-4 w-4" />
+            Receive Payment
           </button>
 
+          {/* Create Bill (Secondary CTA) */}
           <button
             onClick={handleOpenBillModal}
-            className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-slate-900 dark:text-white font-semibold px-4 py-3 text-sm transition-all shadow-lg shadow-indigo-600/10"
+            className="flex items-center gap-2 rounded-lg 
+      bg-gray-900 hover:bg-black 
+      px-4 py-2.5 text-sm font-semibold 
+      text-white 
+      transition-all duration-200 
+      shadow-md hover:shadow-lg hover:-translate-y-[1px]"
           >
-            <Plus className="h-4.5 w-4.5" />
-            <span>Create Bill</span>
+            <Plus className="h-4 w-4" />
+            Create Bill
           </button>
         </div>
       </div>
@@ -962,11 +990,12 @@ export default function Payments() {
           </div>
 
           {/* Payments table */}
+          {/* Payments table */}
           <div className="rounded-2xl bg-slate-50/60 bgw light:bg-slate-950/60 border border-slate-300/80 dark:border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400  uppercase tracking-wider text-[11px]">
+                  <tr className="bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[11px]">
                     <th className="py-3.5 px-4 text-center w-14">S.No</th>
                     <th className="py-3.5 px-5">Date & Time</th>
                     <th className="py-3.5 px-5">Panel Client</th>
@@ -986,158 +1015,160 @@ export default function Payments() {
                     </>
                   ) : filteredPayments.map((p, index) => (
                     <tr key={p._id} className="hover:bg-slate-100/40 dark:hover:bg-slate-900/40 transition-colors duration-150 group">
-                      <td className="py-3 px-4 text-center font-mono  text-slate-500 dark:text-slate-500 dark:text-slate-500 group-hover:text-slate-400">
+
+                      {/* S.No */}
+                      <td className="py-3 px-4 text-center font-mono text-slate-500">
                         {(currentPage - 1) * 10 + index + 1}
                       </td>
+
+                      {/* Date & Time */}
                       <td className="py-3 px-5">
                         <div className="flex flex-col">
-                          <span className="font-semibold text-slate-900 dark:text-white group-hover:text-indigo-300 transition-colors">{new Date(p.timestamp).toLocaleDateString()}</span>
-                          <span className="text-[10px] text-slate-500 dark:text-slate-500 dark:text-slate-500 font-medium mt-0.5">{new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-100">
+                            {new Date(p.timestamp).toLocaleDateString()}
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                            {new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
                         </div>
                       </td>
+
+                      {/* Panel Client */}
                       <td className="py-3 px-5">
-                        <div className="flex items-center gap-2.5">
-                          <div className="h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/10 flex items-center justify-center  text-[11px] capitalize shrink-0 shadow-sm">
+                        <div className="flex items-start gap-2.5">
+                          <div className="h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 flex items-center justify-center text-[11px] capitalize shrink-0">
                             {p.panelId?.panelName?.substring(0, 2)}
                           </div>
-                          <span className=" text-slate-900 dark:text-white tracking-wide">{p.panelId?.panelName || 'Deleted Panel'}</span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-100 tracking-wide max-w-[180px] break-words leading-snug">
+                            {p.panelId?.panelName || 'Deleted Panel'}
+                          </span>
                         </div>
                       </td>
+
+                      {/* Billing Type */}
                       <td className="py-3 px-5">
                         <div className="flex flex-col gap-1 items-start">
                           <span
-                            className={`inline-flex px-2 py-0.5 rounded-md text-[10px]  uppercase tracking-wider ${p.paymentType === 'License'
-                              ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                            className={`inline-flex px-2 py-0.5 rounded-md text-[10px] uppercase tracking-wider ${p.paymentType === 'License'
+                              ? 'bg-indigo-500/10 text-indigo-700 border border-indigo-800'
                               : p.paymentType === 'IP Charges'
-                                ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
+                                ? 'bg-violet-500/10 text-violet-700 border border-violet-800'
                                 : p.paymentType === 'Maintenance'
-                                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                  ? 'bg-amber-500/10 text-amber-700 border border-amber-800'
+                                  : 'bg-emerald-500/10 text-emerald-700 border border-emerald-800'
                               }`}
                           >
                             {p.paymentType}
                           </span>
-                          {(p.paymentType === 'License' || p.paymentType === 'IP Charges') && (p.quantity !== undefined && p.quantity !== null) && (
-                            <span className="text-[9px] text-slate-500 dark:text-slate-500 dark:text-slate-500  uppercase ml-0.5">Qty: {p.quantity}</span>
-                          )}
+                          {(p.paymentType === 'License' || p.paymentType === 'IP Charges') &&
+                            p.quantity !== undefined && p.quantity !== null &&
+                            p.amountReceived < (p.billAmount - p.billDiscount) && (
+                              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase ml-0.5">
+                                Qty: {p.quantity}
+                              </span>
+                            )}
                         </div>
                       </td>
+
+                      {/* Financial Details */}
                       <td className="py-3 px-5">
                         <div className="flex flex-col gap-1">
+
+                          {/* Status badge */}
+                          <div>
+                            {p.amountReceived === 0 ? (
+                              <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-rose-700/10 text-rose-700 border border-rose-700">
+                                Unpaid
+                              </span>
+                            ) : p.amountReceived < (p.billAmount - p.billDiscount) ? (
+                              <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-amber-700/10 text-amber-700 border border-amber-700">
+                                Partial (₹{(p.billAmount - p.billDiscount - p.amountReceived).toLocaleString()} due)
+                              </span>
+                            ) : null}
+                          </div>
+
                           {p.billAmount > 0 ? (
                             <div className="space-y-0.5">
                               <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] text-slate-500 dark:text-slate-500 dark:text-slate-500 font-semibold uppercase w-8">Bill:</span>
-                                <span className=" text-slate-600 dark:text-slate-400 font-mono">₹{p.billAmount?.toLocaleString()}</span>
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase w-8">Bill:</span>
+                                <span className="text-slate-700 dark:text-slate-300 font-mono">₹{p.billAmount?.toLocaleString()}</span>
                               </div>
                               {p.billDiscount > 0 && (
                                 <div className="flex items-center gap-1.5">
-                                  <span className="text-[10px] text-slate-500 dark:text-slate-500 dark:text-slate-500 font-semibold uppercase w-8">Disc:</span>
-                                  <span className="text-orange-400 font-mono">₹{p.billDiscount?.toLocaleString()}</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase w-8">Disc:</span>
+                                  <span className="text-amber-600 dark:text-amber-400 font-mono">₹{p.billDiscount?.toLocaleString()}</span>
                                 </div>
                               )}
                               {p.amountReceived > 0 && (
                                 <div className="flex items-center gap-1.5">
-                                  <span className="text-[10px] text-slate-500 dark:text-slate-500 dark:text-slate-500 font-semibold uppercase w-8">Paid:</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase w-8">Paid:</span>
                                   <span className={`font-extrabold font-mono ${p.amountReceived < (p.billAmount - p.billDiscount)
-                                    ? 'text-amber-400'
-                                    : 'text-emerald-400'
+                                    ? 'text-amber-600 dark:text-amber-400'
+                                    : 'text-emerald-600 dark:text-emerald-400'
                                     }`}>
                                     ₹{p.amountReceived?.toLocaleString()}
                                   </span>
                                 </div>
                               )}
-                              <div className="mt-1">
-                                {p.amountReceived === 0 ? (
-                                  <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-rose-500/10 text-rose-400 border border-rose-500/15">
-                                    Unpaid
-                                  </span>
-                                ) : p.amountReceived < (p.billAmount - p.billDiscount) ? (
-                                  <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/15">
-                                    Partial (₹{(p.billAmount - p.billDiscount - p.amountReceived).toLocaleString()} due)
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/15">
-                                    Fully Paid
-                                  </span>
-                                )}
-                              </div>
                             </div>
                           ) : (
                             <div className="space-y-0.5">
                               <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] text-slate-500 dark:text-slate-500 dark:text-slate-500 font-semibold uppercase w-8">Paid:</span>
-                                <span className="font-extrabold text-slate-900 dark:text-white font-mono">₹{p.amountReceived?.toLocaleString()}</span>
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase w-8">Paid:</span>
+                                <span className="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
+                                  ₹{p.amountReceived?.toLocaleString()}
+                                </span>
                               </div>
                               {p.paymentDiscount > 0 && (
                                 <div className="flex items-center gap-1.5">
-                                  <span className="text-[10px] text-slate-500 dark:text-slate-500 dark:text-slate-500 font-semibold uppercase w-8">Disc:</span>
-                                  <span className="text-rose-400 font-mono">₹{p.paymentDiscount?.toLocaleString()}</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase w-8">Disc:</span>
+                                  <span className="text-amber-600 dark:text-amber-400 font-mono">₹{p.paymentDiscount?.toLocaleString()}</span>
                                 </div>
                               )}
-                              <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/15 w-fit">
-                                Direct Payment
-                              </span>
                             </div>
                           )}
 
                         </div>
                       </td>
+
+                      {/* Payment Mode */}
                       <td className="py-3 px-5">
                         {p.amountReceived > 0 ? (
-                          <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                            <div className="text-[12px] text-slate-500 dark:text-slate-500 dark:text-slate-500 font-semibold flex items-center gap-1 mt-0.5 uppercase tracking-wide">
-                              <CreditCard className="h-3 w-3 shrink-0 text-slate-600" />
-                              <span>{p.paymentMode} {p.bankName && `(${p.bankName})`}</span>
-                            </div>
+                          <div className="flex items-center gap-1.5">
+                            <CreditCard className="h-3 w-3 shrink-0 text-slate-500 dark:text-slate-400" />
+                            <span className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wide">
+                              {p.paymentMode}
+                            </span>
                           </div>
                         ) : (
-                          <span className="text-slate-600 font-semibold font-mono">-</span>
+                          <span className="text-slate-500 dark:text-slate-400 font-semibold font-mono">-</span>
                         )}
                       </td>
 
-
-
-
+                      {/* Collected By */}
                       <td className="py-3 px-5">
                         <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                          <div className="h-5 w-5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center  text-[9px] uppercase border border-slate-300 dark:border-slate-700">
-                            {p.addedBy?.name?.substring(0, 2)}
-                          </div>
-                          <span className="font-medium truncate max-w-[110px]">{p.addedBy?.name || 'Staff User'}</span>
+                          <span className="font-medium truncate max-w-[110px]">
+                            {p.addedBy?.name || 'Staff User'}
+                          </span>
                         </div>
                       </td>
-                      {/* <td className="py-3 px-5 text-slate-600 dark:text-slate-400 max-w-[140px] truncate" title={p.remark || ''}>
-                        {p.remark ? (
-                          <div className="flex items-center gap-1.5">
-                            <MessageSquare className="h-3.5 w-3.5 text-slate-500 dark:text-slate-500 dark:text-slate-500 shrink-0" />
-                            <span className="truncate">{p.remark}</span>
-                          </div>
-                        ) : (
-                          <span className="text-slate-600 font-semibold">-</span>
-                        )}
-                      </td> */}
+
+                      {/* Action */}
                       <td className="py-3 px-4 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => setViewingPayment(p)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-700 text-xs  transition-all shadow-md active:scale-95"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-700 text-xs transition-all shadow-md active:scale-95"
                             title="View Full Details"
                           >
                             <Eye className="h-3.5 w-3.5" />
                           </button>
-                          <button
-                            onClick={() => setSelectedReceiptPayment(p)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-600 text-indigo-400 hover:text-slate-900 dark:hover:text-white border border-indigo-500/10 hover:border-transparent text-xs  transition-all shadow-md active:scale-95"
-                            title="Generate Receipt"
-                          >
-                            <Printer className="h-3.5 w-3.5" />
-                          </button>
                         </div>
                       </td>
+
                     </tr>
-                  ))
-                  }
+                  ))}
                   {filteredPayments.length === 0 && !loading && (
                     <tr>
                       <td colSpan="8" className="text-center py-8 text-slate-600 dark:text-slate-400">
@@ -1152,10 +1183,9 @@ export default function Payments() {
             {/* Pagination Controls */}
             <div className="p-4 bg-slate-100/40 dark:bg-slate-900/40 border-t border-slate-300 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
               <p className="text-slate-600 dark:text-slate-400 font-medium">
-                Showing <span className=" text-indigo-400">{filteredPayments.length}</span> of{' '}
-                <span className=" text-slate-900 dark:text-white">{totalPaymentsCount}</span> ledger entries
+                Showing <span className="text-indigo-400">{filteredPayments.length}</span> of{' '}
+                <span className="text-slate-900 dark:text-white">{totalPaymentsCount}</span> ledger entries
               </p>
-
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -1164,7 +1194,7 @@ export default function Payments() {
                 >
                   Previous
                 </button>
-                <span className="text-slate-600 dark:text-slate-400  px-3">
+                <span className="text-slate-600 dark:text-slate-400 px-3">
                   Page {currentPage} of {totalPages}
                 </span>
                 <button
@@ -1820,9 +1850,8 @@ export default function Payments() {
                       onChange={(e) => setPaymentDiscount(e.target.value)}
                       placeholder={userRole === 'Admin' ? "e.g. 1000" : "Requires Admin permissions"}
                       disabled={userRole !== 'Admin'}
-                      className={`w-full rounded-xl px-4 py-3 text-sm glass-input text-rose-400 text-base font-mono ${
-                        userRole !== 'Admin' ? 'opacity-40 cursor-not-allowed bg-slate-50/60 dark:bg-slate-950/60' : ''
-                      }`}
+                      className={`w-full rounded-xl px-4 py-3 text-sm glass-input text-rose-400 text-base font-mono ${userRole !== 'Admin' ? 'opacity-40 cursor-not-allowed bg-slate-50/60 dark:bg-slate-950/60' : ''
+                        }`}
                       min="0"
                     />
                   </div>

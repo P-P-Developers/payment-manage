@@ -3,17 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --background: #0f172a;
-  /* Sleek slate-900 */
-  --foreground: #f8fafc;
-  /* slate-50 */
+  --background: #f8fafc;
+  /* Sleek slate-50 */
+  --foreground: #0f172a;
+  /* slate-900 */
 }
 
 body {
   color: var(--foreground);
-  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+  background: #f8fafc;
   min-height: 100vh;
   font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.font-display {
+  font-family: 'Outfit', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Custom gorgeous scrollbar */
@@ -23,11 +27,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
@@ -37,16 +41,17 @@ body {
 
 /* Glassmorphism utility card */
 .glass-card {
-  background:#fff;
+  background: #fff;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03), 0 2px 8px -1px rgba(15, 23, 42, 0.02);
 }
 
 .glass-input {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  color: #0f172a;
 }
 
 .glass-input:focus {
@@ -91,3 +96,81 @@ aside{border-right: 1px solid #E8ECF4 !important;}
 .bg-emerald-600:hover {    
     background: #DDFCEF !important;
 }
+
+/* ==========================================================================
+   PREMIUM READABLE TABLE SYSTEM (GLOBAL)
+   ========================================================================== */
+
+main table:not(.receipt-table) {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 14px !important;
+  background-color: #ffffff !important;
+}
+
+main table:not(.receipt-table) thead tr {
+  background-color: #0A2540 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+main table:not(.receipt-table) thead th {
+  padding: 16px 20px !important;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border: none !important;
+  color: #ffffff !important;
+  background-color: #0A2540 !important;
+  text-align: left;
+}
+
+main table:not(.receipt-table) thead th:first-child {
+  border-top-left-radius: 12px !important;
+}
+
+main table:not(.receipt-table) thead th:last-child {
+  border-top-right-radius: 12px !important;
+}
+
+main table:not(.receipt-table) tbody tr {
+  border-bottom: 1px solid #E2E8F0 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s ease !important;
+}
+
+main table:not(.receipt-table) tbody tr:hover {
+  background-color: #F8FAFC !important; /* Soft high-contrast light blue/gray */
+}
+
+main table:not(.receipt-table) tbody td {
+  padding: 16px 20px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #0F172A !important; /* High contrast Slate-900 (ultra readable) */
+  vertical-align: middle !important;
+  border: none !important;
+}
+
+/* Force readable sizes and colors on default nested text tags */
+main table:not(.receipt-table) tbody td span:not([class*="text-"]):not([class*="bg-"]):not([class*="border-"]), 
+main table:not(.receipt-table) tbody td div:not([class*="text-"]):not([class*="bg-"]):not([class*="border-"]) {
+  font-size: 14px !important;
+  color: #0F172A !important;
+}
+
+/* Ensure secondary details have high-contrast readable dark gray color */
+main table:not(.receipt-table) tbody td .text-slate-500,
+main table:not(.receipt-table) tbody td .text-slate-400,
+main table:not(.receipt-table) tbody td .text-slate-650 {
+  color: #475569 !important; /* Sleek high-contrast Slate-600 */
+  font-size: 12px !important;
+}
+
+/* Ensure bold and key name headers are crisp and dark slate */
+main table:not(.receipt-table) tbody td .font-semibold,
+main table:not(.receipt-table) tbody td .font-bold {
+  color: #0F172A !important;
+}

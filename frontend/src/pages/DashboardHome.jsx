@@ -591,23 +591,24 @@ export default function DashboardHome() {
       value: `₹${totalBilledAmount.toLocaleString()}`,
       desc: `${totalBillsCount} Invoices generated`,
       icon: FileSpreadsheet,
-      iconBg: 'from-indigo-500/20 to-blue-500/10 text-indigo-400',
+      iconBg: 'from-indigo-500/20 to-blue-500/10 text-indigo-500',
       iconBorder: 'border-indigo-500/20',
       link: '/dashboard/payments?transactionType=bill',
-      color: 'from-indigo-500/10 via-slate-900/40 to-slate-900/40 border-indigo-500/15',
+      color: 'from-indigo-50/60 via-white to-white border-indigo-100/80 shadow-indigo-100/10',
+      topBorderColor: 'from-indigo-500 to-violet-500',
       formula: 'Total Billed = Maintenance + License + IP + Other',
       breakdown: [
         { label: 'Maintenance Bills', value: `₹${maintBilled.toLocaleString()}`, dotColor: 'bg-amber-500', link: '/dashboard/payments?transactionType=bill&type=Maintenance' },
         { label: 'License Bills', value: `₹${licBilled.toLocaleString()}`, dotColor: 'bg-cyan-500', link: '/dashboard/payments?type=License' },
         { label: 'IP Charges Bills', value: `₹${ipBilled.toLocaleString()}`, dotColor: 'bg-purple-500', link: '/dashboard/payments?type=IP%20Charges' },
-        { label: 'Bill Discounts Given', value: `-₹${billDiscountTotal.toLocaleString()}`, dotColor: 'bg-orange-500', link: '/dashboard/payments?transactionType=bill', textColor: 'text-orange-400' },
+        { label: 'Bill Discounts Given', value: `-₹${billDiscountTotal.toLocaleString()}`, dotColor: 'bg-orange-500', link: '/dashboard/payments?transactionType=bill', textColor: 'text-orange-600' },
       ],
       modalBreakdown: [
-        { label: 'Maintenance Bills', value: `₹${maintBilled.toLocaleString()}`, color: 'text-amber-400' },
-        { label: 'License Bills', value: `₹${licBilled.toLocaleString()}`, color: 'text-cyan-400' },
-        { label: 'IP Charges Bills', value: `₹${ipBilled.toLocaleString()}`, color: 'text-purple-400' },
-        { label: 'Other/Misc Bills', value: `₹${otherBilled.toLocaleString()}`, color: 'text-slate-600 dark:text-slate-400' },
-        { label: 'Overall Combined Billed', value: `₹${totalBilledAmount.toLocaleString()}`, color: 'text-slate-900 dark:text-white font-black' },
+        { label: 'Maintenance Bills', value: `₹${maintBilled.toLocaleString()}`, color: 'text-amber-650' },
+        { label: 'License Bills', value: `₹${licBilled.toLocaleString()}`, color: 'text-cyan-600' },
+        { label: 'IP Charges Bills', value: `₹${ipBilled.toLocaleString()}`, color: 'text-purple-650' },
+        { label: 'Other/Misc Bills', value: `₹${otherBilled.toLocaleString()}`, color: 'text-slate-600' },
+        { label: 'Overall Combined Billed', value: `₹${totalBilledAmount.toLocaleString()}`, color: 'text-slate-900 font-black' },
       ]
     },
     {
@@ -615,25 +616,26 @@ export default function DashboardHome() {
       value: `₹${totalPaymentsReceived.toLocaleString()}`,
       desc: `Recovery Rate: ${recoveryRate}%`,
       icon: CircleDollarSign,
-      iconBg: 'from-emerald-500/20 to-teal-500/10 text-emerald-400',
+      iconBg: 'from-emerald-500/20 to-teal-500/10 text-emerald-600',
       iconBorder: 'border-emerald-500/20',
       link: '/dashboard/payments?transactionType=received',
-      color: 'from-emerald-500/10 via-slate-900/40 to-slate-900/40 border-emerald-500/15',
+      color: 'from-emerald-50/60 via-white to-white border-emerald-100/80 shadow-emerald-100/10',
+      topBorderColor: 'from-emerald-500 to-teal-500',
       formula: 'Total Received = Maintenance + License + IP + Other',
       breakdown: [
         { label: 'Maintenance Collections', value: `₹${maintPaid.toLocaleString()}`, dotColor: 'bg-amber-500', link: '/dashboard/payments?transactionType=received&type=Maintenance' },
         { label: 'License Collections', value: `₹${licPaid.toLocaleString()}`, dotColor: 'bg-cyan-500', link: '/dashboard/payments?transactionType=received&type=License' },
         { label: 'IP Charges Collections', value: `₹${ipPaid.toLocaleString()}`, dotColor: 'bg-purple-500', link: '/dashboard/payments?transactionType=received&type=IP%20Charges' },
-        { label: 'Payment Discounts Given', value: `-₹${paymentDiscountTotal.toLocaleString()}`, dotColor: 'bg-rose-500', link: '/dashboard/payments?transactionType=received', textColor: 'text-rose-400' },
+        { label: 'Payment Discounts Given', value: `-₹${paymentDiscountTotal.toLocaleString()}`, dotColor: 'bg-rose-500', link: '/dashboard/payments?transactionType=received', textColor: 'text-rose-600' },
       ],
       modalBreakdown: [
-        { label: 'Maintenance Collections', value: `₹${maintPaid.toLocaleString()}`, color: 'text-amber-400' },
-        { label: 'License Collections', value: `₹${licPaid.toLocaleString()}`, color: 'text-cyan-400' },
-        { label: 'IP Charges Collections', value: `₹${ipPaid.toLocaleString()}`, color: 'text-purple-400' },
-        { label: 'Other/Misc Collections', value: `₹${otherPaid.toLocaleString()}`, color: 'text-slate-600 dark:text-slate-400' },
-        { label: 'Combined Cash Collections', value: `₹${cashCollections.toLocaleString()}`, color: 'text-emerald-300' },
-        { label: 'Combined Online Collections', value: `₹${onlineCollections.toLocaleString()}`, color: 'text-indigo-300' },
-        { label: 'Total Received Revenue', value: `₹${totalPaymentsReceived.toLocaleString()}`, color: 'text-emerald-400 font-black' },
+        { label: 'Maintenance Collections', value: `₹${maintPaid.toLocaleString()}`, color: 'text-amber-650' },
+        { label: 'License Collections', value: `₹${licPaid.toLocaleString()}`, color: 'text-cyan-600' },
+        { label: 'IP Charges Collections', value: `₹${ipPaid.toLocaleString()}`, color: 'text-purple-650' },
+        { label: 'Other/Misc Collections', value: `₹${otherPaid.toLocaleString()}`, color: 'text-slate-600' },
+        { label: 'Combined Cash Collections', value: `₹${cashCollections.toLocaleString()}`, color: 'text-emerald-600' },
+        { label: 'Combined Online Collections', value: `₹${onlineCollections.toLocaleString()}`, color: 'text-indigo-600' },
+        { label: 'Total Received Revenue', value: `₹${totalPaymentsReceived.toLocaleString()}`, color: 'text-emerald-600 font-black' },
       ]
     },
     {
@@ -641,26 +643,27 @@ export default function DashboardHome() {
       value: `₹${outstandingBalance.toLocaleString()}`,
       desc: 'Cumulative ledger balance',
       icon: Landmark,
-      iconBg: outstandingBalance > 0 ? 'from-rose-500/20 to-red-500/10 text-rose-400' : 'from-emerald-500/20 to-teal-500/10 text-emerald-400',
+      iconBg: outstandingBalance > 0 ? 'from-rose-500/20 to-red-500/10 text-rose-500' : 'from-emerald-500/20 to-teal-500/10 text-emerald-500',
       iconBorder: outstandingBalance > 0 ? 'border-rose-500/20' : 'border-emerald-500/20',
       link: '/dashboard/panels?balance=Outstanding',
       color: outstandingBalance > 0
-        ? 'from-rose-500/10 via-slate-900/40 to-slate-900/40 border-rose-500/15'
-        : 'from-emerald-500/10 via-slate-900/40 to-slate-900/40 border-emerald-500/15',
+        ? 'from-rose-50/60 via-white to-white border-rose-100/80 shadow-rose-100/10'
+        : 'from-emerald-50/60 via-white to-white border-emerald-100/80 shadow-emerald-100/10',
+      topBorderColor: outstandingBalance > 0 ? 'from-rose-500 to-red-500' : 'from-emerald-500 to-teal-500',
       formula: 'Outstanding = Opening Balance + Net Period Billed - Net Period Collected',
       breakdown: [
-        { label: 'Opening Balance Dues', value: `₹${openingBalSum.toLocaleString()}`, dotColor: 'bg-slate-500', link: '/dashboard/panels?balance=Outstanding' },
-        { label: 'Maintenance Dues', value: `₹${maintOutstanding.toLocaleString()}`, dotColor: 'bg-amber-500', link: '/dashboard/panels?balance=Outstanding', textColor: maintOutstanding > 0 ? 'text-rose-450' : 'text-slate-700 dark:text-slate-300' },
-        { label: 'License Dues', value: `₹${licOutstanding.toLocaleString()}`, dotColor: 'bg-cyan-500', link: '/dashboard/panels?balance=Outstanding', textColor: licOutstanding > 0 ? 'text-rose-450' : 'text-slate-700 dark:text-slate-300' },
-        { label: 'IP Charges Dues', value: `₹${ipOutstanding.toLocaleString()}`, dotColor: 'bg-purple-500', link: '/dashboard/panels?balance=Outstanding', textColor: ipOutstanding > 0 ? 'text-rose-450' : 'text-slate-700 dark:text-slate-300' },
+        { label: 'Opening Balance Dues', value: `₹${openingBalSum.toLocaleString()}`, dotColor: 'bg-slate-500', link: '/dashboard/panels?balance=Outstanding', textColor: 'text-slate-800' },
+        { label: 'Maintenance Dues', value: `₹${maintOutstanding.toLocaleString()}`, dotColor: 'bg-amber-500', link: '/dashboard/panels?balance=Outstanding', textColor: maintOutstanding > 0 ? 'text-rose-600' : 'text-slate-800' },
+        { label: 'License Dues', value: `₹${licOutstanding.toLocaleString()}`, dotColor: 'bg-cyan-500', link: '/dashboard/panels?balance=Outstanding', textColor: licOutstanding > 0 ? 'text-rose-600' : 'text-slate-800' },
+        { label: 'IP Charges Dues', value: `₹${ipOutstanding.toLocaleString()}`, dotColor: 'bg-purple-500', link: '/dashboard/panels?balance=Outstanding', textColor: ipOutstanding > 0 ? 'text-rose-600' : 'text-slate-800' },
       ],
       modalBreakdown: [
-        { label: 'Opening Balance (Prior Ledger Dues)', value: `+ ₹${openingBalSum.toLocaleString()}`, color: 'text-slate-700 dark:text-slate-300' },
-        { label: 'Total Invoices Billed', value: `+ ₹${totalBilledAmount.toLocaleString()}`, color: 'text-indigo-400' },
-        { label: 'Invoice Discounts Applied', value: `- ₹${billDiscountTotal.toLocaleString()}`, color: 'text-orange-400' },
-        { label: 'Actual Payments Collected', value: `- ₹${totalPaymentsReceived.toLocaleString()}`, color: 'text-emerald-400' },
-        { label: 'Receipt Discounts Applied', value: `- ₹${paymentDiscountTotal.toLocaleString()}`, color: 'text-rose-400' },
-        { label: 'Net Client Dues (Lena Baki)', value: `₹${outstandingBalance.toLocaleString()}`, color: 'text-rose-400 font-black' },
+        { label: 'Opening Balance (Prior Ledger Dues)', value: `+ ₹${openingBalSum.toLocaleString()}`, color: 'text-slate-700' },
+        { label: 'Total Invoices Billed', value: `+ ₹${totalBilledAmount.toLocaleString()}`, color: 'text-indigo-650' },
+        { label: 'Invoice Discounts Applied', value: `- ₹${billDiscountTotal.toLocaleString()}`, color: 'text-orange-600' },
+        { label: 'Actual Payments Collected', value: `- ₹${totalPaymentsReceived.toLocaleString()}`, color: 'text-emerald-600' },
+        { label: 'Receipt Discounts Applied', value: `- ₹${paymentDiscountTotal.toLocaleString()}`, color: 'text-rose-600' },
+        { label: 'Net Client Dues (Lena Baki)', value: `₹${outstandingBalance.toLocaleString()}`, color: 'text-rose-600 font-black' },
       ]
     },
   ];
@@ -680,7 +683,7 @@ export default function DashboardHome() {
             <Filter className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-bold text-base text-slate-900 dark:text-white">Period Filtering</h3>
+            <h3 className="font-bold text-base text-slate-800 font-display">Period Filtering</h3>
             <p className="text-xs text-slate-600 dark:text-slate-400">View stats for a custom month, quarter, or overall</p>
           </div>
         </div>
@@ -747,32 +750,40 @@ export default function DashboardHome() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in duration-300">
         {premiumCards.map((card, i) => {
           const Icon = card.icon;
+          const hoverClass = i === 0 
+            ? 'hover:bg-indigo-50/45 hover:border-indigo-100/60' 
+            : i === 1 
+              ? 'hover:bg-emerald-50/45 hover:border-emerald-100/60' 
+              : 'hover:bg-rose-50/45 hover:border-rose-100/60';
           return (
             <div
               key={i}
-              className={`rounded-3xl analytics-card bg-gradient-to-b ${card.color} border p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden backdrop-blur-md transition-all duration-300 hover:border-slate-300/30 dark:hover:border-slate-700/30`}
+              className={`rounded-3xl analytics-card bg-gradient-to-b ${card.color} border p-6 flex flex-col justify-between shadow-lg relative overflow-hidden backdrop-blur-md transition-all duration-300 hover:-translate-y-1`}
             >
+              {/* Top Accent Gradient Border */}
+              <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${card.topBorderColor}`}></div>
+
               {/* Card Header */}
-              <div className="flex justify-between items-start mb-5">
+              <div className="flex justify-between items-start mb-5 pt-1.5">
                 <div>
-                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-350">{card.title}</h3>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1 font-medium">{card.desc}</p>
+                  <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 font-display">{card.title}</h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-medium">{card.desc}</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       setModalInfo(card);
                     }}
-                    className="h-7 w-7 rounded-xl bg-slate-50/65 dark:bg-slate-950/65 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-300/80 dark:border-slate-800/80 transition-all hover:scale-105 active:scale-95 shadow"
+                    className="h-7 w-7 rounded-xl bg-white hover:bg-slate-50 text-slate-450 hover:text-slate-700 flex items-center justify-center border border-slate-200 transition-all hover:scale-105 active:scale-95 shadow-sm"
                     title="Audit Step-by-Step Math"
                   >
                     <Info className="h-3.5 w-3.5" />
                   </button>
                   <Link
                     to={card.link}
-                    className={`h-7 w-7 rounded-xl bg-slate-50/60 dark:bg-slate-950/60 hover:bg-slate-850 flex items-center justify-center border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all hover:scale-105 shrink-0`}
+                    className="h-7 w-7 rounded-xl bg-white hover:bg-slate-50 text-slate-450 hover:text-slate-700 flex items-center justify-center border border-slate-200 transition-all hover:scale-105 active:scale-95 shadow-sm shrink-0"
                   >
                     <Icon className="h-3.5 w-3.5" />
                   </Link>
@@ -780,25 +791,25 @@ export default function DashboardHome() {
               </div>
 
               {/* Card Value */}
-              <div className="mb-5 pb-5 border-b border-slate-850/60">
-                <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{card.value}</span>
+              <div className="mb-5 pb-4 border-b border-slate-100 flex items-baseline">
+                <span className="text-3xl font-black text-slate-800 font-display tracking-tight leading-none">{card.value}</span>
               </div>
 
               {/* Sub-breakdown Items (The Magic Section) */}
               <div className="space-y-3.5">
-                <span className="text-[9px] text-slate-500 dark:text-slate-500 font-extrabold uppercase tracking-widest block">Itemized Breakdown</span>
-                <div className="space-y-2.5">
+                <span className="text-[9px] text-slate-450 font-bold uppercase tracking-widest block font-display">Itemized Breakdown</span>
+                <div className="space-y-2">
                   {card.breakdown.map((item, idx) => (
                     <Link
                       key={idx}
                       to={item.link}
-                      className="flex justify-between items-center text-xs p-2 rounded-xl bg-slate-50/15 dark:bg-slate-950/15 hover:bg-slate-950/40 border border-transparent hover:border-slate-850/40 transition-all group/row"
+                      className={`flex justify-between items-center text-xs px-3 py-2 rounded-xl bg-slate-50/50 border border-slate-100/50 transition-all group/row ${hoverClass}`}
                     >
                       <div className="flex items-center gap-2">
                         <span className={`h-1.5 w-1.5 rounded-full ${item.dotColor || 'bg-slate-500'} group-hover/row:scale-125 transition-transform`}></span>
-                        <span className="text-slate-600 dark:text-slate-400 group-hover/row:text-slate-300 font-medium transition-colors">{item.label}</span>
+                        <span className="text-slate-600 group-hover/row:text-slate-800 font-semibold transition-colors">{item.label}</span>
                       </div>
-                      <span className={`font-mono font-bold transition-colors ${item.textColor || 'text-slate-900 dark:text-white'}`}>
+                      <span className={`font-mono font-bold transition-colors ${item.textColor || 'text-slate-800'}`}>
                         {item.value}
                       </span>
                     </Link>
@@ -817,7 +828,7 @@ export default function DashboardHome() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-bold text-lg text-slate-900 dark:text-white">Billing & Collections Trend</h3>
+                <h3 className="font-bold text-lg text-slate-800 font-display">Billing & Collections Trend</h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                   Comparison of sales generated (billed) against revenue collected (paid)
                 </p>
@@ -953,48 +964,48 @@ export default function DashboardHome() {
         {/* Ledger Registry Overview */}
         <div className="lg:col-span-1 rounded-2xl glass-card border border-slate-300 dark:border-slate-800 p-6 md:p-8 shadow-xl flex flex-col justify-center gap-6">
           <div>
-            <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-2">Ledger Registry Overview</h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400">General breakdown of system clients and generated receipts in this period.</p>
+            <h3 className="font-bold text-lg text-slate-800 font-display mb-2">Ledger Registry Overview</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">General breakdown of system clients and generated receipts in this period.</p>
           </div>
 
           <div className="space-y-4">
-            <Link to="/dashboard/panels" className="flex items-center gap-4 bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300/80 dark:border-slate-800/80 p-4 rounded-xl hover:border-slate-300 dark:hover:border-slate-700 transition-colors cursor-pointer">
-              <div className="h-10 w-10 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+            <Link to="/dashboard/panels" className="flex items-center gap-4 bg-slate-100/50 border border-slate-200/80 p-4 rounded-xl hover:border-slate-300 transition-colors cursor-pointer shadow-sm">
+              <div className="h-10 w-10 rounded-full bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
                 <Layers className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase">Total Registered Panels</p>
-                <p className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">{stats?.counts?.totalPanels || 0} Clients</p>
+                <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Total Registered Panels</p>
+                <p className="text-lg font-bold text-slate-800 font-display mt-0.5">{stats?.counts?.totalPanels || 0} Clients</p>
               </div>
             </Link>
 
-            <Link to="/dashboard/payments" className="flex items-center gap-4 bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300/80 dark:border-slate-800/80 p-4 rounded-xl hover:border-slate-300 dark:hover:border-slate-700 transition-colors cursor-pointer">
-              <div className="h-10 w-10 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+            <Link to="/dashboard/payments" className="flex items-center gap-4 bg-slate-100/50 border border-slate-200/80 p-4 rounded-xl hover:border-slate-300 transition-colors cursor-pointer shadow-sm">
+              <div className="h-10 w-10 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
                 <FileSpreadsheet className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase">Active Transactions</p>
-                <p className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">{filteredPayments.length} Actions</p>
+                <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Active Transactions</p>
+                <p className="text-lg font-bold text-slate-800 font-display mt-0.5">{filteredPayments.length} Actions</p>
               </div>
             </Link>
 
-            <div className="pt-4 border-t border-slate-300/80 dark:border-slate-800/80 space-y-3">
-              <p className="text-xs text-slate-500 dark:text-slate-500 font-bold uppercase tracking-wider">Payments Mode Distribution</p>
+            <div className="pt-4 border-t border-slate-200 space-y-3">
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider font-display">Payments Mode Distribution</p>
               <div className="grid grid-cols-2 gap-2 text-xs font-mono">
                 {['Cash', 'UPI', 'Bank Transfer', 'Online'].map((mode) => {
                   const modeAmt = filteredPayments
                     .filter((p) => p.paymentMode === mode)
                     .reduce((sum, p) => sum + (p.amountReceived || 0), 0);
                   const colors = {
-                    Cash: 'text-amber-400 hover:border-amber-500/20',
-                    UPI: 'text-emerald-400 hover:border-emerald-500/20',
-                    'Bank Transfer': 'text-indigo-400 hover:border-indigo-500/20',
-                    Online: 'text-violet-400 hover:border-violet-500/20',
+                    Cash: 'text-amber-700 hover:border-amber-500/20 bg-amber-50/50 border-amber-100',
+                    UPI: 'text-emerald-700 hover:border-emerald-500/20 bg-emerald-50/50 border-emerald-100',
+                    'Bank Transfer': 'text-indigo-700 hover:border-indigo-500/20 bg-indigo-50/50 border-indigo-100',
+                    Online: 'text-violet-700 hover:border-violet-500/20 bg-violet-50/50 border-violet-100',
                   };
                   return (
-                    <div key={mode} className={`bg-slate-100/40 dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-300/60 dark:border-slate-800/60 hover:scale-102 transition-all duration-300 ${colors[mode]}`}>
-                      <span className="text-slate-500 dark:text-slate-500 block mb-0.5 text-[10px] uppercase font-bold">{mode}</span>
-                      <span className="font-bold">₹{modeAmt.toLocaleString()}</span>
+                    <div key={mode} className={`p-2.5 rounded-xl border hover:scale-[1.02] transition-all duration-300 shadow-sm ${colors[mode]}`}>
+                      <span className="text-slate-500 block mb-0.5 text-[9px] uppercase font-bold">{mode}</span>
+                      <span className="font-bold text-sm">₹{modeAmt.toLocaleString()}</span>
                     </div>
                   );
                 })}
