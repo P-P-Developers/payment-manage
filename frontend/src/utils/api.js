@@ -1,5 +1,5 @@
 const BASE_URL = typeof window !== 'undefined'
-  ? (window.location.hostname === 'localhost' ? 'http://localhost:8005/api' : 'http://payment.deepmindinfotech.com/backend')
+  ? (window.location.hostname === 'localhost' ? 'http://localhost:8005/api' : 'https://payment.deepmindinfotech.com/backend/api')
   : 'http://localhost:8005/api';
 
 
