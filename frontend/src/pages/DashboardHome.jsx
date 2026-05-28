@@ -542,11 +542,11 @@ export default function DashboardHome() {
 
   if (error) {
     return (
-      <div className="rounded-xl bg-rose-500/10 border border-rose-500/20 p-6 text-rose-400 flex items-start gap-4">
+      <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-6 text-red-500 flex items-start gap-4">
         <AlertCircle className="h-6 w-6 shrink-0" />
         <div>
           <h3 className="font-semibold text-lg">Metrics Synchronization Failed</h3>
-          <p className="text-sm text-rose-400/80 mt-1">{error}</p>
+          <p className="text-sm text-red-500/80 mt-1">{error}</p>
         </div>
       </div>
     );
@@ -626,7 +626,7 @@ export default function DashboardHome() {
         { label: 'Maintenance Collections', value: `₹${maintPaid.toLocaleString()}`, dotColor: 'bg-amber-500', link: '/dashboard/payments?transactionType=received&type=Maintenance' },
         { label: 'License Collections', value: `₹${licPaid.toLocaleString()}`, dotColor: 'bg-cyan-500', link: '/dashboard/payments?transactionType=received&type=License' },
         { label: 'IP Charges Collections', value: `₹${ipPaid.toLocaleString()}`, dotColor: 'bg-purple-500', link: '/dashboard/payments?transactionType=received&type=IP%20Charges' },
-        { label: 'Payment Discounts Given', value: `-₹${paymentDiscountTotal.toLocaleString()}`, dotColor: 'bg-rose-500', link: '/dashboard/payments?transactionType=received', textColor: 'text-rose-600' },
+        { label: 'Payment Discounts Given', value: `-₹${paymentDiscountTotal.toLocaleString()}`, dotColor: 'bg-red-500', link: '/dashboard/payments?transactionType=received', textColor: 'text-red-650' },
       ],
       modalBreakdown: [
         { label: 'Maintenance Collections', value: `₹${maintPaid.toLocaleString()}`, color: 'text-amber-650' },
@@ -643,27 +643,27 @@ export default function DashboardHome() {
       value: `₹${outstandingBalance.toLocaleString()}`,
       desc: 'Cumulative ledger balance',
       icon: Landmark,
-      iconBg: outstandingBalance > 0 ? 'from-rose-500/20 to-red-500/10 text-rose-500' : 'from-emerald-500/20 to-teal-500/10 text-emerald-500',
-      iconBorder: outstandingBalance > 0 ? 'border-rose-500/20' : 'border-emerald-500/20',
+      iconBg: outstandingBalance > 0 ? 'from-red-500/20 to-red-700/10 text-red-600' : 'from-emerald-500/20 to-teal-500/10 text-emerald-500',
+      iconBorder: outstandingBalance > 0 ? 'border-red-500/20' : 'border-emerald-500/20',
       link: '/dashboard/panels?balance=Outstanding',
       color: outstandingBalance > 0
-        ? 'from-rose-50/60 via-white to-white border-rose-100/80 shadow-rose-100/10'
+        ? 'from-red-50/40 via-white to-white border-red-100/80 shadow-red-100/10'
         : 'from-emerald-50/60 via-white to-white border-emerald-100/80 shadow-emerald-100/10',
-      topBorderColor: outstandingBalance > 0 ? 'from-rose-500 to-red-500' : 'from-emerald-500 to-teal-500',
+      topBorderColor: outstandingBalance > 0 ? 'from-red-500 to-red-700' : 'from-emerald-500 to-teal-500',
       formula: 'Outstanding = Opening Balance + Net Period Billed - Net Period Collected',
       breakdown: [
         { label: 'Opening Balance Dues', value: `₹${openingBalSum.toLocaleString()}`, dotColor: 'bg-slate-500', link: '/dashboard/panels?balance=Outstanding', textColor: 'text-slate-800' },
-        { label: 'Maintenance Dues', value: `₹${maintOutstanding.toLocaleString()}`, dotColor: 'bg-amber-500', link: '/dashboard/panels?balance=Outstanding', textColor: maintOutstanding > 0 ? 'text-rose-600' : 'text-slate-800' },
-        { label: 'License Dues', value: `₹${licOutstanding.toLocaleString()}`, dotColor: 'bg-cyan-500', link: '/dashboard/panels?balance=Outstanding', textColor: licOutstanding > 0 ? 'text-rose-600' : 'text-slate-800' },
-        { label: 'IP Charges Dues', value: `₹${ipOutstanding.toLocaleString()}`, dotColor: 'bg-purple-500', link: '/dashboard/panels?balance=Outstanding', textColor: ipOutstanding > 0 ? 'text-rose-600' : 'text-slate-800' },
+        { label: 'Maintenance Dues', value: `₹${maintOutstanding.toLocaleString()}`, dotColor: 'bg-amber-500', link: '/dashboard/panels?balance=Outstanding', textColor: maintOutstanding > 0 ? 'text-red-600' : 'text-slate-800' },
+        { label: 'License Dues', value: `₹${licOutstanding.toLocaleString()}`, dotColor: 'bg-cyan-500', link: '/dashboard/panels?balance=Outstanding', textColor: licOutstanding > 0 ? 'text-red-600' : 'text-slate-800' },
+        { label: 'IP Charges Dues', value: `₹${ipOutstanding.toLocaleString()}`, dotColor: 'bg-purple-500', link: '/dashboard/panels?balance=Outstanding', textColor: ipOutstanding > 0 ? 'text-red-600' : 'text-slate-800' },
       ],
       modalBreakdown: [
         { label: 'Opening Balance (Prior Ledger Dues)', value: `+ ₹${openingBalSum.toLocaleString()}`, color: 'text-slate-700' },
         { label: 'Total Invoices Billed', value: `+ ₹${totalBilledAmount.toLocaleString()}`, color: 'text-indigo-650' },
         { label: 'Invoice Discounts Applied', value: `- ₹${billDiscountTotal.toLocaleString()}`, color: 'text-orange-600' },
         { label: 'Actual Payments Collected', value: `- ₹${totalPaymentsReceived.toLocaleString()}`, color: 'text-emerald-600' },
-        { label: 'Receipt Discounts Applied', value: `- ₹${paymentDiscountTotal.toLocaleString()}`, color: 'text-rose-600' },
-        { label: 'Net Client Dues (Lena Baki)', value: `₹${outstandingBalance.toLocaleString()}`, color: 'text-rose-600 font-black' },
+        { label: 'Receipt Discounts Applied', value: `- ₹${paymentDiscountTotal.toLocaleString()}`, color: 'text-red-600' },
+        { label: 'Net Client Dues (Lena Baki)', value: `₹${outstandingBalance.toLocaleString()}`, color: 'text-red-600 font-black' },
       ]
     },
   ];
@@ -688,35 +688,44 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Filter Type Toggle Button Grid */}
-          <div className="bg-slate-50/80 dark:bg-slate-950/80 border border-slate-300/80 dark:border-slate-800/80 rounded-xl p-1 flex">
+
+        <div className="flex flex-wrap items-center gap-4">
+
+          {/* Toggle Tabs */}
+          <div className="flex items-center p-1 rounded-2xl bg-slate-100/70 dark:bg-slate-900/70 border border-slate-300/60 dark:border-slate-800/60 backdrop-blur-md shadow-sm">
+
             {[
-              { id: 'all', label: 'All Time' },
-              { id: 'monthly', label: 'Monthly' },
-              { id: 'quarterly', label: 'Quarterly' }
+              { id: "all", label: "All Time" },
+              { id: "monthly", label: "Monthly" },
+              { id: "quarterly", label: "Quarterly" },
             ].map((t) => (
               <button
                 key={t.id}
                 onClick={() => setFilterType(t.id)}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${filterType === t.id
-                  ? 'bg-indigo-600 text-slate-900 dark:text-white shadow-md'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                className={`relative px-4 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300
+        ${filterType === t.id
+                    ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
-                {t.label}
+                {filterType === t.id && (
+                  <span className="absolute inset-0 rounded-xl bg-indigo-500/10 blur-sm"></span>
+                )}
+                <span className="relative z-10">{t.label}</span>
               </button>
             ))}
           </div>
 
-          {/* Sub-selector drop-down menu */}
-          {filterType === 'monthly' && (
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-indigo-400" />
+          {/* Monthly Dropdown */}
+          {filterType === "monthly" && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300/60 dark:border-slate-800/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
+
+              <Calendar className="h-4 w-4 text-indigo-500" />
+
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500/50 focus:outline-none"
+                className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
               >
                 {availableMonths.map((m) => (
                   <option key={m.value} value={m.value}>
@@ -727,13 +736,16 @@ export default function DashboardHome() {
             </div>
           )}
 
-          {filterType === 'quarterly' && (
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-indigo-400" />
+          {/* Quarterly Dropdown */}
+          {filterType === "quarterly" && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300/60 dark:border-slate-800/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
+
+              <Calendar className="h-4 w-4 text-indigo-500" />
+
               <select
                 value={selectedQuarter}
                 onChange={(e) => setSelectedQuarter(e.target.value)}
-                className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500/50 focus:outline-none"
+                className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
               >
                 {availableQuarters.map((q) => (
                   <option key={q.value} value={q.value}>
@@ -743,6 +755,7 @@ export default function DashboardHome() {
               </select>
             </div>
           )}
+
         </div>
       </div>
 
@@ -750,11 +763,11 @@ export default function DashboardHome() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in duration-300">
         {premiumCards.map((card, i) => {
           const Icon = card.icon;
-          const hoverClass = i === 0 
-            ? 'hover:bg-indigo-50/45 hover:border-indigo-100/60' 
-            : i === 1 
-              ? 'hover:bg-emerald-50/45 hover:border-emerald-100/60' 
-              : 'hover:bg-rose-50/45 hover:border-rose-100/60';
+          const hoverClass = i === 0
+            ? 'hover:bg-indigo-50/45 hover:border-indigo-100/60'
+            : i === 1
+              ? 'hover:bg-emerald-50/45 hover:border-emerald-100/60'
+              : 'hover:bg-red-50/45 hover:border-red-100/60';
           return (
             <div
               key={i}
@@ -1019,7 +1032,7 @@ export default function DashboardHome() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4 border-t border-slate-300/60 dark:border-slate-800/60">
         <div>
           <h3 className="font-bold text-xl text-slate-900 dark:text-white flex items-center gap-2">
-            <Award className="h-6 w-6 text-indigo-400" />
+            <Award className="h-6 w-6 text-indigo-700" />
             Client Rankings & Performance Leaderboards
           </h3>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
@@ -1030,7 +1043,7 @@ export default function DashboardHome() {
         {inactivePanels.length > 0 && (
           <button
             onClick={() => setShowInactive(!showInactive)}
-            className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 hover:border-rose-500/40 text-rose-400 transition-all duration-200"
+            className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 hover:border-red-500/40 text-red-700 transition-all duration-200"
           >
             <AlertCircle className="h-4 w-4" />
             <span>{showInactive ? 'Hide' : 'Show'} Inactive Clients ({inactivePanels.length})</span>
@@ -1040,8 +1053,8 @@ export default function DashboardHome() {
 
       {/* Inactive Panels Expandable drawer */}
       {showInactive && (
-        <div className="rounded-2xl bg-rose-500/5 border border-rose-500/15 p-6 animate-pulse-subtle">
-          <h4 className="font-bold text-sm text-rose-400 mb-2 uppercase tracking-wide">Inactive Clients (No Bills/Payments in Period)</h4>
+        <div className="rounded-2xl bg-red-500/5 border border-red-500/20 p-6 animate-pulse-subtle">
+          <h4 className="font-bold text-sm text-red-700 mb-2 uppercase tracking-wide">Inactive Clients (No Bills/Payments in Period)</h4>
           <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">The following client panels recorded zero invoiced sales and zero payments collected during this selected period:</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {inactivePanels.map((p) => (
@@ -1050,7 +1063,7 @@ export default function DashboardHome() {
                   <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{p.panelName}</p>
                   <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-0.5">Owner: {p.ownerName}</p>
                 </div>
-                <span className="text-[10px] font-semibold text-rose-400/80 px-2 py-0.5 rounded bg-rose-500/5 border border-rose-500/10">No Activity</span>
+                <span className="text-[10px] font-semibold text-red-700 px-2 py-0.5 rounded bg-red-500/5 border border-red-500/10">No Activity</span>
               </div>
             ))}
           </div>
@@ -1085,7 +1098,7 @@ export default function DashboardHome() {
                       <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-700 dark:text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[120px] cursor-pointer">
                         {idx + 1}. {item.panelName}
                       </Link>
-                      <span className="text-emerald-400 font-bold">₹{item.totalPaid.toLocaleString()}</span>
+                      <span className="text-emerald-700 font-bold">₹{item.totalPaid.toLocaleString()}</span>
                     </div>
                     <div className="w-full bg-slate-100/60 dark:bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-300 dark:border-slate-800">
                       <div
@@ -1126,7 +1139,7 @@ export default function DashboardHome() {
                       <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-700 dark:text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[120px] cursor-pointer">
                         {idx + 1}. {item.panelName}
                       </Link>
-                      <span className="text-indigo-400 font-bold">₹{item.totalBilled.toLocaleString()}</span>
+                      <span className="text-indigo-700 font-bold">₹{item.totalBilled.toLocaleString()}</span>
                     </div>
                     <div className="w-full bg-slate-100/60 dark:bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-300 dark:border-slate-800">
                       <div
@@ -1168,7 +1181,7 @@ export default function DashboardHome() {
                       <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-700 dark:text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[110px] cursor-pointer">
                         {idx + 1}. {item.panelName}
                       </Link>
-                      <span className="text-cyan-400 font-bold">{item.licenseQty} Qty <span className="text-[10px] text-slate-600 dark:text-slate-400 font-normal">(₹{(item.licenseBilled || item.licensePaid).toLocaleString()})</span></span>
+                      <span className="text-cyan-700 font-bold">{item.licenseQty} Qty <span className="text-[10px] text-slate-600 dark:text-slate-400 font-normal">(₹{(item.licenseBilled || item.licensePaid).toLocaleString()})</span></span>
                     </div>
                     <div className="w-full bg-slate-100/60 dark:bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-300 dark:border-slate-800">
                       <div
@@ -1210,7 +1223,7 @@ export default function DashboardHome() {
                       <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-700 dark:text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[120px] cursor-pointer">
                         {idx + 1}. {item.panelName}
                       </Link>
-                      <span className="text-amber-400 font-bold">₹{(item.maintenanceBilled || item.maintenancePaid).toLocaleString()}</span>
+                      <span className="text-amber-700 font-bold">₹{(item.maintenanceBilled || item.maintenancePaid).toLocaleString()}</span>
                     </div>
                     <div className="w-full bg-slate-100/60 dark:bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-300 dark:border-slate-800">
                       <div
@@ -1229,50 +1242,86 @@ export default function DashboardHome() {
       {/* Stacked Full-Width Section for Performance Alerts & Client Performance Grid Table */}
       <div className="space-y-8 pt-4 border-t border-slate-300/60 dark:border-slate-800/60">
 
-        {/* Row 1: Worst Performing Clients Alerts (Full-Width Card with 3-Column horizontal grid) */}
+        {/* Row 1: Worst Performing Clients Alerts */}
         {worstPerforming.length > 0 && (
-          <div className="rounded-2xl bg-rose-500/5 border border-rose-500/10 p-6 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rose-500/10 pb-3">
+          <div className="rounded-2xl bg-red-500/5 border border-red-500/10 p-6 shadow-xl space-y-4">
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-red-500/10 pb-3">
+
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20">
+
+                <div className="h-9 w-9 rounded-xl bg-red-500/10 text-red-700 flex items-center justify-center border border-red-500/20">
                   <AlertCircle className="h-5 w-5" />
                 </div>
+
                 <div>
-                  <h4 className="font-bold text-base text-slate-900 dark:text-white">Performance Alerts</h4>
-                  <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">Clients with lowest recovery rates or critical dues in this period</p>
+                  <h4 className="font-bold text-base text-slate-900 dark:text-white">
+                    Performance Alerts
+                  </h4>
+                  <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">
+                    Clients with lowest recovery rates or critical dues in this period
+                  </p>
                 </div>
               </div>
-              <div className="text-[10px] font-bold px-3 py-1 rounded uppercase bg-rose-500/10 border border-rose-500/20 text-rose-400 tracking-wider text-center sm:text-right shrink-0">
+
+              <div className="text-[10px] font-bold px-3 py-1 rounded uppercase bg-red-800/10 border border-red-500/20 text-red-700 tracking-wider text-center sm:text-right shrink-0">
                 ⚠️ Critically Inactive: {inactivePanels.length} Panels
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {worstPerforming.map((item, idx) => (
-                <div key={item._id} className="bg-slate-50/60 dark:bg-slate-950/60 border border-slate-900/80 p-5 md:p-6 rounded-xl hover:border-slate-800 transition-all duration-300 relative overflow-hidden group hover:-translate-y-0.5">
+
+                <div
+                  key={item._id}
+                  className="bg-slate-50/60 dark:bg-slate-950/60 border border-slate-900/80 p-5 md:p-6 rounded-xl hover:border-slate-800 transition-all duration-300 relative overflow-hidden group hover:-translate-y-0.5"
+                >
+
                   <div className="flex justify-between items-start gap-2">
+
                     <div>
-                      <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-800 dark:text-slate-200 hover:text-indigo-400 font-bold text-sm block truncate max-w-[190px] cursor-pointer">
+                      <Link
+                        to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`}
+                        className="text-slate-800 dark:text-slate-200 hover:text-indigo-400 font-bold text-sm block truncate max-w-[190px]"
+                      >
                         {idx + 1}. {item.panelName}
                       </Link>
-                      <Link to={`/dashboard/panels?category=${encodeURIComponent(item.category || 'Algo')}`} className="text-[10px] text-slate-500 dark:text-slate-500 hover:text-indigo-400 mt-0.5 block font-semibold uppercase cursor-pointer">
+
+                      <Link
+                        to={`/dashboard/panels?category=${encodeURIComponent(item.category || 'Algo')}`}
+                        className="text-[10px] text-slate-500 dark:text-slate-500 hover:text-indigo-400 mt-0.5 block font-semibold uppercase"
+                      >
                         {item.category || 'Algo'} Category
                       </Link>
                     </div>
-                    <span className="text-[9px] font-bold px-2 py-0.5 rounded uppercase bg-rose-500/10 border border-rose-500/20 text-rose-400 shrink-0">
-                      {item.totalBilled > 0 ? `Recovery: ${item.recoveryRate}%` : 'Outstanding'}
+
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded uppercase bg-red-500/10 border border-red-500/20 text-red-700 shrink-0">
+                      {item.totalBilled > 0
+                        ? `Recovery: ${item.recoveryRate}%`
+                        : "Outstanding"}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 mt-4 pt-3.5 border-t border-slate-900/60 text-xs font-mono">
+
                     <div>
-                      <span className="text-slate-500 dark:text-slate-500 block text-[9px] uppercase font-bold">Billed</span>
-                      <span className="text-slate-700 dark:text-slate-300 font-bold">₹{item.totalBilled.toLocaleString()}</span>
+                      <span className="text-slate-500 dark:text-slate-500 block text-[9px] uppercase font-bold">
+                        Billed
+                      </span>
+                      <span className="text-slate-700 dark:text-slate-300 font-bold">
+                        ₹{item.totalBilled.toLocaleString()}
+                      </span>
                     </div>
+
                     <div>
-                      <span className="text-slate-500 dark:text-slate-500 block text-[9px] uppercase font-bold">Dues Pending</span>
-                      <span className="text-rose-400 font-bold">₹{item.outstanding.toLocaleString()}</span>
+                      <span className="text-slate-500 dark:text-slate-500 block text-[9px] uppercase font-bold">
+                        Dues Pending
+                      </span>
+                      <span className="text-red-700 font-bold">
+                        ₹{item.outstanding.toLocaleString()}
+                      </span>
                     </div>
+
                   </div>
                 </div>
               ))}
@@ -1307,20 +1356,44 @@ export default function DashboardHome() {
               </div>
 
               {/* Status Filter */}
-              <div className="flex items-center gap-2 rounded-xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-xs text-slate-600 dark:text-slate-400">
-                <span className="font-semibold uppercase tracking-wider text-[10px]">Status:</span>
+
+              {/* Status Filter */}
+              <div className="flex items-center gap-2 rounded-xl 
+  bg-slate-200/60 dark:bg-slate-900 
+  border border-slate-300 dark:border-slate-700 
+  px-3.5 py-2 text-xs text-slate-700 dark:text-slate-300">
+
+                <span className="font-semibold uppercase tracking-wider text-[10px] text-slate-600 dark:text-slate-400">
+                  Status:
+                </span>
+
                 <select
                   value={selectedStatusFilter}
                   onChange={(e) => setSelectedStatusFilter(e.target.value)}
-                  className="bg-transparent border-none text-slate-900 dark:text-white font-bold cursor-pointer outline-none text-xs"
+                  className="bg-transparent text-slate-900 dark:text-white font-semibold cursor-pointer outline-none text-xs"
                 >
-                  <option value="All" className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">All Statuses</option>
-                  <option value="Excellent" className="bg-slate-50 dark:bg-slate-950 text-emerald-400">Excellent (≥90%)</option>
-                  <option value="Healthy" className="bg-slate-50 dark:bg-slate-950 text-indigo-400">Healthy (50-89%)</option>
-                  <option value="Needs Attention" className="bg-slate-50 dark:bg-slate-950 text-amber-400">Needs Attention (&lt;50%)</option>
-                  <option value="Critically Inactive" className="bg-slate-50 dark:bg-slate-950 text-rose-400">Inactive (₹0)</option>
+                  <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white" value="All">
+                    All Statuses
+                  </option>
+
+                  <option className="bg-white dark:bg-slate-900 text-emerald-700 font-bold" value="Excellent">
+                    Excellent (≥90%)
+                  </option>
+
+                  <option className="bg-white dark:bg-slate-900 text-indigo-700 font-bold" value="Healthy">
+                    Healthy (50-89%)
+                  </option>
+
+                  <option className="bg-white dark:bg-slate-900 text-amber-700 font-bold" value="Needs Attention">
+                    Needs Attention (&lt;50%)
+                  </option>
+
+                  <option className="bg-white dark:bg-slate-900 text-red-700 font-bold" value="Critically Inactive">
+                    Inactive (₹0)
+                  </option>
                 </select>
               </div>
+
             </div>
           </div>
 
@@ -1374,15 +1447,22 @@ export default function DashboardHome() {
                 ) : (
                   processedPerfPanels.map((p, idx) => {
                     const statusColors = {
-                      Excellent: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-                      Healthy: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
-                      'Needs Attention': 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-                      'Critically Inactive': 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+                      Excellent:
+                        "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
+
+                      Healthy:
+                        "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30",
+
+                      "Needs Attention":
+                        "bg-amber-500/15 text-amber-400 border border-amber-500/30",
+
+                      "Critically Inactive":
+                        "bg-red-500/15 text-red-400 border border-red-500/30",
                     };
                     const categoryColors = {
-                      Algo: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
-                      Sop: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-                      crypto: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+                      Algo: 'bg-indigo-500/10 text-indigo-700 border border-indigo-500/20',
+                      Sop: 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20',
+                      crypto: 'bg-amber-500/10 text-amber-700 border border-amber-500/20',
                     };
 
                     return (
@@ -1402,10 +1482,18 @@ export default function DashboardHome() {
                         </td>
                         <td className="px-5 py-3.5 font-semibold text-right text-slate-700 dark:text-slate-300 whitespace-nowrap">₹{p.totalBilled.toLocaleString()}</td>
                         <td className="px-5 py-3.5 font-bold text-right text-emerald-400 whitespace-nowrap">₹{p.totalPaid.toLocaleString()}</td>
-                        <td className="px-5 py-3.5 font-bold text-right text-rose-400 whitespace-nowrap">₹{p.outstanding.toLocaleString()}</td>
+                        <td className="px-5 py-3.5 font-bold text-right text-red-600 whitespace-nowrap">₹{p.outstanding.toLocaleString()}</td>
                         <td className="px-5 py-3.5 font-bold text-center text-slate-700 dark:text-slate-300">{p.recoveryRate}%</td>
                         <td className="px-5 py-3.5 text-center">
-                          <span className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider inline-block min-w-[90px] text-center ${statusColors[p.status]}`}>
+                          <span
+                            className={`
+      text-[12px] px-3 py-1 rounded-lg
+      font-bold uppercase tracking-wide
+      inline-block min-w-[100px] text-center
+      border border-md
+      ${statusColors[p.status]}
+    `}
+                          >
                             {p.status}
                           </span>
                         </td>
@@ -1423,11 +1511,11 @@ export default function DashboardHome() {
       {modalInfo && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
           {/* Backdrop */}
-          <div 
-            onClick={() => setModalInfo(null)} 
+          <div
+            onClick={() => setModalInfo(null)}
             className="fixed inset-0 bg-black/85 backdrop-blur-md"
           ></div>
-          
+
           {/* Modal Container */}
           <div className="relative w-full max-w-md rounded-3xl glass-card border border-slate-300 dark:border-slate-800 p-6 md:p-8 shadow-2xl z-10 animate-in zoom-in-95 duration-200 flex flex-col space-y-6">
             {/* Header */}

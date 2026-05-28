@@ -137,7 +137,7 @@ export default function Settings() {
     if (!catName || catName.trim() === '') return;
     setSuccess('');
     setError('');
-    
+
     try {
       const data = await apiRequest('/categories', {
         method: 'POST',
@@ -217,7 +217,7 @@ export default function Settings() {
     if (!bankNameInput || bankNameInput.trim() === '') return;
     setSuccess('');
     setError('');
-    
+
     try {
       const data = await apiRequest('/banks', {
         method: 'POST',
@@ -294,7 +294,7 @@ export default function Settings() {
       };
 
       localStorage.setItem('app_system_settings', JSON.stringify(settingsPayload));
-      
+
       if (logo) {
         let link = document.querySelector("link[rel~='icon']");
         if (!link) {
@@ -348,11 +348,10 @@ export default function Settings() {
         <div className="lg:col-span-1 space-y-2">
           <button
             onClick={() => setActiveSubTab('branding')}
-            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${
-              activeSubTab === 'branding'
-                ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
-                : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${activeSubTab === 'branding'
+              ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+              : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
+              }`}
           >
             <Building2 className="h-4.5 w-4.5" />
             <span>Profile & Branding</span>
@@ -360,11 +359,10 @@ export default function Settings() {
 
           <button
             onClick={() => setActiveSubTab('billing')}
-            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${
-              activeSubTab === 'billing'
-                ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
-                : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${activeSubTab === 'billing'
+              ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+              : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
+              }`}
           >
             <Receipt className="h-4.5 w-4.5" />
             <span>Billing Defaults</span>
@@ -372,11 +370,10 @@ export default function Settings() {
 
           <button
             onClick={() => setActiveSubTab('toggles')}
-            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${
-              activeSubTab === 'toggles'
-                ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
-                : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${activeSubTab === 'toggles'
+              ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+              : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
+              }`}
             type="button"
           >
             {autoReminder || smsAlerts ? <ToggleRight className="h-4.5 w-4.5 text-indigo-400" /> : <ToggleLeft className="h-4.5 w-4.5" />}
@@ -385,11 +382,10 @@ export default function Settings() {
 
           <button
             onClick={() => setActiveSubTab('categories')}
-            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${
-              activeSubTab === 'categories'
-                ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
-                : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${activeSubTab === 'categories'
+              ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+              : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
+              }`}
             type="button"
           >
             <Layers className="h-4.5 w-4.5" />
@@ -398,11 +394,10 @@ export default function Settings() {
 
           <button
             onClick={() => setActiveSubTab('banks')}
-            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${
-              activeSubTab === 'banks'
-                ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
-                : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${activeSubTab === 'banks'
+              ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+              : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
+              }`}
             type="button"
           >
             <Landmark className="h-4.5 w-4.5" />
@@ -420,12 +415,12 @@ export default function Settings() {
 
         {/* Configurations Form Panel */}
         <form onSubmit={handleSaveSettings} className="lg:col-span-3 bg-slate-100/30 dark:bg-slate-900/30 border border-slate-300 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-          
+
           {/* BRANDING SUBTAB */}
           {activeSubTab === 'branding' && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <h3 className="text-base font-bold text-slate-900 dark:text-white border-b border-slate-300 dark:border-slate-800 pb-3">Organization Profile Settings</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Organization / Brand Name</label>
@@ -563,52 +558,119 @@ export default function Settings() {
           )}
 
           {/* BILLING DEFAULTS SUBTAB */}
-          {activeSubTab === 'billing' && (
-            <div className="space-y-4 animate-in fade-in duration-200">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white border-b border-slate-300 dark:border-slate-800 pb-3">Standard Base Charge Rates Defaults</h3>
+          {/* BILLING DEFAULTS SUBTAB */}
+          {activeSubTab === "billing" && (
+            <div className="space-y-5 animate-in fade-in duration-200">
+
+              <h3 className="text-base font-bold text-slate-900 dark:text-white border-b border-slate-300 dark:border-slate-800 pb-3">
+                Standard Base Charge Rates Defaults
+              </h3>
+
               <p className="text-xs text-slate-600 dark:text-slate-400">
                 These rates populate as defaults when onboarding new software panel clients into the ledger system.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Default License Fee (₹)</label>
-                  <input
-                    type="number"
-                    value={defaultLicense}
-                    onChange={(e) => setDefaultLicense(e.target.value)}
-                    placeholder="1000"
-                    className="w-full glass-input font-mono"
-                    min="0"
-                    required
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+                {/* License Fee */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                    Default License Fee
+                  </label>
+
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">
+                      ₹
+                    </span>
+
+                    <input
+                      type="number"
+                      value={defaultLicense}
+                      onChange={(e) => setDefaultLicense(e.target.value)}
+                      placeholder="1000"
+                      min="0"
+                      className="
+              w-full pl-7 pr-3 py-2.5 rounded-xl
+              bg-white/70 dark:bg-slate-900/70
+              border border-slate-300 dark:border-slate-700
+              text-sm text-slate-900 dark:text-white
+              placeholder:text-slate-400 dark:placeholder:text-slate-500
+              backdrop-blur-md
+              font-mono
+              transition-all duration-200
+              focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500
+              hover:border-slate-400 dark:hover:border-slate-600
+            "
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Default IP Routing Fee (₹)</label>
-                  <input
-                    type="number"
-                    value={defaultIp}
-                    onChange={(e) => setDefaultIp(e.target.value)}
-                    placeholder="500"
-                    className="w-full glass-input font-mono"
-                    min="0"
-                    required
-                  />
+                {/* IP Routing Fee */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                    Default IP Routing Fee
+                  </label>
+
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">
+                      ₹
+                    </span>
+
+                    <input
+                      type="number"
+                      value={defaultIp}
+                      onChange={(e) => setDefaultIp(e.target.value)}
+                      placeholder="500"
+                      min="0"
+                      className="
+              w-full pl-7 pr-3 py-2.5 rounded-xl
+              bg-white/70 dark:bg-slate-900/70
+              border border-slate-300 dark:border-slate-700
+              text-sm text-slate-900 dark:text-white
+              placeholder:text-slate-400 dark:placeholder:text-slate-500
+              backdrop-blur-md
+              font-mono
+              transition-all duration-200
+              focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500
+              hover:border-slate-400 dark:hover:border-slate-600
+            "
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Default Maintenance Fee (₹)</label>
-                  <input
-                    type="number"
-                    value={defaultMaint}
-                    onChange={(e) => setDefaultMaint(e.target.value)}
-                    placeholder="10000"
-                    className="w-full glass-input font-mono"
-                    min="0"
-                    required
-                  />
+                {/* Maintenance Fee */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                    Default Maintenance Fee
+                  </label>
+
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">
+                      ₹
+                    </span>
+
+                    <input
+                      type="number"
+                      value={defaultMaint}
+                      onChange={(e) => setDefaultMaint(e.target.value)}
+                      placeholder="10000"
+                      min="0"
+                      className="
+              w-full pl-7 pr-3 py-2.5 rounded-xl
+              bg-white/70 dark:bg-slate-900/70
+              border border-slate-300 dark:border-slate-700
+              text-sm text-slate-900 dark:text-white
+              placeholder:text-slate-400 dark:placeholder:text-slate-500
+              backdrop-blur-md
+              font-mono
+              transition-all duration-200
+              focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500
+              hover:border-slate-400 dark:hover:border-slate-600
+            "
+                    />
+                  </div>
                 </div>
+
               </div>
             </div>
           )}
@@ -691,10 +753,17 @@ export default function Settings() {
                   <button
                     onClick={handleAddCategory}
                     type="button"
-                    className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-slate-900 dark:text-white font-bold px-5 py-3 text-sm transition-all shadow-md shrink-0"
+                    className="
+    flex items-center gap-2
+    px-5 py-2.5
+    rounded-lg
+    bg-purple-600
+    text-white
+    hover:bg-purple-700
+  "
                   >
-                    <Plus className="h-4.5 w-4.5" />
-                    <span>Add Category</span>
+                    <Plus className="h-4 w-4" />
+                    Add Category
                   </button>
                 </div>
               </div>
@@ -702,7 +771,7 @@ export default function Settings() {
               {/* Categories list */}
               <div className="space-y-3">
                 <h4 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Active System Categories</h4>
-                
+
                 {loadingCats ? (
                   <div className="flex items-center justify-center py-10">
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></div>
@@ -749,15 +818,14 @@ export default function Settings() {
                         ) : (
                           <>
                             <div className="flex items-center gap-2.5">
-                              <span className={`h-2.5 w-2.5 rounded-full ${
-                                cat.name === 'Algo'
-                                  ? 'bg-indigo-500'
-                                  : cat.name === 'Sop'
-                                    ? 'bg-emerald-500'
-                                    : cat.name === 'crypto' || cat.name === 'Crypto'
-                                      ? 'bg-amber-500'
-                                      : 'bg-indigo-500/80'
-                              }`}></span>
+                              <span className={`h-2.5 w-2.5 rounded-full ${cat.name === 'Algo'
+                                ? 'bg-indigo-500'
+                                : cat.name === 'Sop'
+                                  ? 'bg-emerald-500'
+                                  : cat.name === 'crypto' || cat.name === 'Crypto'
+                                    ? 'bg-amber-500'
+                                    : 'bg-indigo-500/80'
+                                }`}></span>
                               <span className="font-bold text-slate-900 dark:text-white text-sm">{cat.name}</span>
                             </div>
 
@@ -773,7 +841,7 @@ export default function Settings() {
                               >
                                 <Edit2 className="h-3.5 w-3.5" />
                               </button>
-                              
+
                               <button
                                 type="button"
                                 onClick={() => {
@@ -824,10 +892,18 @@ export default function Settings() {
                   <button
                     onClick={handleAddBank}
                     type="button"
-                    className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-slate-900 dark:text-white font-bold px-5 py-3 text-sm transition-all shadow-md shrink-0"
+                    className="
+    flex items-center justify-center gap-2
+    px-5 py-2.5
+    rounded-lg
+    bg-purple-600
+    text-white
+    text-sm font-semibold
+    hover:bg-purple-700
+  "
                   >
-                    <Plus className="h-4.5 w-4.5" />
-                    <span>Add Bank</span>
+                    <Plus className="h-4 w-4" />
+                    Add Bank
                   </button>
                 </div>
               </div>
@@ -835,7 +911,7 @@ export default function Settings() {
               {/* Banks list */}
               <div className="space-y-3">
                 <h4 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Active System Banks</h4>
-                
+
                 {loadingBanks ? (
                   <div className="flex items-center justify-center py-10">
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></div>
@@ -898,7 +974,7 @@ export default function Settings() {
                               >
                                 <Edit2 className="h-3.5 w-3.5" />
                               </button>
-                              
+
                               <button
                                 type="button"
                                 onClick={() => {
@@ -929,8 +1005,8 @@ export default function Settings() {
                 type="submit"
                 className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 text-slate-900 dark:text-white font-bold px-6 py-3 text-sm transition-all shadow-lg shadow-indigo-600/10"
               >
-                <Save className="h-4.5 w-4.5" />
-                <span>Save Changes</span>
+                <Save className="h-4.5 w-4.5 text-white" />
+                <span className='text-white'>Save Changes</span>
               </button>
             </div>
           )}

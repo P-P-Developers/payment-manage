@@ -131,7 +131,7 @@ export default function Panels() {
     const searchParam = queryParams.get('search');
     const categoryParam = queryParams.get('category');
     const balanceParam = queryParams.get('balance');
-    
+
     setSearchQuery(searchParam !== null ? searchParam : '');
     setSelectedCategoryFilter(categoryParam !== null ? categoryParam : 'All');
     setBalanceFilter(balanceParam !== null ? balanceParam : 'All');
@@ -332,26 +332,36 @@ export default function Panels() {
   return (
     <div className="space-y-6">
       {/* Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+
+        {/* Left Content */}
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Software Panels (Clients)</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Software Panels (Clients)
+            </h2>
+
             {loading && panels.length > 0 && (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent shrink-0"></div>
+              <div className="h-5 w-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
             )}
           </div>
-          <p className="text-sm text-slate-600 dark:text-slate-400">View and manage client software licenses, charges, and current ledger balances.</p>
+
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            Manage client software licenses, billing, and ledger balances.
+          </p>
         </div>
 
+        {/* Right Button */}
         {isAdmin && (
           <button
             onClick={handleOpenAddModal}
-            className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-slate-900 dark:text-white font-semibold px-4 py-3 text-sm transition-all shadow-lg shadow-indigo-600/10"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-lg shadow-md hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 active:scale-95"
           >
-            <Plus className="h-4.5 w-4.5" />
-            <span>Add Panel Client</span>
+            <Plus className="h-4 w-4" />
+            <span>Add Client</span>
           </button>
         )}
+
       </div>
 
       {/* Alerts */}
@@ -464,15 +474,14 @@ export default function Panels() {
                       <div>
                         <div className="flex items-center gap-2.5">
                           <p className="font-bold text-slate-900 dark:text-white text-base">{panel.panelName}</p>
-                          <span className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
-                            panel.category === 'Algo'
+                          <span className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${panel.category === 'Algo'
                               ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
                               : panel.category === 'Sop'
                                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                 : panel.category === 'crypto' || panel.category === 'Crypto'
                                   ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                                   : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'
-                          }`}>
+                            }`}>
                             {panel.category || 'Algo'}
                           </span>
                         </div>

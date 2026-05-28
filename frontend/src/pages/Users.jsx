@@ -57,7 +57,7 @@ export default function Users() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  
+
   // Activity Log Modal State
   const [selectedLogUser, setSelectedLogUser] = useState(null);
   const [userLogs, setUserLogs] = useState([]);
@@ -78,7 +78,7 @@ export default function Users() {
       setLoadingLogs(false);
     }
   };
-  
+
   // Form Fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -219,24 +219,34 @@ export default function Users() {
   return (
     <div className="space-y-6">
       {/* Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+
+        {/* Left Content */}
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Staff User accounts</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Staff User Accounts
+            </h2>
+
             {loading && users.length > 0 && (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent shrink-0"></div>
+              <div className="h-5 w-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
             )}
           </div>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Manage admin and limited staff users and configure system permissions.</p>
+
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            Manage admin and staff users, roles, and permissions.
+          </p>
         </div>
 
+        {/* Action Button */}
         <button
           onClick={handleOpenAddModal}
-          className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-slate-900 dark:text-white font-semibold px-4 py-3 text-sm transition-all shadow-lg shadow-indigo-600/10"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-lg shadow-md hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 active:scale-95"
         >
-          <UserPlus className="h-4.5 w-4.5" />
-          <span>Add Staff Account</span>
+          <UserPlus className="h-4 w-4" />
+          <span>Add Staff</span>
         </button>
+
       </div>
 
       {/* Success/Error Banners */}
@@ -289,11 +299,10 @@ export default function Users() {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          user.role === 'Admin'
+                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${user.role === 'Admin'
                             ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
                             : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        }`}
+                          }`}
                       >
                         {user.role}
                       </span>
@@ -392,11 +401,10 @@ export default function Users() {
                   </div>
                 </div>
                 <span
-                  className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${
-                    user.role === 'Admin'
+                  className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${user.role === 'Admin'
                       ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
                       : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                  }`}
+                    }`}
                 >
                   {user.role}
                 </span>
@@ -563,11 +571,10 @@ export default function Users() {
                             className="hidden"
                           />
                           <div
-                            className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${
-                              checked
+                            className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${checked
                                 ? 'bg-indigo-600 border-indigo-500 text-slate-900 dark:text-white'
                                 : 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-transparent'
-                            }`}
+                              }`}
                           >
                             <Check className="h-3.5 w-3.5 stroke-[3]" />
                           </div>

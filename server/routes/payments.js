@@ -47,10 +47,14 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
     if (req.query.startDate || req.query.endDate) {
       filterQuery.timestamp = {};
       if (req.query.startDate) {
-        filterQuery.timestamp.$gte = new Date(req.query.startDate);
+        const [year, month, day] = req.query.startDate.split('-').map(Number);
+        const start = new Date(year, month - 1, day);
+        start.setHours(0, 0, 0, 0);
+        filterQuery.timestamp.$gte = start;
       }
       if (req.query.endDate) {
-        const end = new Date(req.query.endDate);
+        const [year, month, day] = req.query.endDate.split('-').map(Number);
+        const end = new Date(year, month - 1, day);
         end.setHours(23, 59, 59, 999);
         filterQuery.timestamp.$lte = end;
       }

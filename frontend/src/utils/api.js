@@ -1,7 +1,7 @@
-// const BASE_URL = typeof window !== 'undefined'
-//   ? (window.location.hostname === 'localhost' ? 'http://localhost:8005/api' : 'https://payment.deepmindinfotech.com/backend/api')
-//   : 'http://localhost:8005/api';
-const BASE_URL = "https://payment.deepmindinfotech.com/backend/api";
+const BASE_URL = typeof window !== 'undefined'
+  ? (window.location.hostname === 'localhost' ? 'http://localhost:8005/api' : 'https://payment.deepmindinfotech.com/backend/api')
+  : 'http://localhost:8005/api';
+// const BASE_URL = "https://payment.deepmindinfotech.com/backend/api";
 
 // Helper to set a cookie with a 7-day expiration by default
 export const setCookie = (name, value, days = 7) => {
