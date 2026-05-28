@@ -1,2036 +1,2074 @@
 // 
 
-let Panels = [{
-    "_id": "6a0a99284eac9caadcf65f86"
-    ,
-    "panelName": "AIsmartbit.com",
-    "licenseCharges": 1180,
-    "ipCharges": 0
-},
-{
-    "_id": "6a0a99284eac9caadcf65f8c"
-    ,
-    "panelName": "Algobuzztechnology.com",
-    "licenseCharges": 1000,
-    "ipCharges": 0
-},
-{
-    "_id": "6a0a99284eac9caadcf65f91"
-    ,
-    "panelName": "Angelai.in",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a99284eac9caadcf65f96"
-    ,
-    "panelName": "ariesindiaresearch-sop",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a99284eac9caadcf65f9b"
-    ,
-    "panelName": "Allrobosolution.com",
-    "licenseCharges": 1000,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a99284eac9caadcf65fa0"
-    ,
-    "panelName": "Brightextech.com",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a99284eac9caadcf65fa5"
-    ,
-    "panelName": "Bizxtechsolutionsindia.com",
-    "licenseCharges": 826,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a99294eac9caadcf65faa"
-    ,
-    "panelName": "darixosolution-newalgo",
-    "licenseCharges": 1000,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a99294eac9caadcf65faf"
-    ,
-    "panelName": "Dhanresearch.com",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a99294eac9caadcf65fb4"
-    ,
-    "panelName": "divineresearch-newpenal",
-    "licenseCharges": 826,
-    "ipCharges": 472
-},
-{
-    "_id": "6a0a99294eac9caadcf65fb9"
-    ,
-    "panelName": "dreamwealthresearch-newalgo",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a99294eac9caadcf65fbe"
-    ,
-    "panelName": "Easylifestyle.in",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a99294eac9caadcf65fc3"
-    ,
-    "panelName": "Equityresearchmart.in",
-    "licenseCharges": 800,
-    "ipCharges": 400
-},
-{
-    "_id": "6a0a99294eac9caadcf65fc8"
-    ,
-    "panelName": "Expertalgo.in",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a99294eac9caadcf65fcd"
-    ,
-    "panelName": "expertedge1-scalping",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a99294eac9caadcf65fd2"
-    ,
-    "panelName": "experienceinfotech-tools",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992a4eac9caadcf65fd7"
-    ,
-    "panelName": "fincapex-newalgo",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992a4eac9caadcf65fdc"
-    ,
-    "panelName": "fineinfotech-newalgo",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992a4eac9caadcf65fe1"
-    ,
-    "panelName": "finwebtechnologies-newalgo",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a992a4eac9caadcf65fe6"
-    ,
-    "panelName": "Finwebcapital.com",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a992a4eac9caadcf65feb"
-    ,
-    "panelName": "Firstbridgeitsolution.com",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a992a4eac9caadcf65ff0"
-    ,
-    "panelName": "firsttraderesearch-newalgo",
-    "licenseCharges": 1062,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992a4eac9caadcf65ff5"
-    ,
-    "panelName": "flyertechsoftware-tools",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992a4eac9caadcf65ffa"
-    ,
-    "panelName": "Fox it Solution",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992a4eac9caadcf65fff"
-    ,
-    "panelName": "Goproalgo.com",
-    "licenseCharges": 1000,
-    "ipCharges": 0
-},
-{
-    "_id": "6a0a992b4eac9caadcf66004"
-    ,
-    "panelName": "GROW SKY INFOTECH",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992b4eac9caadcf66009"
-    ,
-    "panelName": "iconicitsolution-newalgo",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a992b4eac9caadcf6600e"
-    ,
-    "panelName": "Innovationexpertinfo",
-    "licenseCharges": 1000,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a992b4eac9caadcf66013"
-    ,
-    "panelName": "kodiqtech-newalgo",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a992b4eac9caadcf6601c"
-    ,
-    "panelName": "linkupinfotech-newalgo",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992b4eac9caadcf66021"
-    ,
-    "panelName": "Markresearch.in",
-    "licenseCharges": 1062,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a992b4eac9caadcf66026"
-    ,
-    "panelName": "Master Research",
-    "licenseCharges": 826,
-    "ipCharges": 472
-},
-{
-    "_id": "6a0a992c4eac9caadcf6602b"
-    ,
-    "panelName": "Nexteraresearch.in",
-    "licenseCharges": 800,
-    "ipCharges": 400
-},
-{
-    "_id": "6a0a992c4eac9caadcf66030"
-    ,
-    "panelName": "Nextwaveinvest.co.in",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992c4eac9caadcf66035"
-    ,
-    "panelName": "Primepulse.in",
-    "licenseCharges": 1000,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a992c4eac9caadcf6603a"
-    ,
-    "panelName": "Quantit.live",
-    "licenseCharges": 1180,
-    "ipCharges": 0
-},
-{
-    "_id": "6a0a992c4eac9caadcf6603f"
-    ,
-    "panelName": "sparkstechnologies-newalgo",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a992c4eac9caadcf66044"
-    ,
-    "panelName": "Techelitesolution.in",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a992c4eac9caadcf66049"
-    ,
-    "panelName": "techntowns-newalgo",
-    "licenseCharges": 1180,
-    "ipCharges": 590
-},
-{
-    "_id": "6a0a992c4eac9caadcf6604e"
-    ,
-    "panelName": "theskytrident-newalgo",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992c4eac9caadcf66053"
-    ,
-    "panelName": "tradewintech-newalgo",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992d4eac9caadcf66058"
-    ,
-    "panelName": "Trade4wealth.in",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992d4eac9caadcf6605d"
-    ,
-    "panelName": "Tradinghubresearch",
-    "licenseCharges": 1062,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992d4eac9caadcf66062"
-    ,
-    "panelName": "uniquetechnology",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992d4eac9caadcf66067"
-    ,
-    "panelName": "Visionalgotech.com",
-    "licenseCharges": 1000,
-    "ipCharges": 0
-},
-{
-    "_id": "6a0a992d4eac9caadcf6606c"
-    ,
-    "panelName": "Visionstechnologies.in",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992d4eac9caadcf66071"
-    ,
-    "panelName": "wealthwaves-newalgo",
-    "licenseCharges": 1000,
-    "ipCharges": 500
-},
-{
-    "_id": "6a0a992d4eac9caadcf66076"
-    ,
-    "panelName": "Tradecodeacademy.com",
-    "licenseCharges": 1000,
-    "ipCharges": 0
-}]
+let Panels = [
+    {
+        "_id": "6a0a99284eac9caadcf65f86",
+        "panelName": "crypto.aismartbit",
+        "licenseCharges": 1180,
+        "ipCharges": 0
+    },
+    {
+        "_id": "6a0a99284eac9caadcf65f8c",
+        "panelName": "crypto.algobuzztechnology",
+        "licenseCharges": 1000,
+        "ipCharges": 0
+    },
+    {
+        "_id": "6a0a99284eac9caadcf65f91",
+        "panelName": "angelai",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a99284eac9caadcf65f96",
+        "panelName": "tools.ariesindiaresearch",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a99284eac9caadcf65f9b",
+        "panelName": "allrobosolution",
+        "licenseCharges": 1000,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a99284eac9caadcf65fa0",
+        "panelName": "tools.brightextech",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a99284eac9caadcf65fa5",
+        "panelName": "bizxtechsolutionsindia",
+        "licenseCharges": 826,
+        "ipCharges": 472
+    },
+    {
+        "_id": "6a0a99294eac9caadcf65faa",
+        "panelName": "darixosolution",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a99294eac9caadcf65faf",
+        "panelName": "dhanresearch",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a99294eac9caadcf65fb4",
+        "panelName": "divineresearch",
+        "licenseCharges": 826,
+        "ipCharges": 472
+    },
+    {
+        "_id": "6a0a99294eac9caadcf65fb9",
+        "panelName": "dreamwealthresearch",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a99294eac9caadcf65fbe",
+        "panelName": "easylifestyle\t",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a99294eac9caadcf65fc3",
+        "panelName": "equityresearchmart",
+        "licenseCharges": 800,
+        "ipCharges": 400
+    },
+    {
+        "_id": "6a0a99294eac9caadcf65fc8",
+        "panelName": "tools.expertalgo",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a99294eac9caadcf65fcd",
+        "panelName": "tools.expertedgecorporateconsultantsllp",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a99294eac9caadcf65fd2",
+        "panelName": "tools.experienceinfotech",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992a4eac9caadcf65fd7",
+        "panelName": "fincapex",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992a4eac9caadcf65fdc",
+        "panelName": "fineinfotech",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992a4eac9caadcf65fe1",
+        "panelName": "finwebtechnologies",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a992a4eac9caadcf65fe6",
+        "panelName": "finwebcapital",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a992a4eac9caadcf65feb",
+        "panelName": "firstbridgeitsolution",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a992a4eac9caadcf65ff0",
+        "panelName": "firsttraderesearch",
+        "licenseCharges": 1062,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a992a4eac9caadcf65ff5",
+        "panelName": "tools.flyertechsoftware",
+        "licenseCharges": 1000,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a992a4eac9caadcf65ffa",
+        "panelName": "tools.foxittechnology",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992a4eac9caadcf65fff",
+        "panelName": "coin.goproalgo",
+        "licenseCharges": 1000,
+        "ipCharges": 0
+    },
+    {
+        "_id": "6a0a992b4eac9caadcf66004",
+        "panelName": "growskyinfotech",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992b4eac9caadcf66009",
+        "panelName": "iconicitsolution",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a992b4eac9caadcf6600e",
+        "panelName": "tools.innovationexpertinfo",
+        "licenseCharges": 1000,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a992b4eac9caadcf66013",
+        "panelName": "kodiqtech",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a992b4eac9caadcf6601c",
+        "panelName": "linkupinfotech",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992b4eac9caadcf66021",
+        "panelName": "markresearch",
+        "licenseCharges": 1062,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a992b4eac9caadcf66026",
+        "panelName": "masterresearch",
+        "licenseCharges": 826,
+        "ipCharges": 472
+    },
+    {
+        "_id": "6a0a992c4eac9caadcf6602b",
+        "panelName": "nexteraresearch",
+        "licenseCharges": 800,
+        "ipCharges": 400
+    },
+    {
+        "_id": "6a0a992c4eac9caadcf66030",
+        "panelName": "nextwaveinvest",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992c4eac9caadcf66035",
+        "panelName": "primepulse",
+        "licenseCharges": 1000,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a992c4eac9caadcf6603a",
+        "panelName": "tools.quantit",
+        "licenseCharges": 1180,
+        "ipCharges": 0
+    },
+    {
+        "_id": "6a0a992c4eac9caadcf6603f",
+        "panelName": "sparkstechnologies",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992c4eac9caadcf66044",
+        "panelName": "techelitesolution",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a992c4eac9caadcf66049",
+        "panelName": "techntowns",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a992c4eac9caadcf6604e",
+        "panelName": "theskytrident",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992c4eac9caadcf66053",
+        "panelName": "tradewintech",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992d4eac9caadcf66058",
+        "panelName": "trade4wealth",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992d4eac9caadcf6605d",
+        "panelName": "tradinghubresearch",
+        "licenseCharges": 1062,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a0a992d4eac9caadcf66062",
+        "panelName": "uniquetechnology",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992d4eac9caadcf66067",
+        "panelName": "visionalgotech",
+        "licenseCharges": 1000,
+        "ipCharges": 0
+    },
+    {
+        "_id": "6a0a992d4eac9caadcf6606c",
+        "panelName": "visionstechnologies",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992d4eac9caadcf66071",
+        "panelName": "wealthwavesresearch",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    },
+    {
+        "_id": "6a0a992d4eac9caadcf66076",
+        "panelName": "Tradecodeacademy.com",
+        "licenseCharges": 1000,
+        "ipCharges": 0
+    },
+    {
+        "_id": "6a11835e5e54c2b2797412d7",
+        "panelName": "tools.kodiqtech",
+        "licenseCharges": 1180,
+        "ipCharges": 590
+    },
+    {
+        "_id": "6a17b73be58f45aa0697b014",
+        "panelName": "TEST SNEH ",
+        "licenseCharges": 1000,
+        "ipCharges": 500
+    }
+]
 
 
 // E:\payment-manage\Ip_data.json
 
 let Ip_data = [
+
     {
-        "date": "23 May 2026",
-        "panel": "equityresearchmart-newalgo",
-        "count": 5
+        "count": 1,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-27T19:30:00.053Z"
     },
     {
-        "date": "23 May 2026",
-        "panel": "nextera",
-        "count": 5
-    },
-    {
-        "date": "23 May 2026",
-        "panel": "expertedge1-scalping",
-        "count": 2
-    },
-    {
-        "date": "23 May 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 3
-    },
-    {
-        "date": "23 May 2026",
-        "panel": "fineinfotech-newalgo",
-        "count": 1
-    },
-    {
-        "date": "22 May 2026",
-        "panel": "iconicitsolution-newalgo",
-        "count": 5
-    },
-    {
-        "date": "22 May 2026",
-        "panel": "wealthwaves-newalgo",
-        "count": 2
-    },
-    {
-        "date": "22 May 2026",
+        "count": 7,
         "panel": "bizxtechsolutionsindia",
-        "count": 3
+        "createdAt": "2026-05-27T19:30:00.053Z"
     },
     {
-        "date": "22 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 5
+        "count": 6,
+        "panel": "darixosolution",
+        "createdAt": "2026-05-27T12:33:00.859Z"
     },
     {
-        "date": "22 May 2026",
-        "panel": "visionstechnologies-newalgo",
-        "count": 1
+        "count": 10,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-05-27T06:35:57.092Z"
     },
     {
-        "date": "21 May 2026",
+        "count": 5,
+        "panel": "tools.flyertechsoftware",
+        "createdAt": "2026-05-27T05:43:31.723Z"
+    },
+    {
+        "count": 10,
+        "panel": "masterresearch",
+        "createdAt": "2026-05-27T04:38:48.705Z"
+    },
+    {
+        "count": 2,
+        "panel": "wealthwavesresearch",
+        "createdAt": "2026-05-27T04:20:34.440Z"
+    },
+    {
+        "count": 10,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-27T04:03:45.905Z"
+    },
+    {
+        "count": 15,
         "panel": "bizxtechsolutionsindia",
-        "count": 10
+        "createdAt": "2026-05-27T03:56:40.475Z"
     },
     {
-        "date": "21 May 2026",
-        "panel": "brightexsop",
-        "count": 20
+        "count": 1,
+        "panel": "dreamwealthresearch",
+        "createdAt": "2026-05-26T19:30:00.055Z"
     },
     {
-        "date": "21 May 2026",
-        "panel": "flyertechsoftware-tools",
-        "count": 2
+        "count": 15,
+        "panel": "tools.brightextech",
+        "createdAt": "2026-05-26T11:38:14.753Z"
     },
     {
-        "date": "21 May 2026",
-        "panel": "visionstechnologies-newalgo",
-        "count": 3
+        "count": 5,
+        "panel": "tools.expertalgo",
+        "createdAt": "2026-05-26T06:36:11.621Z"
     },
     {
-        "date": "21 May 2026",
-        "panel": "markresearch-newalgo",
-        "count": 3
+        "count": 5,
+        "panel": "kodiqtech",
+        "createdAt": "2026-05-26T03:59:48.471Z"
     },
     {
-        "date": "21 May 2026",
-        "panel": "trade4wealth-newalgo",
-        "count": 5
+        "count": 2,
+        "panel": "markresearch",
+        "createdAt": "2026-05-26T03:55:30.598Z"
+    },
+
+    {
+        "count": 5,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-05-25T12:31:22.253Z"
     },
     {
-        "date": "21 May 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 10
+        "count": 2,
+        "panel": "primepulse",
+        "createdAt": "2026-05-25T12:16:49.468Z"
     },
     {
-        "date": "21 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 10
-    },
-    {
-        "date": "21 May 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 15
-    },
-    {
-        "date": "21 May 2026",
-        "panel": "equityresearchmart-newalgo",
-        "count": 5
-    },
-    {
-        "date": "21 May 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 10
-    },
-    {
-        "date": "21 May 2026",
-        "panel": "darixosolution-newalgo",
-        "count": 4
-    },
-    {
-        "date": "20 May 2026",
-        "panel": "flyertechsoftware-tools",
-        "count": 2
-    },
-    {
-        "date": "20 May 2026",
-        "panel": "linkupinfotech-newalgo",
-        "count": 2
-    },
-    {
-        "date": "20 May 2026",
-        "panel": "markresearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "20 May 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 20
-    },
-    {
-        "date": "20 May 2026",
-        "panel": "markresearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "20 May 2026",
-        "panel": "fox it",
-        "count": 2
-    },
-    {
-        "date": "20 May 2026",
-        "panel": "nextera",
-        "count": 5
-    },
-    {
-        "date": "19 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 10
-    },
-    {
-        "date": "19 May 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 10
-    },
-    {
-        "date": "19 May 2026",
-        "panel": "markresearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "19 May 2026",
-        "panel": "visionstechnologies-newalgo",
-        "count": 2
-    },
-    {
-        "date": "19 May 2026",
-        "panel": "wealthwaves-newalgo",
-        "count": 2
-    },
-    {
-        "date": "19 May 2026",
-        "panel": "nextera",
-        "count": 5
-    },
-    {
-        "date": "19 May 2026",
-        "panel": "kodiqtech-newalgo",
-        "count": 5
-    },
-    {
-        "date": "19 May 2026",
-        "panel": "trade4wealth-newalgo",
-        "count": 14
-    },
-    {
-        "date": "19 May 2026",
-        "panel": "tradinghubresearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "19 May 2026",
-        "panel": "brightexsop",
-        "count": 10
-    },
-    {
-        "date": "19 May 2026",
-        "panel": "sparkstechnologies-newalgo",
-        "count": 20
-    },
-    {
-        "date": "18 May 2026",
-        "panel": "fincapex-newalgo",
-        "count": 2
-    },
-    {
-        "date": "18 May 2026",
+        "count": 5,
         "panel": "finwebcapital",
-        "count": 5
+        "createdAt": "2026-05-25T11:55:06.061Z"
     },
     {
-        "date": "18 May 2026",
-        "panel": "nextera",
-        "count": 5
+        "count": 10,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-05-25T10:05:22.982Z"
     },
     {
-        "date": "18 May 2026",
-        "panel": "uniquetechnology",
-        "count": 2
+        "count": 1,
+        "panel": "tradewintech",
+        "createdAt": "2026-05-25T08:24:35.389Z"
     },
     {
-        "date": "17 May 2026",
-        "panel": "finwebtechnologies-newalgo",
-        "count": 10
+        "count": 10,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-25T07:13:34.030Z"
     },
     {
-        "date": "17 May 2026",
-        "panel": "flyertechsoftware-tools",
-        "count": 1
-    },
-    {
-        "date": "17 May 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 2
-    },
-    {
-        "date": "17 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 3
-    },
-    {
-        "date": "16 May 2026",
-        "panel": "techelitesolution-newalgo",
-        "count": 1
-    },
-    {
-        "date": "16 May 2026",
-        "panel": "darixosolution-newalgo",
-        "count": 5
-    },
-    {
-        "date": "16 May 2026",
-        "panel": "primepulse-newalgo",
-        "count": 2
-    },
-    {
-        "date": "15 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 10
-    },
-    {
-        "date": "15 May 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 10
-    },
-    {
-        "date": "15 May 2026",
-        "panel": "dhanresearch",
-        "count": 5
-    },
-    {
-        "date": "15 May 2026",
-        "panel": "tradewintech-newalgo",
-        "count": 1
-    },
-    {
-        "date": "15 May 2026",
-        "panel": "fincapex-newalgo",
-        "count": 1
-    },
-    {
-        "date": "15 May 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 14
-    },
-    {
-        "date": "15 May 2026",
-        "panel": "fox it",
-        "count": 1
-    },
-    {
-        "date": "15 May 2026",
-        "panel": "techntowns-newalgo",
-        "count": 1
-    },
-    {
-        "date": "15 May 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 3
-    },
-    {
-        "date": "14 May 2026",
-        "panel": "innovationexpertinfo",
-        "count": 1
-    },
-    {
-        "date": "14 May 2026",
-        "panel": "linkupinfotech-newalgo",
-        "count": 2
-    },
-    {
-        "date": "14 May 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 10
-    },
-    {
-        "date": "14 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 10
-    },
-    {
-        "date": "14 May 2026",
-        "panel": "wealthwaves-newalgo",
-        "count": 2
-    },
-    {
-        "date": "14 May 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "14 May 2026",
-        "panel": "techelitesolution-newalgo",
-        "count": 1
-    },
-    {
-        "date": "14 May 2026",
-        "panel": "linkupinfotech-newalgo",
-        "count": 1
-    },
-    {
-        "date": "14 May 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 1
-    },
-    {
-        "date": "13 May 2026",
-        "panel": "tradewintech-newalgo",
-        "count": 1
-    },
-    {
-        "date": "13 May 2026",
-        "panel": "expertalgo-sop",
-        "count": 10
-    },
-    {
-        "date": "13 May 2026",
-        "panel": "markresearch-newalgo",
-        "count": 4
-    },
-    {
-        "date": "13 May 2026",
-        "panel": "brightexsop",
-        "count": 10
-    },
-    {
-        "date": "13 May 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "13 May 2026",
-        "panel": "kodiqtech-newalgo",
-        "count": 5
-    },
-    {
-        "date": "13 May 2026",
-        "panel": "deepmind",
-        "count": 1
-    },
-    {
-        "date": "13 May 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 6
-    },
-    {
-        "date": "13 May 2026",
-        "panel": "masterresearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "13 May 2026",
-        "panel": "kodiqtech-newalgo",
-        "count": 10
-    },
-    {
-        "date": "13 May 2026",
-        "panel": "markresearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "13 May 2026",
-        "panel": "nextera",
-        "count": 8
-    },
-    {
-        "date": "13 May 2026",
-        "panel": "linkupinfotech-newalgo",
-        "count": 3
-    },
-    {
-        "date": "12 May 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 10
-    },
-    {
-        "date": "12 May 2026",
-        "panel": "masterresearch-newalgo",
-        "count": 9
-    },
-    {
-        "date": "12 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 10
-    },
-    {
-        "date": "12 May 2026",
-        "panel": "nextera",
-        "count": 5
-    },
-    {
-        "date": "11 May 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 20
-    },
-    {
-        "date": "11 May 2026",
-        "panel": "markresearch-newalgo",
-        "count": 3
-    },
-    {
-        "date": "11 May 2026",
-        "panel": "wealthwaves-newalgo",
-        "count": 2
-    },
-    {
-        "date": "11 May 2026",
-        "panel": "brightexsop",
-        "count": 10
-    },
-    {
-        "date": "11 May 2026",
-        "panel": "fincapex-newalgo",
-        "count": 1
-    },
-    {
-        "date": "11 May 2026",
-        "panel": "nextera",
-        "count": 5
-    },
-    {
-        "date": "11 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 15
-    },
-    {
-        "date": "11 May 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 15
-    },
-    {
-        "date": "11 May 2026",
-        "panel": "tradinghubresearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "10 May 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 2
-    },
-    {
-        "date": "10 May 2026",
-        "panel": "experienceinfotech-tools",
-        "count": 5
-    },
-    {
-        "date": "10 May 2026",
-        "panel": "sparkstechnologies-newalgo",
-        "count": 20
-    },
-    {
-        "date": "10 May 2026",
-        "panel": "flyertechsoftware-tools",
-        "count": 8
-    },
-    {
-        "date": "10 May 2026",
-        "panel": "expertedge1-scalping",
-        "count": 10
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "sparkstechnologies-newalgo",
-        "count": 20
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "equityresearchmart-newalgo",
-        "count": 5
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "theskytrident-newalgo",
-        "count": 3
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "iconicitsolution-newalgo",
-        "count": 5
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "nextera",
-        "count": 5
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "fox it",
-        "count": 3
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "flyertechsoftware-tools",
-        "count": 2
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "expertedge1-scalping",
-        "count": 2
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "masterresearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "tradinghubresearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "sparkstechnologies-newalgo",
-        "count": 10
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "iconicitsolution-newalgo",
-        "count": 5
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "equityresearchmart-newalgo",
-        "count": 10
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "nextera",
-        "count": 10
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "theskytrident-newalgo",
-        "count": 5
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "linkupinfotech-newalgo",
-        "count": 5
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 7
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 13
-    },
-    {
-        "date": "09 May 2026",
-        "panel": "dhanresearch",
-        "count": 5
-    },
-    {
-        "date": "08 May 2026",
-        "panel": "innovationexpertinfo",
-        "count": 1
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "wealthwaves-newalgo",
-        "count": 6
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "primepulse-newalgo",
-        "count": 5
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "brightexsop",
-        "count": 20
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "linkupinfotech-newalgo",
-        "count": 3
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "markresearch-newalgo",
-        "count": 5
-    },
-    {
-        "date": "07 May 2026",
+        "count": 5,
         "panel": "angelai",
-        "count": 5
+        "createdAt": "2026-05-25T07:07:54.125Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "expertedge1-scalping",
-        "count": 20
-    },
-    {
-        "date": "07 May 2026",
+        "count": 13,
         "panel": "bizxtechsolutionsindia",
-        "count": 25
+        "createdAt": "2026-05-25T07:01:19.011Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 10
+        "count": 10,
+        "panel": "tradinghubresearch",
+        "createdAt": "2026-05-25T05:38:33.052Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "fox it",
-        "count": 5
+        "count": 5,
+        "panel": "tools.brightextech",
+        "createdAt": "2026-05-25T05:03:58.457Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "sparkstechnologies-newalgo",
-        "count": 10
+        "count": 20,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-05-25T04:45:28.043Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "uniquetechnology",
-        "count": 5
+        "count": 1,
+        "panel": "techntowns",
+        "createdAt": "2026-05-23T10:22:31.798Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "kodiqtech-newalgo",
-        "count": 5
+        "count": 5,
+        "panel": "equityresearchmart",
+        "createdAt": "2026-05-23T08:23:16.367Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "fincapex-newalgo",
-        "count": 1
+        "count": 5,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-05-23T06:40:01.116Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "dhanresearch",
-        "count": 5
+        "count": 2,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-05-22T19:30:00.048Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 10
+        "count": 3,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-05-22T19:30:00.048Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 10
+        "count": 1,
+        "panel": "fineinfotech",
+        "createdAt": "2026-05-22T19:30:00.048Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "soptoolsnew",
-        "count": 1
+        "count": 5,
+        "panel": "iconicitsolution",
+        "createdAt": "2026-05-22T05:53:42.173Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "tradinghubresearch-newalgo",
-        "count": 4
+        "count": 2,
+        "panel": "wealthwavesresearch",
+        "createdAt": "2026-05-22T05:49:28.687Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "equityresearchmart-newalgo",
-        "count": 5
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "uniquetechnology",
-        "count": 5
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "markresearch-newalgo",
-        "count": 1
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "masterresearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "flyertechsoftware-tools",
-        "count": 5
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 7
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "theskytrident-newalgo",
-        "count": 1
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "sparkstechnologies-newalgo",
-        "count": 1
-    },
-    {
-        "date": "07 May 2026",
+        "count": 3,
         "panel": "bizxtechsolutionsindia",
-        "count": 4
+        "createdAt": "2026-05-21T19:30:00.079Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "iconicitsolution-newalgo",
-        "count": 5
+        "count": 5,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-21T19:30:00.079Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "expertedge1-scalping",
-        "count": 5
+        "count": 1,
+        "panel": "visionstechnologies",
+        "createdAt": "2026-05-21T19:30:00.079Z"
     },
     {
-        "date": "07 May 2026",
-        "panel": "dreamwealthresearch-newalgo",
-        "count": 4
-    },
-    {
-        "date": "07 May 2026",
-        "panel": "fincapex-newalgo",
-        "count": 1
-    },
-    {
-        "date": "06 May 2026",
-        "panel": "kodiqtech-newalgo",
-        "count": 10
-    },
-    {
-        "date": "06 May 2026",
-        "panel": "equityresearchmart-newalgo",
-        "count": 5
-    },
-    {
-        "date": "06 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 8
-    },
-    {
-        "date": "06 May 2026",
+        "count": 10,
         "panel": "bizxtechsolutionsindia",
-        "count": 2
+        "createdAt": "2026-05-21T11:52:13.204Z"
     },
     {
-        "date": "04 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 9
+        "count": 20,
+        "panel": "tools.brightextech",
+        "createdAt": "2026-05-21T07:49:33.954Z"
     },
     {
-        "date": "04 May 2026",
+        "count": 2,
+        "panel": "tools.flyertechsoftware",
+        "createdAt": "2026-05-21T07:47:25.815Z"
+    },
+    {
+        "count": 3,
+        "panel": "visionstechnologies",
+        "createdAt": "2026-05-21T07:46:27.683Z"
+    },
+    {
+        "count": 3,
+        "panel": "markresearch",
+        "createdAt": "2026-05-21T07:45:40.971Z"
+    },
+    {
+        "count": 5,
+        "panel": "trade4wealth",
+        "createdAt": "2026-05-21T07:45:09.264Z"
+    },
+    {
+        "count": 10,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-05-21T07:44:42.724Z"
+    },
+    {
+        "count": 10,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-21T07:44:02.719Z"
+    },
+    {
+        "count": 15,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-05-21T07:42:28.450Z"
+    },
+    {
+        "count": 5,
+        "panel": "equityresearchmart",
+        "createdAt": "2026-05-21T07:40:54.490Z"
+    },
+    {
+        "count": 10,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-05-20T19:30:00.052Z"
+    },
+    {
+        "count": 4,
+        "panel": "darixosolution",
+        "createdAt": "2026-05-20T19:30:00.052Z"
+    },
+    {
+        "count": 2,
+        "panel": "tools.flyertechsoftware",
+        "createdAt": "2026-05-20T09:51:19.904Z"
+    },
+    {
+        "count": 2,
+        "panel": "linkupinfotech",
+        "createdAt": "2026-05-20T09:50:44.844Z"
+    },
+    {
+        "count": 2,
+        "panel": "markresearch",
+        "createdAt": "2026-05-20T09:49:35.139Z"
+    },
+    {
+        "count": 20,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-05-19T19:30:00.051Z"
+    },
+    {
+        "count": 2,
+        "panel": "markresearch",
+        "createdAt": "2026-05-19T19:30:00.051Z"
+    },
+    {
+        "count": 2,
+        "panel": "tools.foxittechnology",
+        "createdAt": "2026-05-19T19:30:00.051Z"
+    },
+    {
+        "count": 5,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-05-19T19:30:00.051Z"
+    },
+    {
+        "count": 10,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-19T10:46:17.707Z"
+    },
+    {
+        "count": 10,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-05-19T10:43:23.570Z"
+    },
+    {
+        "count": 2,
+        "panel": "markresearch",
+        "createdAt": "2026-05-19T10:42:16.358Z"
+    },
+    {
+        "count": 2,
+        "panel": "visionstechnologies",
+        "createdAt": "2026-05-19T10:41:38.799Z"
+    },
+    {
+        "count": 2,
+        "panel": "wealthwavesresearch",
+        "createdAt": "2026-05-19T10:40:59.544Z"
+    },
+    {
+        "count": 5,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-05-19T10:40:16.503Z"
+    },
+    {
+        "count": 5,
+        "panel": "kodiqtech",
+        "createdAt": "2026-05-19T10:39:49.603Z"
+    },
+    {
+        "count": 14,
+        "panel": "trade4wealth",
+        "createdAt": "2026-05-19T10:39:11.041Z"
+    },
+    {
+        "count": 10,
+        "panel": "tradinghubresearch",
+        "createdAt": "2026-05-19T10:36:59.367Z"
+    },
+    {
+        "count": 10,
+        "panel": "tools.brightextech",
+        "createdAt": "2026-05-19T10:36:22.985Z"
+    },
+    {
+        "count": 20,
+        "panel": "sparkstechnologies",
+        "createdAt": "2026-05-19T10:35:23.461Z"
+    },
+    {
+        "count": 2,
+        "panel": "fincapex",
+        "createdAt": "2026-05-18T04:39:56.868Z"
+    },
+    {
+        "count": 5,
         "panel": "finwebcapital",
-        "count": 5
+        "createdAt": "2026-05-18T04:32:07.352Z"
     },
     {
-        "date": "04 May 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 5
+        "count": 5,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-05-18T04:24:03.774Z"
     },
     {
-        "date": "04 May 2026",
-        "panel": "sparkstechnologies-newalgo",
-        "count": 10
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "flyertechsoftware-tools",
-        "count": 3
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "expertedge1-scalping",
-        "count": 5
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 5
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "equityresearchmart-newalgo",
-        "count": 3
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "nextera",
-        "count": 3
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "expertedge1-scalping",
-        "count": 3
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "soptoolsnew",
-        "count": 1
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 3
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "fox it",
-        "count": 2
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "soptoolsnew",
-        "count": 2
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "visionstechnologies-newalgo",
-        "count": 3
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "equityresearchmart-newalgo",
-        "count": 2
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "nextera",
-        "count": 2
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "markresearch-newalgo",
-        "count": 3
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "wealthwaves-newalgo",
-        "count": 2
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "expertalgo-sop",
-        "count": 5
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 4
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "wealthwaves-newalgo",
-        "count": 7
-    },
-    {
-        "date": "04 May 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "03 May 2026",
-        "panel": "linkupinfotech-newalgo",
-        "count": 12
-    },
-    {
-        "date": "03 May 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 6
-    },
-    {
-        "date": "03 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 4
-    },
-    {
-        "date": "02 May 2026",
-        "panel": "soptoolsnew",
-        "count": 1
-    },
-    {
-        "date": "02 May 2026",
-        "panel": "expertedge1-scalping",
-        "count": 5
-    },
-    {
-        "date": "02 May 2026",
-        "panel": "fincapex-newalgo",
-        "count": 1
-    },
-    {
-        "date": "02 May 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 13
-    },
-    {
-        "date": "02 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 10
-    },
-    {
-        "date": "02 May 2026",
-        "panel": "masterresearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "02 May 2026",
-        "panel": "finwebtechnologies-newalgo",
-        "count": 5
-    },
-    {
-        "date": "01 May 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 3
-    },
-    {
-        "date": "01 May 2026",
-        "panel": "expertedge1-scalping",
-        "count": 1
-    },
-    {
-        "date": "30 Apr 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 15
-    },
-    {
-        "date": "30 Apr 2026",
-        "panel": "fox it",
-        "count": 1
-    },
-    {
-        "date": "30 Apr 2026",
-        "panel": "deepmind",
-        "count": 2
-    },
-    {
-        "date": "30 Apr 2026",
-        "panel": "fincapex-newalgo",
-        "count": 1
-    },
-    {
-        "date": "29 Apr 2026",
-        "panel": "tradinghubresearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "29 Apr 2026",
-        "panel": "markresearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "29 Apr 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 5
-    },
-    {
-        "date": "29 Apr 2026",
-        "panel": "experienceinfotech-tools",
-        "count": 5
-    },
-    {
-        "date": "29 Apr 2026",
-        "panel": "theskytrident-newalgo",
-        "count": 5
-    },
-    {
-        "date": "28 Apr 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 5
-    },
-    {
-        "date": "28 Apr 2026",
-        "panel": "flyertechsoftware-tools",
-        "count": 5
-    },
-    {
-        "date": "28 Apr 2026",
-        "panel": "primepulse-newalgo",
-        "count": 2
-    },
-    {
-        "date": "28 Apr 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 10
-    },
-    {
-        "date": "28 Apr 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 10
-    },
-    {
-        "date": "28 Apr 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 10
-    },
-    {
-        "date": "27 Apr 2026",
-        "panel": "markresearch-newalgo",
-        "count": 1
-    },
-    {
-        "date": "27 Apr 2026",
-        "panel": "kodiqtech-newalgo",
-        "count": 5
-    },
-    {
-        "date": "27 Apr 2026",
-        "panel": "dreamwealthresearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "27 Apr 2026",
-        "panel": "wealthwaves-newalgo",
-        "count": 2
-    },
-    {
-        "date": "27 Apr 2026",
-        "panel": "iconicitsolution-newalgo",
-        "count": 5
-    },
-    {
-        "date": "26 Apr 2026",
-        "panel": "soptoolsnew",
-        "count": 1
-    },
-    {
-        "date": "25 Apr 2026",
-        "panel": "markresearch-newalgo",
-        "count": 1
-    },
-    {
-        "date": "25 Apr 2026",
-        "panel": "nextera",
-        "count": 10
-    },
-    {
-        "date": "24 Apr 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 15
-    },
-    {
-        "date": "24 Apr 2026",
-        "panel": "linkupinfotech-newalgo",
-        "count": 3
-    },
-    {
-        "date": "24 Apr 2026",
-        "panel": "tradinghubresearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "24 Apr 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 5
-    },
-    {
-        "date": "23 Apr 2026",
-        "panel": "expertedge1-scalping",
-        "count": 10
-    },
-    {
-        "date": "23 Apr 2026",
-        "panel": "markresearch-newalgo",
-        "count": 1
-    },
-    {
-        "date": "23 Apr 2026",
-        "panel": "linkupinfotech-newalgo",
-        "count": 1
-    },
-    {
-        "date": "23 Apr 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 5
-    },
-    {
-        "date": "23 Apr 2026",
-        "panel": "fineinfotech-newalgo",
-        "count": 2
-    },
-    {
-        "date": "23 Apr 2026",
-        "panel": "wealthwaves-newalgo",
-        "count": 1
-    },
-    {
-        "date": "22 Apr 2026",
-        "panel": "sparkstechnologies-newalgo",
-        "count": 20
-    },
-    {
-        "date": "22 Apr 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 15
-    },
-    {
-        "date": "22 Apr 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 25
-    },
-    {
-        "date": "22 Apr 2026",
-        "panel": "markresearch-newalgo",
-        "count": 1
-    },
-    {
-        "date": "22 Apr 2026",
-        "panel": "visionstechnologies-newalgo",
-        "count": 1
-    },
-    {
-        "date": "21 Apr 2026",
-        "panel": "primepulse-newalgo",
-        "count": 2
-    },
-    {
-        "date": "21 Apr 2026",
-        "panel": "markresearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "21 Apr 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 10
-    },
-    {
-        "date": "21 Apr 2026",
+        "count": 2,
         "panel": "uniquetechnology",
-        "count": 2
+        "createdAt": "2026-05-18T04:20:15.075Z"
     },
     {
-        "date": "21 Apr 2026",
-        "panel": "darixosolution-newalgo",
-        "count": 5
+        "count": 10,
+        "panel": "finwebtechnologies",
+        "createdAt": "2026-05-16T19:30:00.082Z"
     },
     {
-        "date": "20 Apr 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 20
+        "count": 1,
+        "panel": "tools.flyertechsoftware",
+        "createdAt": "2026-05-16T19:30:00.082Z"
     },
     {
-        "date": "20 Apr 2026",
-        "panel": "markresearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "20 Apr 2026",
-        "panel": "fox it",
-        "count": 2
-    },
-    {
-        "date": "20 Apr 2026",
-        "panel": "nextera",
-        "count": 10
-    },
-    {
-        "date": "20 Apr 2026",
-        "panel": "primepulse-newalgo",
-        "count": 2
-    },
-    {
-        "date": "20 Apr 2026",
-        "panel": "kodiqtech-newalgo",
-        "count": 5
-    },
-    {
-        "date": "20 Apr 2026",
-        "panel": "equityresearchmart-newalgo",
-        "count": 5
-    },
-    {
-        "date": "20 Apr 2026",
-        "panel": "techntowns-newalgo",
-        "count": 1
-    },
-    {
-        "date": "17 Apr 2026",
-        "panel": "finwebtechnologies-newalgo",
-        "count": 10
-    },
-    {
-        "date": "17 Apr 2026",
-        "panel": "flyertechsoftware-tools",
-        "count": 1
-    },
-    {
-        "date": "17 Apr 2026",
+        "count": 2,
         "panel": "bizxtechsolutionsindia",
-        "count": 15
+        "createdAt": "2026-05-16T19:30:00.082Z"
     },
     {
-        "date": "17 Apr 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 10
+        "count": 3,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-16T19:30:00.082Z"
     },
     {
-        "date": "16 Apr 2026",
-        "panel": "techelitesolution-newalgo",
-        "count": 1
+        "count": 1,
+        "panel": "techelitesolution",
+        "createdAt": "2026-05-15T19:30:00.093Z"
     },
     {
-        "date": "16 Apr 2026",
-        "panel": "angelai",
-        "count": 5
+        "count": 5,
+        "panel": "darixosolution",
+        "createdAt": "2026-05-15T19:30:00.093Z"
     },
     {
-        "date": "16 Apr 2026",
-        "panel": "darixosolution-newalgo",
-        "count": 5
+        "count": 2,
+        "panel": "primepulse",
+        "createdAt": "2026-05-15T19:30:00.093Z"
     },
     {
-        "date": "16 Apr 2026",
-        "panel": "primepulse-newalgo",
-        "count": 2
+        "count": 10,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-15T12:12:51.648Z"
     },
     {
-        "date": "15 Apr 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 14
-    },
-    {
-        "date": "15 Apr 2026",
-        "panel": "fox it",
-        "count": 1
-    },
-    {
-        "date": "15 Apr 2026",
-        "panel": "techntowns-newalgo",
-        "count": 1
-    },
-    {
-        "date": "15 Apr 2026",
+        "count": 10,
         "panel": "bizxtechsolutionsindia",
-        "count": 10
+        "createdAt": "2026-05-15T12:12:06.332Z"
     },
     {
-        "date": "15 Apr 2026",
-        "panel": "markresearch-newalgo",
-        "count": 1
-    },
-    {
-        "date": "14 Apr 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "14 Apr 2026",
-        "panel": "tradinghubresearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "14 Apr 2026",
-        "panel": "dreamwealthresearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "14 Apr 2026",
-        "panel": "techelitesolution-newalgo",
-        "count": 1
-    },
-    {
-        "date": "14 Apr 2026",
-        "panel": "linkupinfotech-newalgo",
-        "count": 1
-    },
-    {
-        "date": "14 Apr 2026",
-        "panel": "ariesindiaresearch-sop",
-        "count": 1
-    },
-    {
-        "date": "13 Apr 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "13 Apr 2026",
-        "panel": "masterresearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "13 Apr 2026",
-        "panel": "kodiqtech-newalgo",
-        "count": 10
-    },
-    {
-        "date": "13 Apr 2026",
-        "panel": "markresearch-newalgo",
-        "count": 2
-    },
-    {
-        "date": "13 Apr 2026",
-        "panel": "nextera",
-        "count": 10
-    },
-    {
-        "date": "13 Apr 2026",
-        "panel": "linkupinfotech-newalgo",
-        "count": 3
-    },
-    {
-        "date": "10 Apr 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 15
-    },
-    {
-        "date": "10 Apr 2026",
-        "panel": "experienceinfotech-tools",
-        "count": 5
-    },
-    {
-        "date": "10 Apr 2026",
-        "panel": "sparkstechnologies-newalgo",
-        "count": 20
-    },
-    {
-        "date": "10 Apr 2026",
-        "panel": "flyertechsoftware-tools",
-        "count": 10
-    },
-    {
-        "date": "10 Apr 2026",
-        "panel": "expertedge1-scalping",
-        "count": 10
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "fox it",
-        "count": 3
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "flyertechsoftware-tools",
-        "count": 2
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "expertedge1-scalping",
-        "count": 2
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "masterresearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "markresearch-newalgo",
-        "count": 5
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "tradinghubresearch-newalgo",
-        "count": 10
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "sparkstechnologies-newalgo",
-        "count": 10
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "iconicitsolution-newalgo",
-        "count": 5
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "wealthwaves-newalgo",
-        "count": 10
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "equityresearchmart-newalgo",
-        "count": 10
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "nextera",
-        "count": 10
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "theskytrident-newalgo",
-        "count": 5
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "uniquetechnology",
-        "count": 5
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "linkupinfotech-newalgo",
-        "count": 5
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "finwebtechnologies-newalgo",
-        "count": 5
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "bizxtechsolutionsindia",
-        "count": 40
-    },
-    {
-        "date": "09 Apr 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 20
-    },
-    {
-        "date": "09 Apr 2026",
+        "count": 5,
         "panel": "dhanresearch",
-        "count": 5
+        "createdAt": "2026-05-15T09:24:25.073Z"
     },
     {
-        "date": "09 Apr 2026",
-        "panel": "fincapex-newalgo",
-        "count": 2
+        "count": 1,
+        "panel": "tradewintech",
+        "createdAt": "2026-05-15T07:12:42.062Z"
     },
     {
-        "date": "09 Apr 2026",
+        "count": 1,
+        "panel": "fincapex",
+        "createdAt": "2026-05-15T03:51:42.765Z"
+    },
+    {
+        "count": 14,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-05-14T19:30:00.054Z"
+    },
+    {
+        "count": 1,
+        "panel": "tools.foxittechnology",
+        "createdAt": "2026-05-14T19:30:00.054Z"
+    },
+    {
+        "count": 1,
+        "panel": "techntowns",
+        "createdAt": "2026-05-14T19:30:00.054Z"
+    },
+    {
+        "count": 3,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-05-14T19:30:00.054Z"
+    },
+    {
+        "count": 1,
+        "panel": "tools.innovationexpertinfo",
+        "createdAt": "2026-05-14T08:23:49.694Z"
+    },
+    {
+        "count": 2,
+        "panel": "linkupinfotech",
+        "createdAt": "2026-05-14T06:03:50.683Z"
+    },
+    {
+        "count": 10,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-05-14T04:42:16.379Z"
+    },
+    {
+        "count": 10,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-14T04:33:46.048Z"
+    },
+    {
+        "count": 2,
+        "panel": "wealthwavesresearch",
+        "createdAt": "2026-05-14T04:26:03.793Z"
+    },
+    {
+        "count": 2,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-05-13T19:30:00.024Z"
+    },
+    {
+        "count": 1,
+        "panel": "techelitesolution",
+        "createdAt": "2026-05-13T19:30:00.024Z"
+    },
+    {
+        "count": 1,
+        "panel": "linkupinfotech",
+        "createdAt": "2026-05-13T19:30:00.024Z"
+    },
+    {
+        "count": 1,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-05-13T19:30:00.024Z"
+    },
+    {
+        "count": 1,
+        "panel": "tradewintech",
+        "createdAt": "2026-05-13T12:02:53.156Z"
+    },
+    {
+        "count": 10,
+        "panel": "tools.expertalgo",
+        "createdAt": "2026-05-13T12:01:13.521Z"
+    },
+    {
+        "count": 4,
+        "panel": "markresearch",
+        "createdAt": "2026-05-13T11:46:23.862Z"
+    },
+    {
+        "count": 10,
+        "panel": "tools.brightextech",
+        "createdAt": "2026-05-13T05:53:02.961Z"
+    },
+    {
+        "count": 10,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-05-13T05:08:30.818Z"
+    },
+    {
+        "count": 5,
+        "panel": "kodiqtech",
+        "createdAt": "2026-05-13T04:34:29.734Z"
+    },
+
+    {
+        "count": 6,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-05-12T19:30:00.051Z"
+    },
+    {
+        "count": 10,
+        "panel": "masterresearch",
+        "createdAt": "2026-05-12T19:30:00.051Z"
+    },
+    {
+        "count": 10,
+        "panel": "kodiqtech",
+        "createdAt": "2026-05-12T19:30:00.051Z"
+    },
+    {
+        "count": 2,
+        "panel": "markresearch",
+        "createdAt": "2026-05-12T19:30:00.051Z"
+    },
+    {
+        "count": 8,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-05-12T19:30:00.051Z"
+    },
+    {
+        "count": 3,
+        "panel": "linkupinfotech",
+        "createdAt": "2026-05-12T19:30:00.051Z"
+    },
+    {
+        "count": 10,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-05-12T12:42:04.411Z"
+    },
+    {
+        "count": 9,
+        "panel": "masterresearch",
+        "createdAt": "2026-05-12T12:41:26.694Z"
+    },
+    {
+        "count": 10,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-12T12:40:25.932Z"
+    },
+    {
+        "count": 5,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-05-12T06:09:14.547Z"
+    },
+    {
+        "count": 20,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-05-11T12:28:17.720Z"
+    },
+    {
+        "count": 3,
+        "panel": "markresearch",
+        "createdAt": "2026-05-11T12:06:55.420Z"
+    },
+    {
+        "count": 2,
+        "panel": "wealthwavesresearch",
+        "createdAt": "2026-05-11T10:26:44.922Z"
+    },
+    {
+        "count": 10,
+        "panel": "tools.brightextech",
+        "createdAt": "2026-05-11T06:58:11.883Z"
+    },
+    {
+        "count": 1,
+        "panel": "fincapex",
+        "createdAt": "2026-05-11T05:47:06.822Z"
+    },
+    {
+        "count": 5,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-05-11T05:00:47.795Z"
+    },
+    {
+        "count": 15,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-11T04:23:44.775Z"
+    },
+    {
+        "count": 15,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-05-11T04:22:41.986Z"
+    },
+    {
+        "count": 10,
+        "panel": "tradinghubresearch",
+        "createdAt": "2026-05-11T04:01:26.660Z"
+    },
+    {
+        "count": 2,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-05-09T19:30:00.023Z"
+    },
+    {
+        "count": 5,
+        "panel": "tools.experienceinfotech",
+        "createdAt": "2026-05-09T19:30:00.023Z"
+    },
+    {
+        "count": 20,
+        "panel": "sparkstechnologies",
+        "createdAt": "2026-05-09T19:30:00.023Z"
+    },
+    {
+        "count": 8,
+        "panel": "tools.flyertechsoftware",
+        "createdAt": "2026-05-09T19:30:00.023Z"
+    },
+    {
+        "count": 10,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-05-09T19:30:00.023Z"
+    },
+    {
+        "count": 20,
+        "panel": "sparkstechnologies",
+        "createdAt": "2026-05-09T09:02:53.585Z"
+    },
+    {
+        "count": 5,
+        "panel": "equityresearchmart",
+        "createdAt": "2026-05-09T09:01:19.929Z"
+    },
+    {
+        "count": 3,
+        "panel": "theskytrident",
+        "createdAt": "2026-05-09T04:30:15.631Z"
+    },
+    {
+        "count": 5,
+        "panel": "iconicitsolution",
+        "createdAt": "2026-05-09T04:29:05.359Z"
+    },
+    {
+        "count": 5,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-05-09T04:02:29.713Z"
+    },
+    {
+        "count": 3,
+        "panel": "tools.foxittechnology",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 2,
+        "panel": "tools.flyertechsoftware",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 2,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 10,
+        "panel": "masterresearch",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 10,
+        "panel": "tradinghubresearch",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 10,
+        "panel": "sparkstechnologies",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 5,
+        "panel": "iconicitsolution",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 10,
+        "panel": "equityresearchmart",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 10,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 5,
+        "panel": "theskytrident",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 5,
+        "panel": "linkupinfotech",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 7,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 13,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 5,
+        "panel": "dhanresearch",
+        "createdAt": "2026-05-08T19:30:00.030Z"
+    },
+    {
+        "count": 1,
+        "panel": "tools.innovationexpertinfo",
+        "createdAt": "2026-05-08T11:25:42.084Z"
+    },
+    {
+        "count": 6,
+        "panel": "wealthwavesresearch",
+        "createdAt": "2026-05-07T11:42:56.394Z"
+    },
+    {
+        "count": 5,
+        "panel": "primepulse",
+        "createdAt": "2026-05-07T11:42:23.099Z"
+    },
+    {
+        "count": 20,
+        "panel": "tools.brightextech",
+        "createdAt": "2026-05-07T11:41:50.936Z"
+    },
+    {
+        "count": 3,
+        "panel": "linkupinfotech",
+        "createdAt": "2026-05-07T11:40:42.569Z"
+    },
+    {
+        "count": 5,
+        "panel": "markresearch",
+        "createdAt": "2026-05-07T11:40:09.532Z"
+    },
+    {
+        "count": 5,
         "panel": "angelai",
-        "count": 5
+        "createdAt": "2026-05-07T11:39:30.099Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "tradinghubresearch-newalgo",
-        "count": 5
+        "count": 20,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-05-07T11:38:40.033Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "equityresearchmart-newalgo",
-        "count": 5
+        "count": 25,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-05-07T11:37:50.527Z"
     },
     {
-        "date": "07 Apr 2026",
+        "count": 10,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-05-07T11:11:20.802Z"
+    },
+    {
+        "count": 5,
+        "panel": "tools.foxittechnology",
+        "createdAt": "2026-05-07T04:31:06.230Z"
+    },
+    {
+        "count": 10,
+        "panel": "sparkstechnologies",
+        "createdAt": "2026-05-07T04:29:18.737Z"
+    },
+    {
+        "count": 5,
         "panel": "uniquetechnology",
-        "count": 5
+        "createdAt": "2026-05-07T04:28:11.293Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 5
+        "count": 5,
+        "panel": "kodiqtech",
+        "createdAt": "2026-05-07T04:27:17.041Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "markresearch-newalgo",
-        "count": 4
+        "count": 1,
+        "panel": "fincapex",
+        "createdAt": "2026-05-07T04:23:51.085Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "wealthwaves-newalgo",
-        "count": 5
+        "count": 5,
+        "panel": "dhanresearch",
+        "createdAt": "2026-05-07T04:22:21.920Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "masterresearch-newalgo",
-        "count": 2
+        "count": 10,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-05-07T04:21:44.257Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "flyertechsoftware-tools",
-        "count": 5
+        "count": 10,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-07T04:20:48.038Z"
+    },
+
+
+    {
+        "count": 4,
+        "panel": "tradinghubresearch",
+        "createdAt": "2026-05-06T19:30:00.030Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 15
+        "count": 5,
+        "panel": "equityresearchmart",
+        "createdAt": "2026-05-06T19:30:00.030Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "theskytrident-newalgo",
-        "count": 3
+        "count": 5,
+        "panel": "uniquetechnology",
+        "createdAt": "2026-05-06T19:30:00.030Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "sparkstechnologies-newalgo",
-        "count": 5
+        "count": 2,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-05-06T19:30:00.030Z"
     },
     {
-        "date": "07 Apr 2026",
+        "count": 1,
+        "panel": "markresearch",
+        "createdAt": "2026-05-06T19:30:00.030Z"
+    },
+    {
+        "count": 2,
+        "panel": "masterresearch",
+        "createdAt": "2026-05-06T19:30:00.030Z"
+    },
+    {
+        "count": 5,
+        "panel": "tools.flyertechsoftware",
+        "createdAt": "2026-05-06T19:30:00.030Z"
+    },
+    {
+        "count": 7,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-06T19:30:00.030Z"
+    },
+    {
+        "count": 1,
+        "panel": "theskytrident",
+        "createdAt": "2026-05-06T19:30:00.030Z"
+    },
+    {
+        "count": 1,
+        "panel": "sparkstechnologies",
+        "createdAt": "2026-05-06T19:30:00.030Z"
+    },
+    {
+        "count": 4,
         "panel": "bizxtechsolutionsindia",
-        "count": 15
+        "createdAt": "2026-05-06T19:30:00.030Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "iconicitsolution-newalgo",
-        "count": 5
+        "count": 5,
+        "panel": "iconicitsolution",
+        "createdAt": "2026-05-06T19:30:00.030Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "fincapex-newalgo",
-        "count": 1
+        "count": 5,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-05-06T19:30:00.030Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "expertedge1-scalping",
-        "count": 5
+        "count": 4,
+        "panel": "dreamwealthresearch",
+        "createdAt": "2026-05-06T19:30:00.030Z"
     },
     {
-        "date": "07 Apr 2026",
-        "panel": "dreamwealthresearch-newalgo",
-        "count": 4
+        "count": 1,
+        "panel": "fincapex",
+        "createdAt": "2026-05-06T18:30:00.000Z"
     },
     {
-        "date": "06 Apr 2026",
-        "panel": "kodiqtech-newalgo",
-        "count": 10
+        "count": 10,
+        "panel": "kodiqtech",
+        "createdAt": "2026-05-05T19:30:00.059Z"
     },
     {
-        "date": "06 Apr 2026",
-        "panel": "equityresearchmart-newalgo",
-        "count": 5
+        "count": 5,
+        "panel": "equityresearchmart",
+        "createdAt": "2026-05-05T19:30:00.059Z"
     },
     {
-        "date": "06 Apr 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 15
+        "count": 8,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-05T19:30:00.059Z"
     },
     {
-        "date": "06 Apr 2026",
+        "count": 2,
         "panel": "bizxtechsolutionsindia",
-        "count": 4
+        "createdAt": "2026-05-05T19:30:00.059Z"
     },
     {
-        "date": "04 Apr 2026",
+        "count": 9,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-04T12:28:24.851Z"
+    },
+    {
+        "count": 5,
+        "panel": "finwebcapital",
+        "createdAt": "2026-05-04T12:25:51.900Z"
+    },
+    {
+        "count": 5,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-05-04T12:23:38.947Z"
+    },
+    {
+        "count": 10,
+        "panel": "sparkstechnologies",
+        "createdAt": "2026-05-04T12:21:54.511Z"
+    },
+    {
+        "count": 3,
+        "panel": "tools.flyertechsoftware",
+        "createdAt": "2026-05-04T12:19:29.682Z"
+    },
+    {
+        "count": 5,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-05-04T12:18:16.123Z"
+    },
+    {
+        "count": 5,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-05-04T12:16:56.346Z"
+    },
+    {
+        "count": 3,
+        "panel": "equityresearchmart",
+        "createdAt": "2026-05-04T12:15:40.588Z"
+    },
+    {
+        "count": 3,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-05-04T12:14:54.004Z"
+    },
+    {
+        "count": 3,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-05-04T10:03:10.537Z"
+    },
+
+    {
+        "count": 3,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-05-04T07:32:17.234Z"
+    },
+    {
+        "count": 2,
+        "panel": "tools.foxittechnology",
+        "createdAt": "2026-05-04T07:26:47.799Z"
+    },
+
+    {
+        "count": 3,
+        "panel": "visionstechnologies",
+        "createdAt": "2026-05-04T05:42:24.918Z"
+    },
+    {
+        "count": 2,
+        "panel": "equityresearchmart",
+        "createdAt": "2026-05-04T05:37:10.721Z"
+    },
+    {
+        "count": 2,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-05-04T05:36:48.489Z"
+    },
+    {
+        "count": 3,
+        "panel": "markresearch",
+        "createdAt": "2026-05-04T04:55:21.309Z"
+    },
+    {
+        "count": 2,
+        "panel": "wealthwavesresearch",
+        "createdAt": "2026-05-04T04:44:31.813Z"
+    },
+    {
+        "count": 5,
+        "panel": "tools.expertalgo",
+        "createdAt": "2026-05-04T04:04:11.492Z"
+    },
+    {
+        "count": 4,
         "panel": "bizxtechsolutionsindia",
-        "count": 15
+        "createdAt": "2026-05-03T19:30:00.023Z"
     },
     {
-        "date": "04 Apr 2026",
-        "panel": "wealthwaves-newalgo",
-        "count": 7
+        "count": 7,
+        "panel": "wealthwavesresearch",
+        "createdAt": "2026-05-03T19:30:00.023Z"
     },
     {
-        "date": "04 Apr 2026",
-        "panel": "firsttraderesearch-newalgo",
-        "count": 2
+        "count": 2,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-05-03T19:30:00.023Z"
     },
     {
-        "date": "03 Apr 2026",
-        "panel": "linkupinfotech-newalgo",
-        "count": 12
+        "count": 12,
+        "panel": "linkupinfotech",
+        "createdAt": "2026-05-02T19:30:00.033Z"
     },
     {
-        "date": "03 Apr 2026",
+        "count": 6,
         "panel": "bizxtechsolutionsindia",
-        "count": 15
+        "createdAt": "2026-05-02T19:30:00.033Z"
     },
     {
-        "date": "03 Apr 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 10
+        "count": 4,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-02T19:30:00.033Z"
+    },
+
+    {
+        "count": 5,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-05-01T19:30:00.023Z"
     },
     {
-        "date": "02 Apr 2026",
-        "panel": "soptoolsnew",
-        "count": 1
+        "count": 1,
+        "panel": "fincapex",
+        "createdAt": "2026-05-01T19:30:00.023Z"
     },
     {
-        "date": "02 Apr 2026",
-        "panel": "markresearch-newalgo",
-        "count": 5
-    },
-    {
-        "date": "02 Apr 2026",
-        "panel": "expertedge1-scalping",
-        "count": 5
-    },
-    {
-        "date": "02 Apr 2026",
-        "panel": "fincapex-newalgo",
-        "count": 1
-    },
-    {
-        "date": "02 Apr 2026",
+        "count": 13,
         "panel": "bizxtechsolutionsindia",
-        "count": 20
+        "createdAt": "2026-05-01T19:30:00.023Z"
     },
     {
-        "date": "02 Apr 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 20
+        "count": 10,
+        "panel": "divineresearch",
+        "createdAt": "2026-05-01T19:30:00.023Z"
     },
     {
-        "date": "02 Apr 2026",
-        "panel": "masterresearch-newalgo",
-        "count": 10
+        "count": 10,
+        "panel": "masterresearch",
+        "createdAt": "2026-05-01T19:30:00.023Z"
     },
     {
-        "date": "02 Apr 2026",
-        "panel": "finwebtechnologies-newalgo",
-        "count": 5
+        "count": 5,
+        "panel": "finwebtechnologies",
+        "createdAt": "2026-05-01T19:30:00.023Z"
     },
     {
-        "date": "01 Apr 2026",
-        "panel": "divineresearch-newpenal",
-        "count": 5
+        "count": 3,
+        "panel": "divineresearch",
+        "createdAt": "2026-04-30T18:30:00.000Z"
     },
     {
-        "date": "01 Apr 2026",
-        "panel": "expertedge1-scalping",
-        "count": 2
+        "count": 1,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-04-30T18:30:00.000Z"
     },
     {
-        "date": "01 Apr 2026",
-        "panel": "kodiqtech-newalgo",
-        "count": 2
-    },
-    {
-        "date": "01 Apr 2026",
+        "count": 15,
         "panel": "bizxtechsolutionsindia",
-        "count": 1
+        "createdAt": "2026-04-29T18:30:00.000Z"
     },
     {
-        "date": "27 Mar 2026",
-        "panel": "soptoolsnew",
-        "count": 1
+        "count": 1,
+        "panel": "tools.foxittechnology",
+        "createdAt": "2026-04-29T18:30:00.000Z"
+    },
+
+    {
+        "count": 1,
+        "panel": "fincapex",
+        "createdAt": "2026-04-29T18:30:00.000Z"
     },
     {
-        "date": "03 Mar 2026",
-        "panel": "soptoolsnew",
-        "count": 1
+        "count": 10,
+        "panel": "tradinghubresearch",
+        "createdAt": "2026-04-28T18:30:00.000Z"
     },
     {
-        "date": "25 Feb 2026",
-        "panel": "soptoolsnew",
-        "count": 1
+        "count": 2,
+        "panel": "markresearch",
+        "createdAt": "2026-04-28T18:30:00.000Z"
     },
     {
-        "date": "01 Feb 2026",
-        "panel": "soptoolsnew",
-        "count": 1
+        "count": 5,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-04-28T18:30:00.000Z"
     },
     {
-        "date": "26 Jan 2026",
-        "panel": "soptoolsnew",
-        "count": 1
+        "count": 5,
+        "panel": "tools.experienceinfotech",
+        "createdAt": "2026-04-28T18:30:00.000Z"
     },
     {
-        "date": "02 Jan 2026",
-        "panel": "soptoolsnew",
-        "count": 1
-    }
+        "count": 5,
+        "panel": "theskytrident",
+        "createdAt": "2026-04-28T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-04-27T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "tools.flyertechsoftware",
+        "createdAt": "2026-04-27T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "primepulse",
+        "createdAt": "2026-04-27T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "divineresearch",
+        "createdAt": "2026-04-27T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-04-27T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-04-27T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "markresearch",
+        "createdAt": "2026-04-26T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "kodiqtech",
+        "createdAt": "2026-04-26T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "dreamwealthresearch",
+        "createdAt": "2026-04-26T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "wealthwavesresearch",
+        "createdAt": "2026-04-26T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "iconicitsolution",
+        "createdAt": "2026-04-26T18:30:00.000Z"
+    },
+
+    {
+        "count": 1,
+        "panel": "markresearch",
+        "createdAt": "2026-04-24T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-04-24T18:30:00.000Z"
+    },
+    {
+        "count": 15,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-04-23T18:30:00.000Z"
+    },
+    {
+        "count": 3,
+        "panel": "linkupinfotech",
+        "createdAt": "2026-04-23T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "tradinghubresearch",
+        "createdAt": "2026-04-23T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-04-23T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-04-22T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "markresearch",
+        "createdAt": "2026-04-22T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "linkupinfotech",
+        "createdAt": "2026-04-22T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-04-22T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "fineinfotech",
+        "createdAt": "2026-04-22T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "wealthwavesresearch",
+        "createdAt": "2026-04-22T18:30:00.000Z"
+    },
+    {
+        "count": 20,
+        "panel": "sparkstechnologies",
+        "createdAt": "2026-04-21T18:30:00.000Z"
+    },
+    {
+        "count": 15,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-04-21T18:30:00.000Z"
+    },
+    {
+        "count": 25,
+        "panel": "divineresearch",
+        "createdAt": "2026-04-21T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "markresearch",
+        "createdAt": "2026-04-21T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "visionstechnologies",
+        "createdAt": "2026-04-21T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "primepulse",
+        "createdAt": "2026-04-20T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "markresearch",
+        "createdAt": "2026-04-20T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-04-20T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "uniquetechnology",
+        "createdAt": "2026-04-20T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "darixosolution",
+        "createdAt": "2026-04-20T18:30:00.000Z"
+    },
+    {
+        "count": 20,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-04-19T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "markresearch",
+        "createdAt": "2026-04-19T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "tools.foxittechnology",
+        "createdAt": "2026-04-19T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-04-19T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "primepulse",
+        "createdAt": "2026-04-19T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "kodiqtech",
+        "createdAt": "2026-04-19T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "equityresearchmart",
+        "createdAt": "2026-04-19T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "techntowns",
+        "createdAt": "2026-04-19T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "finwebtechnologies",
+        "createdAt": "2026-04-16T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "tools.flyertechsoftware",
+        "createdAt": "2026-04-16T18:30:00.000Z"
+    },
+    {
+        "count": 15,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-04-16T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "divineresearch",
+        "createdAt": "2026-04-16T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "techelitesolution",
+        "createdAt": "2026-04-15T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "angelai",
+        "createdAt": "2026-04-15T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "darixosolution",
+        "createdAt": "2026-04-15T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "primepulse",
+        "createdAt": "2026-04-15T18:30:00.000Z"
+    },
+    {
+        "count": 14,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-04-14T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "tools.foxittechnology",
+        "createdAt": "2026-04-14T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "techntowns",
+        "createdAt": "2026-04-14T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-04-14T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "markresearch",
+        "createdAt": "2026-04-14T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-04-13T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "tradinghubresearch",
+        "createdAt": "2026-04-13T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "dreamwealthresearch",
+        "createdAt": "2026-04-13T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "techelitesolution",
+        "createdAt": "2026-04-13T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "linkupinfotech",
+        "createdAt": "2026-04-13T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "tools.ariesindiaresearch",
+        "createdAt": "2026-04-13T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-04-12T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "masterresearch",
+        "createdAt": "2026-04-12T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "kodiqtech",
+        "createdAt": "2026-04-12T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "markresearch",
+        "createdAt": "2026-04-12T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-04-12T18:30:00.000Z"
+    },
+    {
+        "count": 3,
+        "panel": "linkupinfotech",
+        "createdAt": "2026-04-12T18:30:00.000Z"
+    },
+    {
+        "count": 15,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-04-09T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "tools.experienceinfotech",
+        "createdAt": "2026-04-09T18:30:00.000Z"
+    },
+    {
+        "count": 20,
+        "panel": "sparkstechnologies",
+        "createdAt": "2026-04-09T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "tools.flyertechsoftware",
+        "createdAt": "2026-04-09T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-04-09T18:30:00.000Z"
+    },
+    {
+        "count": 3,
+        "panel": "tools.foxittechnology",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "tools.flyertechsoftware",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "masterresearch",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "markresearch",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "tradinghubresearch",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "sparkstechnologies",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "iconicitsolution",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "wealthwavesresearch",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "equityresearchmart",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "nexteraresearch",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "theskytrident",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "uniquetechnology",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "linkupinfotech",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "finwebtechnologies",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 40,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 20,
+        "panel": "divineresearch",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "dhanresearch",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "fincapex",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "angelai",
+        "createdAt": "2026-04-08T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "tradinghubresearch",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "equityresearchmart",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "uniquetechnology",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 4,
+        "panel": "markresearch",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "wealthwavesresearch",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "masterresearch",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "tools.flyertechsoftware",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 15,
+        "panel": "divineresearch",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 3,
+        "panel": "theskytrident",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "sparkstechnologies",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 15,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "iconicitsolution",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "fincapex",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 4,
+        "panel": "dreamwealthresearch",
+        "createdAt": "2026-04-06T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "kodiqtech",
+        "createdAt": "2026-04-05T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "equityresearchmart",
+        "createdAt": "2026-04-05T18:30:00.000Z"
+    },
+    {
+        "count": 15,
+        "panel": "divineresearch",
+        "createdAt": "2026-04-05T18:30:00.000Z"
+    },
+    {
+        "count": 4,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-04-05T18:30:00.000Z"
+    },
+    {
+        "count": 15,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-04-03T18:30:00.000Z"
+    },
+    {
+        "count": 7,
+        "panel": "wealthwavesresearch",
+        "createdAt": "2026-04-03T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "firsttraderesearch",
+        "createdAt": "2026-04-03T18:30:00.000Z"
+    },
+    {
+        "count": 12,
+        "panel": "linkupinfotech",
+        "createdAt": "2026-04-02T18:30:00.000Z"
+    },
+    {
+        "count": 15,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-04-02T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "divineresearch",
+        "createdAt": "2026-04-02T18:30:00.000Z"
+    },
+
+    {
+        "count": 5,
+        "panel": "markresearch",
+        "createdAt": "2026-04-01T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-04-01T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "fincapex",
+        "createdAt": "2026-04-01T18:30:00.000Z"
+    },
+    {
+        "count": 20,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-04-01T18:30:00.000Z"
+    },
+    {
+        "count": 20,
+        "panel": "divineresearch",
+        "createdAt": "2026-04-01T18:30:00.000Z"
+    },
+    {
+        "count": 10,
+        "panel": "masterresearch",
+        "createdAt": "2026-04-01T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "finwebtechnologies",
+        "createdAt": "2026-04-01T18:30:00.000Z"
+    },
+    {
+        "count": 5,
+        "panel": "divineresearch",
+        "createdAt": "2026-03-31T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-03-31T18:30:00.000Z"
+    },
+    {
+        "count": 2,
+        "panel": "kodiqtech",
+        "createdAt": "2026-03-31T18:30:00.000Z"
+    },
+    {
+        "count": 1,
+        "panel": "bizxtechsolutionsindia",
+        "createdAt": "2026-03-31T18:30:00.000Z"
+    },
+
 ]
 
 const parseCustomDate = (str) => {
@@ -2084,7 +2122,7 @@ Panels.forEach((panel) => {
                 billAmount: Number(item.count) * panel.ipCharges,
                 remark: "update By System",
                 dummyDate: item.date,
-                timestamp: parseCustomDate(item.date)
+                timestamp: parseCustomDate(item.createdAt)
             });
         });
     }
@@ -2095,33 +2133,33 @@ Panels.forEach((panel) => {
 const axios = require("axios");
 
 // console.log("updateData", updateData)
-// console.log("❌ No Match:", noMatchPanels);
+console.log("❌ No Match:", noMatchPanels);
 // console.log("✅ Update Data:", updateData);
 
 
-async function addPayment(paymentData) {
-    try {
-        console.log("paymentData", paymentData)
-        const response = await axios.post(
-            "https://payment.deepmindinfotech.com/backend/api/payments",
-            paymentData
-            , {
-                headers: {
-                    Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZmYxOGZhZjUxNzdiYWJkZDM4MGVjMiIsImlhdCI6MTc3OTA3ODY0MSwiZXhwIjoxNzgxNjcwNjQxfQ.RYn6-s3lalGjNqlc-cfakFrXdiDmMFP-0aKAqe534cE`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
-        console.log("Payment added successfully:", response.data);
-        return response.data;
-    } catch (error) {
-        console.error("Error adding payment:", error.response?.data || error.message);
-        return null;
-    }
-}
-updateData?.forEach((item) => {
-    addPayment(item);
-});
+// async function addPayment(paymentData) {
+//     try {
+//         console.log("paymentData", paymentData)
+//         const response = await axios.post(
+//             "https://payment.deepmindinfotech.com/backend/api/payments",
+//             paymentData
+//             , {
+//                 headers: {
+//                     Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZmYxOGZhZjUxNzdiYWJkZDM4MGVjMiIsImlhdCI6MTc3OTA3ODY0MSwiZXhwIjoxNzgxNjcwNjQxfQ.RYn6-s3lalGjNqlc-cfakFrXdiDmMFP-0aKAqe534cE`,
+//                     "Content-Type": "application/json",
+//                 },
+//             }
+//         );
+//         console.log("Payment added successfully:", response.data);
+//         return response.data;
+//     } catch (error) {
+//         console.error("Error adding payment:", error.response?.data || error.message);
+//         return null;
+//     }
+// }
+// updateData?.forEach((item) => {
+//     addPayment(item);
+// });
 
 // Example:
 // addPayment({
