@@ -352,6 +352,8 @@ export default function Payments() {
   const [billDiscount, setBillDiscount] = useState('');
   const [paymentDiscount, setPaymentDiscount] = useState('');
   const [userRole, setUserRole] = useState('Staff');
+  const [panelSearchQuery, setPanelSearchQuery] = useState('');
+  const [isPanelDropdownOpen, setIsPanelDropdownOpen] = useState(false);
 
   useEffect(() => {
     const user = getLoggedUser();
@@ -418,6 +420,8 @@ export default function Payments() {
   const handleOpenReceiveModal = () => {
     setModalMode('receive');
     setSelectedPanelId('');
+    setPanelSearchQuery('');
+    setIsPanelDropdownOpen(false);
     setPaymentType('Other');
     setAmountReceived('');
     setPaymentMode('UPI');
@@ -554,6 +558,8 @@ export default function Payments() {
   const handleOpenBillModal = () => {
     setModalMode('bill');
     setSelectedPanelId('');
+    setPanelSearchQuery('');
+    setIsPanelDropdownOpen(false);
     setPaymentType('Maintenance');
     setAmountReceived('0');
     setPaymentMode('UPI');
@@ -1820,19 +1826,100 @@ export default function Payments() {
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
                     Select Panel (Client)
                   </label>
-                  <select
-                    value={selectedPanelId}
-                    onChange={(e) => setSelectedPanelId(e.target.value)}
-                    className="w-full rounded-xl px-4 py-3 text-sm glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white cursor-pointer"
-                    required
-                  >
-                    <option className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white" value="">-- Select a Client --</option>
-                    {panels.map((p) => (
-                      <option key={p._id} value={p._id} className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white py-2">
-                        {p.panelName} ({p.ownerName})
-                      </option>
-                    ))}
-                  </select>
+                  {/* Custom Searchable Dropdown */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsPanelDropdownOpen(!isPanelDropdownOpen);
+                        setPanelSearchQuery('');
+                      }}
+                      className="w-full text-left rounded-xl px-4 py-3 text-sm glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white flex items-center justify-between cursor-pointer"
+                    >
+                      <span className="truncate">
+                        {selectedPanelDetails
+                          ? `${selectedPanelDetails.panelName} (${selectedPanelDetails.ownerName})`
+                          : '-- Select a Client --'}
+                      </span>
+                      <span className="text-slate-500 text-xs">▼</span>
+                    </button>
+                    
+                    {/* Hidden input to enforce HTML5 validation / required attribute */}
+                    <input
+                      type="text"
+                      className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
+                      value={selectedPanelId}
+                      required
+                      readOnly
+                    />
+
+                    {isPanelDropdownOpen && (
+                      <>
+                        {/* Background overlay to close dropdown on click outside */}
+                        <div 
+                          className="fixed inset-0 z-[160]" 
+                          onClick={() => setIsPanelDropdownOpen(false)}
+                        />
+                        
+                        {/* Dropdown Container */}
+                        <div className="absolute left-0 right-0 mt-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl z-[170] overflow-hidden p-2.5 space-y-2 animate-in fade-in slide-in-from-top-1 duration-150">
+                          {/* Search Input inside Dropdown */}
+                          <div className="relative">
+                            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                            <input
+                              type="text"
+                              value={panelSearchQuery}
+                              onChange={(e) => setPanelSearchQuery(e.target.value)}
+                              placeholder="Type to search anywhere..."
+                              className="w-full rounded-lg pl-9 pr-3 py-2 text-xs bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
+                              autoFocus
+                              onClick={(e) => e.stopPropagation()}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Escape') {
+                                  setIsPanelDropdownOpen(false);
+                                }
+                              }}
+                            />
+                          </div>
+
+                          {/* List of Panels */}
+                          <div className="max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/50 scrollbar-thin">
+                            {panels.filter(p => 
+                              p.panelName.toLowerCase().includes(panelSearchQuery.toLowerCase()) ||
+                              p.ownerName.toLowerCase().includes(panelSearchQuery.toLowerCase())
+                            ).length === 0 ? (
+                              <div className="py-3 px-3 text-xs text-slate-500 text-center font-medium italic">
+                                No clients found matching your search.
+                              </div>
+                            ) : (
+                              panels.filter(p => 
+                                p.panelName.toLowerCase().includes(panelSearchQuery.toLowerCase()) ||
+                                p.ownerName.toLowerCase().includes(panelSearchQuery.toLowerCase())
+                              ).map((p) => (
+                                <button
+                                  key={p._id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedPanelId(p._id);
+                                    setIsPanelDropdownOpen(false);
+                                    setPanelSearchQuery('');
+                                  }}
+                                  className={`w-full text-left px-3 py-2 text-xs hover:bg-indigo-600 hover:text-white rounded-lg transition-colors flex flex-col gap-0.5 ${
+                                    p._id === selectedPanelId 
+                                      ? 'bg-indigo-500/10 text-indigo-400 dark:text-indigo-300 font-semibold' 
+                                      : 'text-slate-700 dark:text-slate-300'
+                                  }`}
+                                >
+                                  <span className="font-bold tracking-wide">{p.panelName}</span>
+                                  <span className="text-[10px] opacity-75">{p.ownerName}</span>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 <div>

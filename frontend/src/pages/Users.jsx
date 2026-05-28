@@ -300,8 +300,8 @@ export default function Users() {
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${user.role === 'Admin'
-                            ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                            : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                          : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                           }`}
                       >
                         {user.role}
@@ -402,8 +402,8 @@ export default function Users() {
                 </div>
                 <span
                   className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${user.role === 'Admin'
-                      ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                    ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                    : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                     }`}
                 >
                   {user.role}
@@ -572,8 +572,8 @@ export default function Users() {
                           />
                           <div
                             className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${checked
-                                ? 'bg-indigo-600 border-indigo-500 text-slate-900 dark:text-white'
-                                : 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-transparent'
+                              ? 'bg-indigo-600 border-indigo-500 text-slate-900 dark:text-white'
+                              : 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-transparent'
                               }`}
                           >
                             <Check className="h-3.5 w-3.5 stroke-[3]" />
@@ -604,11 +604,11 @@ export default function Users() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className={`flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 py-3 text-sm font-semibold text-slate-900 dark:text-white shadow-lg hover:from-indigo-600 transition-all duration-300 ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 py-3 text-sm font-semibold text-white hover:from-indigo-600 transition-all duration-300 ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {submitting ? (
                     <span className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin h-4 w-4 text-slate-900 dark:text-white" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>

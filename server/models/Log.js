@@ -9,17 +9,20 @@ const logSchema = new mongoose.Schema(
     },
     actionType: {
       type: String,
-      enum: ['ADD', 'EDIT', 'DELETE'],
+      enum: ['ADD', 'EDIT', 'DELETE', 'LOGIN', 'LOGOUT'],
       required: true,
     },
     module: {
       type: String,
-      enum: ['Panel', 'Payment', 'User'],
+      enum: ['Panel', 'Payment', 'User', 'Auth'],
       required: true,
     },
     details: {
       type: String,
       required: true,
+    },
+    ipAddress: {
+      type: String,
     },
     timestamp: {
       type: Date,

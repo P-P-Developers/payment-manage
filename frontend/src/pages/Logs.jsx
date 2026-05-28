@@ -9,6 +9,9 @@ import {
   Edit,
   Trash2,
   AlertCircle,
+  LogIn,
+  LogOut,
+  Server,
 } from 'lucide-react';
 
 const LogSkeleton = () => (
@@ -125,15 +128,23 @@ export default function Logs() {
                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                         : actionType === 'EDIT'
                         ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'
-                        : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                        : actionType === 'DELETE'
+                        ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                        : actionType === 'LOGIN'
+                        ? 'bg-teal-500/10 border-teal-500/20 text-teal-500'
+                        : 'bg-orange-500/10 border-orange-500/20 text-orange-500'
                     }`}
                   >
                     {actionType === 'ADD' ? (
                       <PlusCircle className="h-5 w-5" />
                     ) : actionType === 'EDIT' ? (
                       <Edit className="h-5 w-5" />
-                    ) : (
+                    ) : actionType === 'DELETE' ? (
                       <Trash2 className="h-5 w-5" />
+                    ) : actionType === 'LOGIN' ? (
+                      <LogIn className="h-5 w-5" />
+                    ) : (
+                      <LogOut className="h-5 w-5" />
                     )}
                   </div>
 
@@ -147,7 +158,11 @@ export default function Logs() {
                               ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                               : actionType === 'EDIT'
                               ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                              : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                              : actionType === 'DELETE'
+                              ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                              : actionType === 'LOGIN'
+                              ? 'bg-teal-500/10 text-teal-500 border border-teal-500/20'
+                              : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'
                           }`}
                         >
                           {actionType}
@@ -164,12 +179,25 @@ export default function Logs() {
 
                     <p className="text-slate-800 dark:text-slate-200 text-sm font-medium leading-relaxed mb-3 break-words">{log.details}</p>
 
-                    <div className="flex items-center gap-2 text-xs border-t border-slate-300/60 dark:border-slate-800/60 pt-2.5">
-                      <User className="h-3.5 w-3.5 text-slate-500 dark:text-slate-500" />
-                      <span className="font-semibold text-slate-600 dark:text-slate-400">{log.userId?.name || 'Super Admin'}</span>
-                      <span className="text-slate-600">•</span>
-                      <ShieldCheck className="h-3.5 w-3.5 text-slate-500 dark:text-slate-500" />
-                      <span className="text-indigo-400 font-semibold">{log.userId?.role || 'Admin'}</span>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs border-t border-slate-300/60 dark:border-slate-800/60 pt-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <User className="h-3.5 w-3.5 text-slate-500 dark:text-slate-500" />
+                        <span className="font-semibold text-slate-600 dark:text-slate-400">{log.userId?.name || 'Super Admin'}</span>
+                      </div>
+                      <span className="text-slate-400 hidden sm:inline">•</span>
+                      <div className="flex items-center gap-1.5">
+                        <ShieldCheck className="h-3.5 w-3.5 text-slate-500 dark:text-slate-500" />
+                        <span className="text-indigo-400 font-semibold">{log.userId?.role || 'Admin'}</span>
+                      </div>
+                      {log.ipAddress && (
+                        <>
+                          <span className="text-slate-400 hidden sm:inline">•</span>
+                          <div className="flex items-center gap-1.5">
+                            <Server className="h-3.5 w-3.5 text-slate-500 dark:text-slate-500" />
+                            <span className="text-slate-500 font-mono text-[10px] bg-slate-200/50 dark:bg-slate-800/50 px-1.5 py-0.5 rounded">{log.ipAddress}</span>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

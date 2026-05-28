@@ -110,12 +110,34 @@ export default function DashboardLayout() {
 
     loadSettings();
     window.addEventListener('settingsUpdated', loadSettings);
-    return () => window.removeEventListener('settingsUpdated', loadSettings);
+
+    // Enforce active session checking every 10 seconds
+    const checkSession = async () => {
+      if (getAuthToken()) {
+        try {
+          await apiRequest('/auth/me');
+        } catch (err) {
+          // apiRequest automatically catches 401, clears cookies, alerts user, and redirects
+        }
+      }
+    };
+    const sessionInterval = setInterval(checkSession, 10000);
+
+    return () => {
+      window.removeEventListener('settingsUpdated', loadSettings);
+      clearInterval(sessionInterval);
+    };
   }, [navigate]);
 
-  const handleLogout = () => {
-    clearAuth();
-    navigate('/login', { replace: true });
+  const handleLogout = async () => {
+    try {
+      await apiRequest('/auth/logout', { method: 'POST' });
+    } catch (e) {
+      console.error('Logout error', e);
+    } finally {
+      clearAuth();
+      navigate('/login', { replace: true });
+    }
   };
 
   if (loading) {

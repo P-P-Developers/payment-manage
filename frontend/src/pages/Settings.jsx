@@ -4,8 +4,6 @@ import {
   Settings as SettingsIcon,
   Building2,
   Receipt,
-  ToggleLeft,
-  ToggleRight,
   Save,
   Check,
   AlertCircle,
@@ -56,9 +54,7 @@ export default function Settings() {
   const [defaultIp, setDefaultIp] = useState('500');
   const [defaultMaint, setDefaultMaint] = useState('10000');
 
-  const [autoReminder, setAutoReminder] = useState(true);
-  const [smsAlerts, setSmsAlerts] = useState(false);
-  const [autoBackup, setAutoBackup] = useState(true);
+
 
   const [activeSubTab, setActiveSubTab] = useState('branding'); // branding, billing, toggles
 
@@ -109,9 +105,6 @@ export default function Settings() {
         if (parsed.defaultLicense) setDefaultLicense(parsed.defaultLicense);
         if (parsed.defaultIp) setDefaultIp(parsed.defaultIp);
         if (parsed.defaultMaint) setDefaultMaint(parsed.defaultMaint);
-        if (parsed.autoReminder !== undefined) setAutoReminder(parsed.autoReminder);
-        if (parsed.smsAlerts !== undefined) setSmsAlerts(parsed.smsAlerts);
-        if (parsed.autoBackup !== undefined) setAutoBackup(parsed.autoBackup);
         if (parsed.logo) setLogo(parsed.logo);
         if (parsed.stamp) setStamp(parsed.stamp);
       }
@@ -370,9 +363,6 @@ export default function Settings() {
         defaultLicense,
         defaultIp,
         defaultMaint,
-        autoReminder,
-        smsAlerts,
-        autoBackup,
         logo,
         stamp,
       };
@@ -452,17 +442,7 @@ export default function Settings() {
             <span>Billing Defaults</span>
           </button>
 
-          <button
-            onClick={() => setActiveSubTab('toggles')}
-            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${activeSubTab === 'toggles'
-              ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
-              : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            type="button"
-          >
-            {autoReminder || smsAlerts ? <ToggleRight className="h-4.5 w-4.5 text-indigo-400" /> : <ToggleLeft className="h-4.5 w-4.5" />}
-            <span>Feature Toggles</span>
-          </button>
+
 
           <button
             onClick={() => setActiveSubTab('categories')}
@@ -771,56 +751,7 @@ export default function Settings() {
             </div>
           )}
 
-          {/* FEATURE TOGGLES SUBTAB */}
-          {activeSubTab === 'toggles' && (
-            <div className="space-y-4 animate-in fade-in duration-200">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white border-b border-slate-300 dark:border-slate-800 pb-3">Automated Actions & Services</h3>
 
-              <div className="space-y-3.5">
-                <div className="flex items-center justify-between p-4 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 rounded-xl">
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">Daily Auto Database Backup</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5">Encrypts and stores transaction entries daily inside secure cloud vaults.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setAutoBackup(!autoBackup)}
-                    className="text-indigo-400 hover:text-slate-900 dark:hover:text-white transition-all shrink-0"
-                  >
-                    {autoBackup ? <ToggleRight className="h-10 w-10 text-emerald-400" /> : <ToggleLeft className="h-10 w-10 text-slate-600" />}
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 rounded-xl">
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">Send Email Reminders on Overdue Bills</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5">Sends automated notifications to client email when outstanding exceeds ₹0.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setAutoReminder(!autoReminder)}
-                    className="text-indigo-400 hover:text-slate-900 dark:hover:text-white transition-all shrink-0"
-                  >
-                    {autoReminder ? <ToggleRight className="h-10 w-10 text-emerald-400" /> : <ToggleLeft className="h-10 w-10 text-slate-600" />}
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 rounded-xl">
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">Enable Real-Time WhatsApp/SMS Receipts</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5">Dispatches SMS confirmation codes and receipt PDFs on payment collection.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSmsAlerts(!smsAlerts)}
-                    className="text-indigo-400 hover:text-slate-900 dark:hover:text-white transition-all shrink-0"
-                  >
-                    {smsAlerts ? <ToggleRight className="h-10 w-10 text-emerald-400" /> : <ToggleLeft className="h-10 w-10 text-slate-600" />}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* CATEGORIES SUBTAB */}
           {activeSubTab === 'categories' && (
@@ -1219,7 +1150,7 @@ export default function Settings() {
           )}
 
           {/* Form Actions Footer */}
-          {activeSubTab !== 'categories' && activeSubTab !== 'banks' && activeSubTab !== 'payment-types' && (
+          {activeSubTab !== 'categories' && activeSubTab !== 'banks' && activeSubTab !== 'payment-types' && activeSubTab !== 'toggles' && (
             <div className="flex justify-end pt-4 border-t border-slate-300 dark:border-slate-800">
               <button
                 type="submit"

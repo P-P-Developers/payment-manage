@@ -38,6 +38,24 @@ router.post('/login', async (req, res) => {
       user.sessionToken = sessionToken;
       await user.save();
 
+      // Capture IP Address robustly (handling proxy headers and stripping IPv6 translation prefixes)
+      let ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || '';
+      if (ipAddress.includes(',')) {
+        ipAddress = ipAddress.split(',')[0].trim();
+      }
+      if (ipAddress.startsWith('::ffff:')) {
+        ipAddress = ipAddress.substring(7);
+      }
+
+      // Create login activity log
+      await Log.create({
+        userId: user._id,
+        actionType: 'LOGIN',
+        module: 'Auth',
+        details: `User (${user.name}) logged into the system.`,
+        ipAddress: ipAddress,
+      });
+
       res.json({
         success: true,
         _id: user._id,
@@ -62,6 +80,38 @@ router.get('/me', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
     res.json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Logout user & invalidate session
+// @route   POST /api/auth/logout
+// @access  Private
+router.post('/logout', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (user) {
+      user.sessionToken = null;
+      await user.save();
+
+      let ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || '';
+      if (ipAddress.includes(',')) {
+        ipAddress = ipAddress.split(',')[0].trim();
+      }
+      if (ipAddress.startsWith('::ffff:')) {
+        ipAddress = ipAddress.substring(7);
+      }
+
+      await Log.create({
+        userId: user._id,
+        actionType: 'LOGOUT',
+        module: 'Auth',
+        details: `User (${user.name}) logged out of the system.`,
+        ipAddress: ipAddress,
+      });
+    }
+    res.json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
