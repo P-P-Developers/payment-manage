@@ -470,7 +470,7 @@ export default function PanelLedger() {
                   <th className="px-6 py-4">Mode</th>
                   <th className="px-6 py-4">Billing & Payment</th>
                   <th className="px-6 py-4">Received By</th>
-                  <th className="px-6 py-4 text-center">Action</th>
+                  {/* <th className="px-6 py-4 text-center">Action</th> */}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
@@ -569,7 +569,7 @@ export default function PanelLedger() {
                         <span>{p.addedBy?.name || 'Staff User'}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-center">
+                    {/* <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => setSelectedReceiptPayment({ ...p, panelId: { panelName: panel?.panelName, ownerName: panel?.ownerName } })}
                         className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-indigo-50 hover:bg-[#0A2540] text-indigo-700 hover:text-white border border-indigo-200 hover:border-transparent text-xs font-bold transition-all shadow-sm hover:shadow active:scale-95 duration-200"
@@ -578,7 +578,7 @@ export default function PanelLedger() {
                         <Printer className="h-3.5 w-3.5 shrink-0" />
                         <span>Receipt</span>
                       </button>
-                    </td>
+                    </td> */}
                   </tr>
                 ))}
                 {filteredPayments.length === 0 && (

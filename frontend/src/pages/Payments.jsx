@@ -116,6 +116,11 @@ const SkeletonSpreadsheetRow = () => (
 export default function Payments() {
   const [payments, setPayments] = useState([]);
   const [banks, setBanks] = useState(FALLBACK_BANK_LIST);
+  const [categories, setCategories] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [paymentTypes, setPaymentTypes] = useState([]);
+
+  const FALLBACK_PAYMENT_TYPES = ['License', 'IP Charges', 'Maintenance', 'Other'];
 
   const fetchBanks = async () => {
     try {
@@ -128,8 +133,32 @@ export default function Payments() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const data = await apiRequest('/categories');
+      if (data.success) {
+        setCategories(data.categories);
+      }
+    } catch (err) {
+      console.error('Failed to load categories list:', err);
+    }
+  };
+
+  const fetchPaymentTypes = async () => {
+    try {
+      const data = await apiRequest('/payment-types');
+      if (data.success) {
+        setPaymentTypes(data.paymentTypes);
+      }
+    } catch (err) {
+      console.error('Failed to load payment types:', err);
+    }
+  };
+
   useEffect(() => {
     fetchBanks();
+    fetchCategories();
+    fetchPaymentTypes();
   }, []);
   const [panels, setPanels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -359,6 +388,7 @@ export default function Payments() {
       if (debouncedSearchQuery) url += `&search=${encodeURIComponent(debouncedSearchQuery)}`;
       if (typeFilter && typeFilter !== 'All') url += `&paymentType=${encodeURIComponent(typeFilter)}`;
       if (modeFilter && modeFilter !== 'All') url += `&paymentMode=${encodeURIComponent(modeFilter)}`;
+      if (categoryFilter && categoryFilter !== 'All') url += `&category=${encodeURIComponent(categoryFilter)}`;
       if (transactionTypeFilter && transactionTypeFilter !== 'all') url += `&transactionType=${encodeURIComponent(transactionTypeFilter)}`;
       if (startDate) url += `&startDate=${encodeURIComponent(startDate)}`;
       if (endDate) url += `&endDate=${encodeURIComponent(endDate)}`;
@@ -383,7 +413,7 @@ export default function Payments() {
 
   useEffect(() => {
     fetchPaymentsAndPanels(currentPage);
-  }, [currentPage, debouncedSearchQuery, typeFilter, modeFilter, transactionTypeFilter, startDate, endDate]);
+  }, [currentPage, debouncedSearchQuery, typeFilter, modeFilter, categoryFilter, transactionTypeFilter, startDate, endDate]);
 
   const handleOpenReceiveModal = () => {
     setModalMode('receive');
@@ -949,7 +979,7 @@ export default function Payments() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search panel client..."
+                placeholder="Search panel client or category..."
                 className="w-full rounded-xl pl-10 pr-4 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500/40"
               />
             </div>
@@ -987,6 +1017,22 @@ export default function Payments() {
               />
             </div>
 
+            {/* Panel Category Filter */}
+            <div className="shrink-0">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
+              >
+                <option value="All" className="bg-slate-100 dark:bg-slate-900">All Categories</option>
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat.name} className="bg-slate-100 dark:bg-slate-900">
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Charge Type Filter */}
             <div className="shrink-0">
               <select
@@ -995,10 +1041,9 @@ export default function Payments() {
                 className="rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
               >
                 <option value="All" className="bg-slate-100 dark:bg-slate-900">All Charges</option>
-                <option value="License" className="bg-slate-100 dark:bg-slate-900">License</option>
-                <option value="IP Charges" className="bg-slate-100 dark:bg-slate-900">IP Charges</option>
-                <option value="Maintenance" className="bg-slate-100 dark:bg-slate-900">Maintenance</option>
-                <option value="Other" className="bg-slate-100 dark:bg-slate-900">Other</option>
+                {(paymentTypes.length > 0 ? paymentTypes : FALLBACK_PAYMENT_TYPES.map(name => ({ _id: name, name }))).map((pt) => (
+                  <option key={pt._id} value={pt.name} className="bg-slate-100 dark:bg-slate-900">{pt.name}</option>
+                ))}
               </select>
             </div>
 
@@ -1017,7 +1062,7 @@ export default function Payments() {
             </div>
 
             {/* Reset Filters Button */}
-            {(startDate || endDate || transactionTypeFilter !== 'all' || typeFilter !== 'All' || modeFilter !== 'All' || searchQuery) && (
+            {(startDate || endDate || transactionTypeFilter !== 'all' || typeFilter !== 'All' || modeFilter !== 'All' || categoryFilter !== 'All' || searchQuery) && (
               <button
                 onClick={() => {
                   setStartDate('');
@@ -1025,6 +1070,7 @@ export default function Payments() {
                   setTransactionTypeFilter('all');
                   setTypeFilter('All');
                   setModeFilter('All');
+                  setCategoryFilter('All');
                   setSearchQuery('');
                 }}
                 className="text-[10px] uppercase  tracking-wider text-rose-400 hover:text-rose-300 transition-all bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 px-3 py-2 rounded-xl shrink-0"
@@ -1828,10 +1874,9 @@ export default function Payments() {
                       className="w-full rounded-xl px-4 py-3 text-sm glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white cursor-pointer"
                       required
                     >
-                      <option value="Maintenance" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">Maintenance Support</option>
-                      <option value="License" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">License Charges</option>
-                      <option value="IP Charges" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">IP Charges</option>
-                      <option value="Other" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">Other Charges</option>
+                      {(paymentTypes.length > 0 ? paymentTypes : FALLBACK_PAYMENT_TYPES.map(name => ({ _id: name, name }))).map((pt) => (
+                        <option key={pt._id} value={pt.name} className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">{pt.name}</option>
+                      ))}
                     </select>
                   </div>
                 )}
@@ -1891,10 +1936,9 @@ export default function Payments() {
                       className="w-full rounded-xl px-4 py-3 text-sm glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white cursor-pointer"
                       required
                     >
-                      <option value="Other" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">General / Other Payment</option>
-                      <option value="License" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">License Payment</option>
-                      <option value="IP Charges" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">IP Charges Payment</option>
-                      <option value="Maintenance" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">Maintenance Payment</option>
+                      {(paymentTypes.length > 0 ? paymentTypes : FALLBACK_PAYMENT_TYPES.map(name => ({ _id: name, name }))).map((pt) => (
+                        <option key={pt._id} value={pt.name} className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">{pt.name}</option>
+                      ))}
                     </select>
                   </div>
                 </div>

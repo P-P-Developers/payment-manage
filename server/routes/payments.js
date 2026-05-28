@@ -17,13 +17,48 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
 
     let filterQuery = {};
 
-    // Filter by Search Query (searches panelName)
+    // Filter by Panel Category if specified
+    let categoryPanelIds = null;
+    if (req.query.category && req.query.category !== 'All') {
+      const matchedCategoryPanels = await Panel.find({
+        category: req.query.category
+      }).select('_id');
+      categoryPanelIds = matchedCategoryPanels.map(p => p._id);
+      filterQuery.panelId = { $in: categoryPanelIds };
+    }
+
+    // Filter by Search Query (searches panelName, panelCategory, and paymentType)
     if (req.query.search) {
       const matchedPanels = await Panel.find({
-        panelName: { $regex: req.query.search, $options: 'i' }
+        $or: [
+          { panelName: { $regex: req.query.search, $options: 'i' } },
+          { category: { $regex: req.query.search, $options: 'i' } }
+        ]
       }).select('_id');
       const matchedPanelIds = matchedPanels.map(p => p._id);
-      filterQuery.panelId = { $in: matchedPanelIds };
+
+      // If category filter is also active, intersect the matched panels
+      let finalPanelIds = matchedPanelIds;
+      if (categoryPanelIds !== null) {
+        finalPanelIds = matchedPanelIds.filter(id => categoryPanelIds.some(cId => cId.toString() === id.toString()));
+      }
+
+      // Construct search criteria matching panelName/category OR paymentType
+      const searchCriteria = [
+        { panelId: { $in: finalPanelIds } },
+        { paymentType: { $regex: req.query.search, $options: 'i' } }
+      ];
+
+      // If there is category filtering, restrict paymentType matches to the chosen category as well
+      if (categoryPanelIds !== null) {
+        searchCriteria[1] = {
+          paymentType: { $regex: req.query.search, $options: 'i' },
+          panelId: { $in: categoryPanelIds }
+        };
+      }
+
+      filterQuery.$or = searchCriteria;
+      delete filterQuery.panelId;
     }
 
     // Filter by Payment Type

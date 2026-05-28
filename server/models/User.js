@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema(
       enum: ['view_panels', 'add_payments', 'view_reports', 'edit_payments'],
       default: [],
     },
+    sessionToken: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

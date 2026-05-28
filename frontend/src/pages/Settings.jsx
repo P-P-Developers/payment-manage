@@ -17,6 +17,7 @@ import {
   Edit2,
   X,
   Landmark,
+  Tag,
 } from 'lucide-react';
 
 export default function Settings() {
@@ -36,6 +37,13 @@ export default function Settings() {
   const [editBankId, setEditBankId] = useState(null);
   const [editBankName, setEditBankName] = useState('');
   const [loadingBanks, setLoadingBanks] = useState(false);
+
+  // Payment Types CRUD States
+  const [paymentTypes, setPaymentTypes] = useState([]);
+  const [ptNameInput, setPtNameInput] = useState('');
+  const [editPtId, setEditPtId] = useState(null);
+  const [editPtName, setEditPtName] = useState('');
+  const [loadingPt, setLoadingPt] = useState(false);
 
   // Settings State with default values
   const [orgName, setOrgName] = useState('Deepmind Infotech');
@@ -211,6 +219,82 @@ export default function Settings() {
       fetchBanks();
     }
   }, [activeSubTab]);
+
+  const fetchPaymentTypes = async () => {
+    setLoadingPt(true);
+    try {
+      const data = await apiRequest('/payment-types');
+      if (data.success) {
+        setPaymentTypes(data.paymentTypes);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to load payment types');
+    } finally {
+      setLoadingPt(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSubTab === 'payment-types') {
+      fetchPaymentTypes();
+    }
+  }, [activeSubTab]);
+
+  const handleAddPaymentType = async (e) => {
+    e.preventDefault();
+    if (!ptNameInput || ptNameInput.trim() === '') return;
+    setSuccess('');
+    setError('');
+    try {
+      const data = await apiRequest('/payment-types', {
+        method: 'POST',
+        body: JSON.stringify({ name: ptNameInput }),
+      });
+      if (data.success) {
+        setSuccess(`Payment type "${ptNameInput}" added successfully!`);
+        setPtNameInput('');
+        fetchPaymentTypes();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to add payment type');
+    }
+  };
+
+  const handleEditPaymentType = async (ptId) => {
+    if (!editPtName || editPtName.trim() === '') return;
+    setSuccess('');
+    setError('');
+    try {
+      const data = await apiRequest(`/payment-types/${ptId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ name: editPtName }),
+      });
+      if (data.success) {
+        setSuccess('Payment type renamed successfully!');
+        setEditPtId(null);
+        setEditPtName('');
+        fetchPaymentTypes();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to rename payment type');
+    }
+  };
+
+  const handleDeletePaymentType = async (ptId, name) => {
+    setSuccess('');
+    setError('');
+    try {
+      const data = await apiRequest(`/payment-types/${ptId}`, {
+        method: 'DELETE',
+      });
+      if (data.success) {
+        setSuccess(`Payment type "${name}" deleted successfully.`);
+        fetchPaymentTypes();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to delete payment type');
+    }
+  };
 
   const handleAddBank = async (e) => {
     e.preventDefault();
@@ -402,6 +486,18 @@ export default function Settings() {
           >
             <Landmark className="h-4.5 w-4.5" />
             <span>Manage Banks</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('payment-types')}
+            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${activeSubTab === 'payment-types'
+              ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+              : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            type="button"
+          >
+            <Tag className="h-4.5 w-4.5" />
+            <span>Manage Charge Types</span>
           </button>
 
           <div className="p-4 bg-slate-100/40 dark:bg-slate-900/40 rounded-xl border border-slate-300 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-500 mt-6">
@@ -998,8 +1094,132 @@ export default function Settings() {
             </div>
           )}
 
+          {/* PAYMENT TYPES SUBTAB */}
+          {activeSubTab === 'payment-types' && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <div className="border-b border-slate-300 dark:border-slate-800 pb-3">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Manage Bill / Charge Types</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                  Add custom charge types used in bills and payment receipts. The 4 default types (License, IP Charges, Maintenance, Other) cannot be deleted.
+                </p>
+              </div>
+
+              {/* Add Payment Type Form */}
+              <div className="bg-slate-50/40 dark:bg-slate-950/40 border border-slate-900/60 p-5 rounded-2xl space-y-4">
+                <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Add New Charge Type</h4>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1 relative">
+                    <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500" />
+                    <input
+                      type="text"
+                      value={ptNameInput}
+                      onChange={(e) => setPtNameInput(e.target.value)}
+                      placeholder="E.g., Server Rental, Data Charges, AMC..."
+                      className="w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    />
+                  </div>
+                  <button
+                    onClick={handleAddPaymentType}
+                    type="button"
+                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Type
+                  </button>
+                </div>
+              </div>
+
+              {/* Payment Types list */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Active Charge Types</h4>
+
+                {loadingPt ? (
+                  <div className="flex items-center justify-center py-10">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></div>
+                  </div>
+                ) : paymentTypes.length === 0 ? (
+                  <div className="text-center py-10 bg-slate-50/20 dark:bg-slate-950/20 border border-slate-300/50 dark:border-slate-800/50 rounded-2xl text-slate-500 dark:text-slate-500 text-sm">
+                    No charge types found. Add one above!
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {paymentTypes.map((pt) => (
+                      <div
+                        key={pt._id}
+                        className="flex items-center justify-between bg-slate-50/30 dark:bg-slate-950/30 border border-slate-900/60 p-4 rounded-xl hover:border-slate-800 transition-colors"
+                      >
+                        {editPtId === pt._id ? (
+                          <div className="flex items-center gap-2 w-full">
+                            <input
+                              type="text"
+                              value={editPtName}
+                              onChange={(e) => setEditPtName(e.target.value)}
+                              className="flex-1 rounded-lg px-3 py-2 text-xs glass-input focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                              placeholder="New name..."
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleEditPaymentType(pt._id)}
+                              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-slate-900 dark:text-white rounded-lg text-xs font-bold transition-all"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setEditPtId(null); setEditPtName(''); }}
+                              className="p-2 text-slate-600 dark:text-slate-400 rounded-lg transition-all"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2.5">
+                              <span className={`h-2.5 w-2.5 rounded-full ${pt.isDefault ? 'bg-indigo-500' : 'bg-violet-400'}`}></span>
+                              <span className="font-bold text-slate-900 dark:text-white text-sm">{pt.name}</span>
+                              {pt.isDefault && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-bold uppercase tracking-wider">Default</span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {!pt.isDefault && (
+                                <button
+                                  type="button"
+                                  onClick={() => { setEditPtId(pt._id); setEditPtName(pt.name); }}
+                                  className="h-8 w-8 rounded-lg bg-slate-100/60 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-300/80 dark:border-slate-800/80 transition-colors"
+                                  title="Rename Type"
+                                >
+                                  <Edit2 className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                              {!pt.isDefault && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (confirm(`Delete charge type "${pt.name}"?\n\nNote: If this type is used in any payment records, deletion will be blocked.`)) {
+                                      handleDeletePaymentType(pt._id, pt.name);
+                                    }
+                                  }}
+                                  className="h-8 w-8 rounded-lg bg-slate-100/60 dark:bg-slate-900/60 hover:bg-rose-500/10 text-slate-600 dark:text-slate-400 hover:text-rose-400 flex items-center justify-center border border-slate-300/80 dark:border-slate-800/80 transition-colors"
+                                  title="Delete Type"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Form Actions Footer */}
-          {activeSubTab !== 'categories' && activeSubTab !== 'banks' && (
+          {activeSubTab !== 'categories' && activeSubTab !== 'banks' && activeSubTab !== 'payment-types' && (
             <div className="flex justify-end pt-4 border-t border-slate-300 dark:border-slate-800">
               <button
                 type="submit"

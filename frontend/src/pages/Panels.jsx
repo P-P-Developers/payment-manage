@@ -475,12 +475,12 @@ export default function Panels() {
                         <div className="flex items-center gap-2.5">
                           <p className="font-bold text-slate-900 dark:text-white text-base">{panel.panelName}</p>
                           <span className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${panel.category === 'Algo'
-                              ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                              : panel.category === 'Sop'
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                : panel.category === 'crypto' || panel.category === 'Crypto'
-                                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                  : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'
+                            ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                            : panel.category === 'Sop'
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              : panel.category === 'crypto' || panel.category === 'Crypto'
+                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'
                             }`}>
                             {panel.category || 'Algo'}
                           </span>
@@ -516,33 +516,41 @@ export default function Panels() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center justify-center gap-1.5">
+
+                        {/* View Ledger - matches header bg, indigo icon */}
                         <Link
                           to={`/dashboard/panels/${panel._id}`}
-                          className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-300 dark:border-slate-700 transition-colors"
-                          title="View Panel Ledger History"
+                          className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-900 hover:bg-indigo-600 text-indigo-500 hover:text-white flex items-center justify-center border border-slate-300 dark:border-slate-700 hover:border-indigo-600 transition-all duration-200 hover:shadow-md hover:shadow-indigo-500/40"
+                          title="View Panel Ledger"
                         >
                           <Eye className="h-4 w-4" />
                         </Link>
+
+                        {/* Add Payment - emerald icon */}
                         <Link
                           to={`/dashboard/payments?panelId=${panel._id}&openModal=true`}
-                          className="h-9 w-9 rounded-lg bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-emerald-500/20 hover:border-emerald-500 transition-colors"
+                          className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-900 hover:bg-emerald-600 text-emerald-500 hover:text-white flex items-center justify-center border border-slate-300 dark:border-slate-700 hover:border-emerald-600 transition-all duration-200 hover:shadow-md hover:shadow-emerald-500/40"
                           title="Add Payment Receipt"
                         >
                           <DollarSign className="h-4 w-4" />
                         </Link>
+
                         {isAdmin && (
                           <>
+                            {/* Edit - amber icon */}
                             <button
                               onClick={() => handleOpenEditModal(panel)}
-                              className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-300 dark:border-slate-700 transition-colors"
+                              className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-900 hover:bg-amber-500 text-amber-500 hover:text-white flex items-center justify-center border border-slate-300 dark:border-slate-700 hover:border-amber-500 transition-all duration-200 hover:shadow-md hover:shadow-amber-500/40"
                               title="Edit Panel Client"
                             >
                               <Edit2 className="h-4 w-4" />
                             </button>
+
+                            {/* Delete - rose icon */}
                             <button
                               onClick={() => handleDeletePanel(panel)}
-                              className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-rose-600/20 text-slate-700 dark:text-slate-300 hover:text-rose-400 flex items-center justify-center border border-slate-300 dark:border-slate-700 hover:border-rose-500/30 transition-colors"
+                              className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-900 hover:bg-rose-600 text-rose-500 hover:text-white flex items-center justify-center border border-slate-300 dark:border-slate-700 hover:border-rose-600 transition-all duration-200 hover:shadow-md hover:shadow-rose-500/40"
                               title="Delete Panel Client"
                             >
                               <Trash2 className="h-4 w-4" />

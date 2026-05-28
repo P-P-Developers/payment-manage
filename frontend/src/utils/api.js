@@ -45,7 +45,7 @@ export const getAuthToken = () => {
 
 export const setAuthToken = (token) => {
   if (token) {
-    setCookie('token', token, 7);
+    setCookie('token', token, 8 / 24); // 8 hours = 8/24 days
   } else {
     eraseCookie('token');
   }
@@ -63,7 +63,7 @@ export const getLoggedUser = () => {
 
 export const setLoggedUser = (user) => {
   if (user) {
-    setCookie('user', JSON.stringify(user), 7);
+    setCookie('user', JSON.stringify(user), 8 / 24); // 8 hours = 8/24 days
   } else {
     eraseCookie('user');
   }
@@ -90,9 +90,13 @@ export const apiRequest = async (endpoint, options = {}) => {
   const data = await response.json();
 
   if (!response.ok) {
-    if (response.status === 401 || (data && (data.success === false || data.message === 'Not authorized, token failed'))) {
+    if (response.status === 401) {
       clearAuth();
       if (typeof window !== 'undefined') {
+        const msg = data?.message || '';
+        if (msg.includes('another device') || msg.includes('Session expired')) {
+          alert('⚠️ Your session has ended.\n\nThis account was logged in from another device. Please login again.');
+        }
         window.location.href = '#/login';
       }
     }

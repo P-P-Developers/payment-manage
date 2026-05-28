@@ -10,7 +10,6 @@ const paymentSchema = new mongoose.Schema(
     paymentType: {
       type: String,
       required: [true, 'Please add a payment type'],
-      enum: ['License', 'IP Charges', 'Maintenance', 'Other'],
     },
     amountReceived: {
       type: Number,

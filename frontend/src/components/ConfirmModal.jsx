@@ -6,7 +6,7 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-slate-50/60 dark:bg-slate-950/60 backdrop-blur-md transition-opacity duration-300 animate-fade-in"
         onClick={onClose}
       />
@@ -46,7 +46,7 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
               onConfirm();
               onClose();
             }}
-            className="rounded-xl bg-rose-600 hover:bg-rose-700 text-slate-900 dark:text-white font-semibold px-5 py-2.5 text-sm transition-all shadow-lg shadow-rose-600/10 active:scale-95"
+            className="rounded-xl bg-rose-600  text-white  font-semibold px-5 py-2.5 text-sm transition-all shadow-lg shadow-rose-600/10 active:scale-95"
           >
             {confirmText}
           </button>

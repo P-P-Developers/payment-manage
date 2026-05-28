@@ -29,6 +29,7 @@ app.use('/api/logs', require('./routes/logs'));
 app.use('/api/smtp', require('./routes/smtp'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/banks', require('./routes/banks'));
+app.use('/api/payment-types', require('./routes/payment-types'));
 
 // Basic health check route
 app.get('/api/health', (req, res) => {

@@ -5,10 +5,15 @@ const User = require('../models/User');
 const Log = require('../models/Log');
 const { protect, adminOnly } = require('../middleware/auth');
 
-// Generate JWT token helper
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '30d',
+const crypto = require('crypto');
+
+// Generate a unique session token
+const generateSessionToken = () => crypto.randomBytes(32).toString('hex');
+
+// Generate JWT token helper - includes sessionToken for single-session enforcement
+const generateToken = (id, sessionToken) => {
+  return jwt.sign({ id, sessionToken }, process.env.JWT_SECRET, {
+    expiresIn: '8h',
   });
 };
 
@@ -28,6 +33,11 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
+      // Generate a new sessionToken - this invalidates any other active sessions
+      const sessionToken = generateSessionToken();
+      user.sessionToken = sessionToken;
+      await user.save();
+
       res.json({
         success: true,
         _id: user._id,
@@ -35,7 +45,7 @@ router.post('/login', async (req, res) => {
         email: user.email,
         role: user.role,
         permissions: user.permissions,
-        token: generateToken(user._id),
+        token: generateToken(user._id, sessionToken),
       });
     } else {
       res.status(401).json({ success: false, message: 'Invalid email or password' });

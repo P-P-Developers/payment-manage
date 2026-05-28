@@ -13,13 +13,21 @@ const protect = async (req, res, next) => {
       // Get token from header
       token = req.headers.authorization.split(' ')[1];
 
-      // Verify token
+      // Verify token signature and expiry
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Get user from token (exclude password)
+      // Get user from DB
       req.user = await User.findById(decoded.id).select('-password');
       if (!req.user) {
         return res.status(401).json({ success: false, message: 'Not authorized, user not found' });
+      }
+
+      // Single-session check: verify sessionToken matches DB
+      if (decoded.sessionToken && req.user.sessionToken !== decoded.sessionToken) {
+        return res.status(401).json({
+          success: false,
+          message: 'Session expired. Your account was logged in from another device.',
+        });
       }
 
       next();
