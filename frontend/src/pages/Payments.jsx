@@ -14,6 +14,7 @@ import {
   Printer,
   Eye,
   Trash2,
+  Search
 } from 'lucide-react';
 import ReceiptModal from '@/components/ReceiptModal';
 import ConfirmModal from '@/components/ConfirmModal';
