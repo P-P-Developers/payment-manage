@@ -683,7 +683,7 @@ export default function Users() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className={`flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 py-3 text-sm font-semibold text-white hover:from-indigo-600 transition-all duration-300 ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 py-3 text-sm font-semibold transition-all duration-300 text-white ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {submitting ? (
                     <span className="flex items-center justify-center gap-2">
@@ -736,11 +736,11 @@ export default function Users() {
                 userLogs.map((log) => {
                   /* ── per-action colour tokens ── */
                   const actionMeta = {
-                    ADD:    { badge: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25', dot: 'bg-emerald-400', Icon: PlusCircle },
-                    EDIT:   { badge: 'bg-amber-500/10  text-amber-500  border-amber-500/25',   dot: 'bg-amber-400',   Icon: Edit },
-                    DELETE: { badge: 'bg-rose-500/10   text-rose-500   border-rose-500/25',    dot: 'bg-rose-400',    Icon: Trash2 },
-                    LOGIN:  { badge: 'bg-teal-500/10   text-teal-500   border-teal-500/25',    dot: 'bg-teal-400',    Icon: LogIn },
-                    LOGOUT: { badge: 'bg-orange-500/10 text-orange-500 border-orange-500/25', dot: 'bg-orange-400',  Icon: LogOut },
+                    ADD: { badge: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25', dot: 'bg-emerald-400', Icon: PlusCircle },
+                    EDIT: { badge: 'bg-amber-500/10  text-amber-500  border-amber-500/25', dot: 'bg-amber-400', Icon: Edit },
+                    DELETE: { badge: 'bg-rose-500/10   text-rose-500   border-rose-500/25', dot: 'bg-rose-400', Icon: Trash2 },
+                    LOGIN: { badge: 'bg-teal-500/10   text-teal-500   border-teal-500/25', dot: 'bg-teal-400', Icon: LogIn },
+                    LOGOUT: { badge: 'bg-orange-500/10 text-orange-500 border-orange-500/25', dot: 'bg-orange-400', Icon: LogOut },
                   };
                   const meta = actionMeta[log.actionType] || actionMeta.EDIT;
                   const ActionIcon = meta.Icon;

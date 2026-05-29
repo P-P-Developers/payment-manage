@@ -3,9 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc; /* Sleek slate-50 */
-  --foreground: #0f172a; /* slate-900 */
-  --primary: #0A2540;    /* Premium Deep Navy Blue */
+  --background: #f8fafc;
+  /* Sleek slate-50 */
+  --foreground: #0f172a;
+  /* slate-900 */
+  --primary: #0A2540;
+  /* Premium Deep Navy Blue */
   --primary-hover: #071b2f;
   --secondary: #4e5e7a;
   --card-bg: #ffffff;
@@ -151,32 +154,32 @@ aside {
   padding: 34px;
   background: var(--card-bg);
   border: 1px solid var(--border);
-  box-shadow: 0 10px 30px rgba(15,23,42,0.02), 0 2px 10px rgba(15,23,42,0.01);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.02), 0 2px 10px rgba(15, 23, 42, 0.01);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .analytics-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(15,23,42,0.05), 0 4px 15px rgba(15,23,42,0.03);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.05), 0 4px 15px rgba(15, 23, 42, 0.03);
 }
 
 .bgw {
   background: var(--card-bg);
 }
 
-.bg-indigo-600 {   
+.bg-indigo-600 {
   background-color: #F2EEFF;
 }
 
-.bg-indigo-600:hover {   
+.bg-indigo-600:hover {
   background: #EAE5FF !important;
 }
 
-.bg-emerald-600 {    
+.bg-emerald-600 {
   background-color: #E9FFF7;
 }
 
-.bg-emerald-600:hover {    
+.bg-emerald-600:hover {
   background: #DDFCEF !important;
 }
 
@@ -225,20 +228,22 @@ main table:not(.receipt-table) tbody tr {
 }
 
 main table:not(.receipt-table) tbody tr:hover {
-  background-color: #f8fafc !important; /* Soft high-contrast light blue/gray */
+  background-color: #f8fafc !important;
+  /* Soft high-contrast light blue/gray */
 }
 
 main table:not(.receipt-table) tbody td {
   padding: 16px 20px !important;
   font-size: 14px !important;
   font-weight: 500 !important;
-  color: #0f172a !important; /* High contrast Slate-900 (ultra readable) */
+  color: #0f172a !important;
+  /* High contrast Slate-900 (ultra readable) */
   vertical-align: middle !important;
   border: none !important;
 }
 
 /* Force readable sizes and colors on default nested text tags */
-main table:not(.receipt-table) tbody td span:not([class*="text-"]):not([class*="bg-"]):not([class*="border-"]), 
+main table:not(.receipt-table) tbody td span:not([class*="text-"]):not([class*="bg-"]):not([class*="border-"]),
 main table:not(.receipt-table) tbody td div:not([class*="text-"]):not([class*="bg-"]):not([class*="border-"]) {
   font-size: 14px !important;
   color: #0f172a !important;
@@ -248,7 +253,8 @@ main table:not(.receipt-table) tbody td div:not([class*="text-"]):not([class*="b
 main table:not(.receipt-table) tbody td .text-slate-500,
 main table:not(.receipt-table) tbody td .text-slate-400,
 main table:not(.receipt-table) tbody td .text-slate-650 {
-  color: #475569 !important; /* Sleek high-contrast Slate-600 */
+  color: #475569 !important;
+  /* Sleek high-contrast Slate-600 */
   font-size: 12px !important;
 }
 
@@ -257,4 +263,3 @@ main table:not(.receipt-table) tbody td .font-semibold,
 main table:not(.receipt-table) tbody td .font-bold {
   color: #0f172a !important;
 }
-

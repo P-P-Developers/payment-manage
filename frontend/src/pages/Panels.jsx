@@ -470,25 +470,32 @@ export default function Panels() {
                     <td className="px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
                       {index + 1}
                     </td>
-                    <td className="px-6 py-4">
-                      <div>
-                        <div className="flex items-center gap-2.5">
-                          <p className="font-bold text-slate-900 dark:text-white text-base">{panel.panelName}</p>
-                          <span className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${panel.category === 'Algo'
-                            ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                            : panel.category === 'Sop'
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                              : panel.category === 'crypto' || panel.category === 'Crypto'
-                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'
-                            }`}>
+                    <td className="px-6 py-4 max-w-xs">
+                      <div className="break-words whitespace-normal">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <p className="font-bold text-slate-900 dark:text-white text-base break-words">
+                            {panel.panelName}
+                          </p>
+
+                          <span
+                            className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${panel.category === 'Algo'
+                                ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                                : panel.category === 'Sop'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                  : panel.category === 'crypto' || panel.category === 'Crypto'
+                                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                    : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'
+                              }`}
+                          >
                             {panel.category || 'Algo'}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 flex items-center gap-1">
+
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 flex items-center gap-1 break-words">
                           <UserIcon className="h-3 w-3" /> {panel.ownerName}
                         </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5 flex items-center gap-1">
+
+                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5 flex items-center gap-1 break-words">
                           <Phone className="h-3 w-3" /> {panel.phoneNumber}
                         </p>
                       </div>

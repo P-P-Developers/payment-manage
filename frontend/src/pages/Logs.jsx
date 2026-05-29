@@ -111,8 +111,8 @@ export default function Logs() {
               const actionType = log.actionType; // ADD, EDIT, DELETE
 
               return (
-                <div 
-                  key={log._id || index} 
+                <div
+                  key={log._id || index}
                   className="flex gap-4 relative log-item-animated"
                   style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
                 >
@@ -123,17 +123,16 @@ export default function Logs() {
 
                   {/* Marker icon */}
                   <div
-                    className={`h-10 w-10 rounded-xl flex items-center justify-center border shrink-0 z-10 ${
-                      actionType === 'ADD'
+                    className={`h-10 w-10 rounded-xl flex items-center justify-center border shrink-0 z-10 ${actionType === 'ADD'
                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                         : actionType === 'EDIT'
-                        ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'
-                        : actionType === 'DELETE'
-                        ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                        : actionType === 'LOGIN'
-                        ? 'bg-teal-500/10 border-teal-500/20 text-teal-500'
-                        : 'bg-orange-500/10 border-orange-500/20 text-orange-500'
-                    }`}
+                          ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'
+                          : actionType === 'DELETE'
+                            ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                            : actionType === 'LOGIN'
+                              ? 'bg-teal-500/10 border-teal-500/20 text-teal-500'
+                              : 'bg-orange-500/10 border-orange-500/20 text-orange-500'
+                      }`}
                   >
                     {actionType === 'ADD' ? (
                       <PlusCircle className="h-5 w-5" />
@@ -153,17 +152,16 @@ export default function Logs() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                            actionType === 'ADD'
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${actionType === 'ADD'
                               ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                               : actionType === 'EDIT'
-                              ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                              : actionType === 'DELETE'
-                              ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                              : actionType === 'LOGIN'
-                              ? 'bg-teal-500/10 text-teal-500 border border-teal-500/20'
-                              : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'
-                          }`}
+                                ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                                : actionType === 'DELETE'
+                                  ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                  : actionType === 'LOGIN'
+                                    ? 'bg-teal-500/10 text-teal-500 border border-teal-500/20'
+                                    : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'
+                            }`}
                         >
                           {actionType}
                         </span>

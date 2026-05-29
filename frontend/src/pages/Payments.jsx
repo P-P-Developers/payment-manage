@@ -4,25 +4,21 @@ import { apiRequest, getLoggedUser } from '@/utils/api';
 import {
   CircleDollarSign,
   Plus,
-  Search,
   FileSpreadsheet,
   X,
   Check,
   AlertCircle,
   Calendar,
   Layers,
-  CreditCard,
-  User,
   MessageSquare,
-  Hash,
   Printer,
   Eye,
-  Maximize2,
-  Minimize2,
   Trash2,
 } from 'lucide-react';
 import ReceiptModal from '@/components/ReceiptModal';
 import ConfirmModal from '@/components/ConfirmModal';
+import TransactionLedgerTab from './TransactionLedgerTab';
+import ConsolidatedLedgerTab from './ConsolidatedLedgerTab';
 
 const FALLBACK_BANK_LIST = [
   'Union Bank',
@@ -36,82 +32,6 @@ const getTodayDateString = () => {
   const day = String(today.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
-
-const SkeletonRow = () => (
-  <tr className="animate-pulse">
-    <td className="py-3 px-4">
-      <div className="h-4 w-6 rounded bg-slate-200 dark:bg-slate-800 mx-auto"></div>
-    </td>
-    <td className="py-3 px-5">
-      <div className="space-y-1.5">
-        <div className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-800"></div>
-        <div className="h-3 w-16 rounded bg-slate-200/60 dark:bg-slate-800/60"></div>
-      </div>
-    </td>
-    <td className="py-3 px-5">
-      <div className="space-y-1.5">
-        <div className="h-5 w-32 rounded bg-slate-200 dark:bg-slate-800"></div>
-        <div className="h-3.5 w-24 rounded bg-slate-200/60 dark:bg-slate-800/60"></div>
-      </div>
-    </td>
-    <td className="py-3 px-5">
-      <div className="h-4.5 w-20 rounded bg-slate-200 dark:bg-slate-800"></div>
-    </td>
-    <td className="py-3 px-5">
-      <div className="space-y-1.5">
-        <div className="h-5 w-24 rounded bg-slate-200 dark:bg-slate-800"></div>
-        <div className="h-3.5 w-16 rounded bg-slate-200/60 dark:bg-slate-800/60"></div>
-      </div>
-    </td>
-    <td className="py-3 px-5">
-      <div className="space-y-1.5">
-        <div className="h-4 w-20 rounded bg-slate-200 dark:bg-slate-800"></div>
-        <div className="h-3 w-16 rounded bg-slate-200/60 dark:bg-slate-800/60"></div>
-      </div>
-    </td>
-    <td className="py-3 px-5">
-      <div className="h-4 w-28 rounded bg-slate-200/50 dark:bg-slate-800/50"></div>
-    </td>
-    <td className="py-3 px-4">
-      <div className="h-8 w-20 rounded bg-slate-200 dark:bg-slate-800 mx-auto"></div>
-    </td>
-  </tr>
-);
-
-const SkeletonSpreadsheetRow = () => (
-  <tr className="animate-pulse border-b border-slate-300/80 dark:border-slate-800/80">
-    <td className="border-r border-slate-300/40 dark:border-slate-700/40 text-center text-slate-500 dark:text-slate-500 dark:text-slate-500 bg-slate-200/10 dark:bg-slate-800/10 py-2.5  w-12">
-      <div className="h-3.5 w-4 rounded bg-slate-200 dark:bg-slate-800 mx-auto"></div>
-    </td>
-    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5">
-      <div className="h-4 w-32 rounded bg-slate-200 dark:bg-slate-800"></div>
-    </td>
-    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5">
-      <div className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-800"></div>
-    </td>
-    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-right">
-      <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-800 ml-auto"></div>
-    </td>
-    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-right">
-      <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-800 ml-auto"></div>
-    </td>
-    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-right">
-      <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-800 ml-auto"></div>
-    </td>
-    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-right">
-      <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-800 ml-auto"></div>
-    </td>
-    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-right">
-      <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-800 ml-auto"></div>
-    </td>
-    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-right">
-      <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-800 ml-auto"></div>
-    </td>
-    <td className="px-4 py-2.5 text-center">
-      <div className="h-6 w-20 rounded bg-slate-200 dark:bg-slate-800 mx-auto"></div>
-    </td>
-  </tr>
-);
 
 export default function Payments() {
   const [payments, setPayments] = useState([]);
@@ -192,9 +112,6 @@ export default function Payments() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);
   const [viewingPayment, setViewingPayment] = useState(null);
-  const [expandedPanelId, setExpandedPanelId] = useState(null);
-  const [expandedPanelPayments, setExpandedPanelPayments] = useState([]);
-  const [expandedLoading, setExpandedLoading] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
   const [editForm, setEditForm] = useState({
     paymentType: '',
@@ -208,9 +125,6 @@ export default function Payments() {
     timestamp: '',
   });
   const [submitting, setSubmitting] = useState(false);
-
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [editingCell, setEditingCell] = useState(null); // { paymentId, field, value }
   const [showBillDiscount, setShowBillDiscount] = useState(false);
   const [showPaymentDiscount, setShowPaymentDiscount] = useState(false);
 
@@ -248,26 +162,19 @@ export default function Payments() {
     }
   };
 
-  const handleInlineCellSave = async (payment, field, newValue) => {
-    if (newValue === '' || isNaN(newValue)) {
-      setEditingCell(null);
-      return;
-    }
+  // handleInlineCellSave is called from ConsolidatedLedgerTab with a local setExpandedPanelPayments
+  const handleInlineCellSave = async (payment, field, newValue, expandedPanelPayments, setExpandedPanelPayments) => {
+    if (newValue === '' || isNaN(newValue)) return;
     const val = Number(newValue);
     let originalVal = 0;
     if (field === 'billAmount') originalVal = payment.billAmount || 0;
     else if (field === 'amountReceived') originalVal = payment.amountReceived || 0;
     else if (field === 'quantity') originalVal = payment.quantity || 0;
-
-    if (val === originalVal) {
-      setEditingCell(null);
-      return;
-    }
+    if (val === originalVal) return;
 
     try {
       const fieldNameForRemark = field === 'billAmount' ? 'Bill Amount' : field === 'amountReceived' ? 'Amount Paid' : 'Quantity';
       const formatVal = (v) => field === 'quantity' ? v : `₹${v.toLocaleString()}`;
-
       const payload = {
         paymentType: payment.paymentType,
         amountReceived: field === 'amountReceived' ? val : (payment.amountReceived || 0),
@@ -278,23 +185,19 @@ export default function Payments() {
         billAmount: field === 'billAmount' ? val : (payment.billAmount || 0),
         remark: `Direct cell correction of ${fieldNameForRemark} (Value corrected from ${formatVal(originalVal)} to ${formatVal(val)})`,
       };
-
       const data = await apiRequest(`/payments/${payment._id}`, {
         method: 'PUT',
         body: JSON.stringify(payload),
       });
-
       if (data.success) {
         const refreshedData = await apiRequest(`/panels/${payment.panelId._id || payment.panelId}`);
-        if (refreshedData.success) {
+        if (refreshedData.success && setExpandedPanelPayments) {
           setExpandedPanelPayments(refreshedData.payments || []);
         }
         fetchPaymentsAndPanels(currentPage, true);
       }
     } catch (err) {
       console.error('Failed to update inline cell:', err);
-    } finally {
-      setEditingCell(null);
     }
   };
 
@@ -505,27 +408,6 @@ export default function Payments() {
       setError(err.message || 'Failed to update transaction');
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const toggleExpandPanel = async (panelId) => {
-    if (expandedPanelId === panelId) {
-      setExpandedPanelId(null);
-      setExpandedPanelPayments([]);
-      return;
-    }
-
-    setExpandedPanelId(panelId);
-    setExpandedLoading(true);
-    try {
-      const data = await apiRequest(`/panels/${panelId}`);
-      if (data.success) {
-        setExpandedPanelPayments(data.payments || []);
-      }
-    } catch (err) {
-      console.error('Failed to load panel ledger:', err);
-    } finally {
-      setExpandedLoading(false);
     }
   };
 
@@ -975,824 +857,46 @@ export default function Payments() {
       </div>
 
       {activeTab === 'list' ? (
-        <>
-          {/* Filters bar */}
-          <div className="flex flex-wrap items-center gap-3 w-full bg-slate-100/10 dark:bg-slate-900/10 p-2.5 rounded-2xl border border-slate-900/40">
-            {/* Search Input */}
-            <div className="relative flex-1 min-w-[220px]">
-              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-500 dark:text-slate-500 dark:text-slate-500" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search panel client or category..."
-                className="w-full rounded-xl pl-10 pr-4 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500/40"
-              />
-            </div>
-
-            {/* Transaction Type Filter */}
-            <div className="shrink-0">
-              <select
-                value={transactionTypeFilter}
-                onChange={(e) => setTransactionTypeFilter(e.target.value)}
-                className="rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-semibold"
-              >
-                <option value="all" className="bg-slate-100 dark:bg-slate-900">All Transactions</option>
-                <option value="bill" className="bg-slate-100 dark:bg-slate-900">Bills Only</option>
-                <option value="received" className="bg-slate-100 dark:bg-slate-900">Payments Only</option>
-              </select>
-            </div>
-
-            {/* Date Range Picker */}
-            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 shrink-0">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                onClick={(e) => e.target.showPicker()} // 👈 important
-                className="w-full bg-transparent text-slate-900 dark:text-white focus:outline-none cursor-pointer text-xs font-semibold"
-              />
-              <span className="text-slate-600  text-[9px] uppercase">to</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                onClick={(e) => e.target.showPicker()}
-                className="w-full bg-transparent text-slate-900 dark:text-white focus:outline-none cursor-pointer text-xs font-semibold"
-
-              />
-            </div>
-
-            {/* Panel Category Filter */}
-            <div className="shrink-0">
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
-              >
-                <option value="All" className="bg-slate-100 dark:bg-slate-900">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat._id} value={cat.name} className="bg-slate-100 dark:bg-slate-900">
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Charge Type Filter */}
-            <div className="shrink-0">
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
-              >
-                <option value="All" className="bg-slate-100 dark:bg-slate-900">All Charges</option>
-                {(paymentTypes.length > 0 ? paymentTypes : FALLBACK_PAYMENT_TYPES.map(name => ({ _id: name, name }))).map((pt) => (
-                  <option key={pt._id} value={pt.name} className="bg-slate-100 dark:bg-slate-900">{pt.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="shrink-0">
-              <select
-                value={modeFilter}
-                onChange={(e) => setModeFilter(e.target.value)}
-                className="rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
-              >
-                <option value="All" className="bg-slate-100 dark:bg-slate-900">All Modes</option>
-                <option value="UPI" className="bg-slate-100 dark:bg-slate-900">UPI</option>
-                <option value="Cash" className="bg-slate-100 dark:bg-slate-900">Cash</option>
-                <option value="Bank Transfer" className="bg-slate-100 dark:bg-slate-900">Bank Transfer</option>
-                <option value="Online" className="bg-slate-100 dark:bg-slate-900">Online</option>
-              </select>
-            </div>
-
-            {/* Reset Filters Button */}
-            {(startDate || endDate || transactionTypeFilter !== 'all' || typeFilter !== 'All' || modeFilter !== 'All' || categoryFilter !== 'All' || searchQuery) && (
-              <button
-                onClick={() => {
-                  setStartDate('');
-                  setEndDate('');
-                  setTransactionTypeFilter('all');
-                  setTypeFilter('All');
-                  setModeFilter('All');
-                  setCategoryFilter('All');
-                  setSearchQuery('');
-                }}
-                className="text-[10px] uppercase  tracking-wider text-rose-400 hover:text-rose-300 transition-all bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 px-3 py-2 rounded-xl shrink-0"
-              >
-                Reset
-              </button>
-            )}
-          </div>
-
-          {/* Payments table */}
-          {/* Payments table */}
-          <div className="rounded-2xl bg-slate-50/60 bgw light:bg-slate-950/60 border border-slate-300/80 dark:border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[11px]">
-                    <th className="py-3.5 px-4 text-center w-14">S.No</th>
-                    <th className="py-3.5 px-5">Date & Time</th>
-                    <th className="py-3.5 px-5">Panel Client</th>
-                    <th className="py-3.5 px-5">Billing Type</th>
-                    <th className="py-3.5 px-5">Financial Details</th>
-                    {/* <th className="py-3.5 px-5">Payment Mode</th> */}
-                    <th className="py-3.5 px-5">Collected By</th>
-                    <th className="py-3.5 px-4 text-center w-28">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/50 text-slate-700 dark:text-slate-300">
-                  {loading && payments.length === 0 ? (
-                    <>
-                      <SkeletonRow />
-                      <SkeletonRow />
-                      <SkeletonRow />
-                    </>
-                  ) : filteredPayments.map((p, index) => (
-                    <tr key={p._id} className="hover:bg-slate-100/40 dark:hover:bg-slate-900/40 transition-colors duration-150 group">
-
-                      {/* S.No */}
-                      <td className="py-3 px-4 text-center font-mono text-slate-500">
-                        {(currentPage - 1) * 10 + index + 1}
-                      </td>
-
-                      {/* Date & Time */}
-                      <td className="py-3 px-5">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-slate-900 dark:text-slate-100">
-                            {new Date(p.timestamp).toLocaleDateString()}
-                          </span>
-                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                            {new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Panel Client */}
-                      <td className="py-3 px-5">
-                        <div className="flex items-start gap-2.5">
-                          <div className="h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 flex items-center justify-center text-[11px] capitalize shrink-0">
-                            {p.panelId?.panelName?.substring(0, 2)}
-                          </div>
-                          <span className="font-semibold text-slate-900 dark:text-slate-100 tracking-wide max-w-[180px] break-words leading-snug">
-                            {p.panelId?.panelName || 'Deleted Panel'}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Billing Type */}
-                      <td className="py-3 px-5">
-                        <div className="flex flex-col gap-1 items-start">
-                          <span
-                            className={`inline-flex px-2 py-0.5 rounded-md text-[10px] uppercase tracking-wider ${p.paymentType === 'License'
-                              ? 'bg-indigo-500/10 text-indigo-700 border border-indigo-800'
-                              : p.paymentType === 'IP Charges'
-                                ? 'bg-violet-500/10 text-violet-700 border border-violet-800'
-                                : p.paymentType === 'Maintenance'
-                                  ? 'bg-amber-500/10 text-amber-700 border border-amber-800'
-                                  : 'bg-emerald-500/10 text-emerald-700 border border-emerald-800'
-                              }`}
-                          >
-                            {p.paymentType}
-                          </span>
-                          {(p.paymentType === 'License' || p.paymentType === 'IP Charges') &&
-                            p.quantity !== undefined && p.quantity !== null &&
-                            p.amountReceived < (p.billAmount - p.billDiscount) && (
-                              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase ml-0.5">
-                                Qty: {p.quantity}
-                              </span>
-                            )}
-                        </div>
-                      </td>
-
-                      {/* Financial Details */}
-                      <td className="py-3 px-5">
-                        <div className="flex flex-col gap-1">
-
-                          {/* Status badge */}
-                          <div>
-                            {p.amountReceived === 0 ? (
-                              <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-rose-700/10 text-rose-700 border border-rose-700">
-                                Unpaid
-                              </span>
-                            ) : p.amountReceived < (p.billAmount - p.billDiscount) ? (
-                              <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest bg-amber-700/10 text-amber-700 border border-amber-700">
-                                Partial (₹{(p.billAmount - p.billDiscount - p.amountReceived).toLocaleString()} due)
-                              </span>
-                            ) : null}
-                          </div>
-
-                          {p.billAmount > 0 ? (
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase w-8">Bill:</span>
-                                <span className="text-slate-700 dark:text-slate-300 font-mono">₹{p.billAmount?.toLocaleString()}</span>
-                              </div>
-                              {p.billDiscount > 0 && (
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase w-8">Disc:</span>
-                                  <span className="text-amber-600 dark:text-amber-400 font-mono">₹{p.billDiscount?.toLocaleString()}</span>
-                                </div>
-                              )}
-                              {p.amountReceived > 0 && (
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase w-8">Paid:</span>
-                                  <span className={`font-extrabold font-mono ${p.amountReceived < (p.billAmount - p.billDiscount)
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : 'text-emerald-600 dark:text-emerald-400'
-                                    }`}>
-                                    ₹{p.amountReceived?.toLocaleString()}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase w-8">Paid:</span>
-                                <span className="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
-                                  ₹{p.amountReceived?.toLocaleString()}
-                                </span>
-                              </div>
-                              {p.paymentDiscount > 0 && (
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase w-8">Disc:</span>
-                                  <span className="text-amber-600 dark:text-amber-400 font-mono">₹{p.paymentDiscount?.toLocaleString()}</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                        </div>
-                      </td>
-
-                      {/* Payment Mode */}
-                      {/* <td className="py-3 px-5">
-                        {p.amountReceived > 0 ? (
-                          <div className="flex items-center gap-1.5">
-                            <CreditCard className="h-3 w-3 shrink-0 text-slate-500 dark:text-slate-400" />
-                            <span className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wide">
-                              {p.paymentMode}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-slate-500 dark:text-slate-400 font-semibold font-mono">-</span>
-                        )}
-                      </td> */}
-
-                      {/* Collected By */}
-                      <td className="py-3 px-5">
-                        <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                          <span className="font-medium truncate max-w-[110px]">
-                            {p.addedBy?.name || 'Staff User'}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Action */}
-                      <td className="py-3 px-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => setViewingPayment(p)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-700 text-xs transition-all shadow-md active:scale-95"
-                            title="View Full Details"
-                          >
-                            <Eye className="h-3.5 w-3.5" />
-                          </button>
-                          {userRole === 'Admin' && (
-                            <button
-                              onClick={() => handleDeletePaymentClick(p)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-500 hover:text-white border border-rose-200 hover:border-transparent text-xs transition-all shadow-md active:scale-95"
-                              title="Delete Transaction Record"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-
-                    </tr>
-                  ))}
-                  {filteredPayments.length === 0 && !loading && (
-                    <tr>
-                      <td colSpan="8" className="text-center py-8 text-slate-600 dark:text-slate-400">
-                        No payments recorded yet.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Controls */}
-            <div className="p-4 bg-slate-100/40 dark:bg-slate-900/40 border-t border-slate-300 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-              <p className="text-slate-600 dark:text-slate-400 font-medium">
-                Showing <span className="text-indigo-400">{filteredPayments.length}</span> of{' '}
-                <span className="text-slate-900 dark:text-white">{totalPaymentsCount}</span> ledger entries
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1 || loading}
-                  className="rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-30 text-slate-800 dark:text-slate-200 px-3.5 py-2 font-semibold transition-colors border border-slate-300 dark:border-slate-700"
-                >
-                  Previous
-                </button>
-                <span className="text-slate-600 dark:text-slate-400 px-3">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages || loading}
-                  className="rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-30 text-slate-800 dark:text-slate-200 px-3.5 py-2 font-semibold transition-colors border border-slate-300 dark:border-slate-700"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
+        <TransactionLedgerTab
+          payments={payments}
+          loading={loading}
+          categories={categories}
+          paymentTypes={paymentTypes}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalPaymentsCount={totalPaymentsCount}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          transactionTypeFilter={transactionTypeFilter}
+          setTransactionTypeFilter={setTransactionTypeFilter}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          typeFilter={typeFilter}
+          setTypeFilter={setTypeFilter}
+          modeFilter={modeFilter}
+          setModeFilter={setModeFilter}
+          setCurrentPage={setCurrentPage}
+          setViewingPayment={setViewingPayment}
+          handleDeletePaymentClick={handleDeletePaymentClick}
+          userRole={userRole}
+          FALLBACK_PAYMENT_TYPES={FALLBACK_PAYMENT_TYPES}
+        />
       ) : (
-        <div className={`overflow-x-auto p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-300 dark:border-slate-800 shadow-xl transition-all duration-300 ${isFullscreen ? 'fixed inset-0 z-[100] p-6 overflow-auto bg-slate-50 dark:bg-slate-950' : ''}`}>
-          <div className="flex items-center justify-between mb-4 text-xs font-mono border-b border-slate-300 dark:border-slate-800 pb-3">
-            <div className="flex items-center gap-3">
-              <span className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400  rounded">Sheet1</span>
-              <span className="text-slate-600 dark:text-slate-400 ">Consolidated Panels Ledger Sheet</span>
-              <button
-                onClick={() => setIsFullscreen(!isFullscreen)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-700  text-[11px] transition-all shadow-md active:scale-95"
-                title={isFullscreen ? 'Exit Full Screen' : 'Enter Full Screen'}
-              >
-                {isFullscreen ? (
-                  <>
-                    <Minimize2 className="h-3.5 w-3.5 text-amber-400" />
-                    <span>Exit Full Screen</span>
-                  </>
-                ) : (
-                  <>
-                    <Maximize2 className="h-3.5 w-3.5 text-indigo-400" />
-                    <span>Full Screen View</span>
-                  </>
-                )}
-              </button>
-            </div>
-            <span className="text-slate-500 dark:text-slate-500 dark:text-slate-500 hidden sm:inline">Formula Bar: <span className="text-indigo-400 ">f(x)</span> = Outstanding = Opening Balance + Total Bill - Paid</span>
-          </div>
-
-          <table className="w-full text-left border border-slate-300/60 dark:border-slate-700/60 font-mono text-[13px] md:text-sm border-collapse bg-slate-100/40 dark:bg-slate-900/40">
-            <thead>
-              {/* <tr className="bg-slate-200/80 dark:bg-slate-800/80 border-b border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-500 dark:text-slate-500 text-center text-[10px]">
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 py-1 w-12 bg-slate-100 dark:bg-slate-900"></th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 py-1 bg-slate-100 dark:bg-slate-900">A</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 py-1 bg-slate-100 dark:bg-slate-900">B</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 py-1 bg-slate-100 dark:bg-slate-900">C</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 py-1 bg-slate-100 dark:bg-slate-900">D</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 py-1 bg-slate-100 dark:bg-slate-900">E</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 py-1 bg-slate-100 dark:bg-slate-900">F</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 py-1 bg-slate-100 dark:bg-slate-900">G</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 py-1 bg-slate-100 dark:bg-slate-900">H</th>
-                <th className="py-1 bg-slate-100 dark:bg-slate-900">I</th>
-              </tr> */}
-              <tr className="bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-b border-slate-300 dark:border-slate-700 font-black uppercase tracking-wider text-[13px] md:text-sm">
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 text-center text-slate-600 dark:text-slate-400 bg-slate-200/50 dark:bg-slate-800/50 py-2.5 w-12">#</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 px-4 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white font-black">Panel Client</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 px-4 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white font-black">Owner Name</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 px-4 py-2.5 text-right bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-black">Opening Bal (₹)</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 px-4 py-2.5 text-right bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-black">License charges (₹)</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 px-4 py-2.5 text-right bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-black">IP charges (₹)</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 px-4 py-2.5 text-right bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-black">Maint. charges (₹)</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 px-4 py-2.5 text-right bg-slate-200 dark:bg-slate-800 text-emerald-300 font-black">Total Paid (₹)</th>
-                <th className="border-r border-slate-300/60 dark:border-slate-700/60 px-4 py-2.5 text-right bg-slate-200 dark:bg-slate-800 text-rose-300 font-black">Outstanding (₹)</th>
-                <th className="px-4 py-2.5 bg-slate-200 dark:bg-slate-800 text-center text-indigo-300 font-black">Quick Ledger Link</th>
-              </tr>
-            </thead>
-            <tbody>
-              {panels.map((p, idx) => (
-                <tr key={p._id} className="contents">
-                  <tr
-                    className={`border-b border-slate-300/80 dark:border-slate-800/80 hover:bg-slate-200/30 dark:hover:bg-slate-800/30 transition-colors ${idx % 2 === 0 ? 'bg-slate-100/10 dark:bg-slate-900/10' : 'bg-slate-50/20 dark:bg-slate-950/20'
-                      }`}
-                  >
-                    <td className="border-r border-slate-300/40 dark:border-slate-700/40 text-center text-slate-500 dark:text-slate-500 dark:text-slate-500 bg-slate-200/10 dark:bg-slate-800/10 py-2.5  w-12">
-                      {idx + 1}
-                    </td>
-                    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-slate-900 dark:text-white break-words whitespace-normal max-w-[200px]">
-                      {p.panelName}
-                    </td>
-                    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-slate-800 dark:text-slate-200 ">
-                      {p.ownerName}
-                    </td>
-                    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-right text-slate-800 dark:text-slate-100 ">
-                      ₹{p.openingBalance?.toLocaleString() || '0'}
-                    </td>
-                    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-right text-slate-800 dark:text-slate-100 ">
-                      ₹{p.licenseCharges?.toLocaleString() || '0'}
-                    </td>
-                    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-right text-slate-800 dark:text-slate-100 ">
-                      ₹{p.ipCharges?.toLocaleString() || '0'}
-                    </td>
-                    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-right text-slate-800 dark:text-slate-100 ">
-                      ₹{p.maintenanceCharges?.toLocaleString() || '0'}
-                    </td>
-                    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-right font-black text-emerald-300 bg-emerald-500/15">
-                      ₹{p.totalPaid?.toLocaleString() || '0'}
-                    </td>
-                    <td className={`border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-right font-black transition-all ${p.outstanding > 0
-                      ? 'bg-rose-500/15 text-rose-300'
-                      : p.outstanding < 0
-                        ? 'bg-emerald-500/15 text-emerald-300'
-                        : 'bg-slate-200/20 dark:bg-slate-800/20 text-slate-600 dark:text-slate-400'
-                      }`}>
-                      {p.outstanding < 0
-                        ? `₹${Math.abs(p.outstanding).toLocaleString()} (Adv)`
-                        : `₹${(p.outstanding || 0).toLocaleString()}`
-                      }
-                    </td>
-                    <td className="px-4 py-2.5 text-center">
-                      <button
-                        onClick={() => toggleExpandPanel(p._id)}
-                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded text-[10px] uppercase font-extrabold tracking-wider transition-all shadow active:scale-95 border ${expandedPanelId === p._id
-                          ? 'bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-slate-900 dark:hover:text-white border-rose-500/20'
-                          : 'bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-slate-900 dark:hover:text-white border-indigo-500/20'
-                          }`}
-                      >
-                        {expandedPanelId === p._id ? 'Close Ledger' : 'View Ledger'}
-                      </button>
-                    </td>
-                  </tr>
-
-                  {expandedPanelId === p._id && (
-                    <tr className="bg-slate-50/40 dark:bg-slate-950/40 border-b border-slate-300/80 dark:border-slate-800/80">
-                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 text-center text-slate-500 dark:text-slate-500 dark:text-slate-500 bg-slate-50/20 dark:bg-slate-950/20 py-4 ">
-                        ↳
-                      </td>
-                      <td colSpan="9" className="p-4 bg-slate-50/10 dark:bg-slate-950/10">
-                        <div className="space-y-4 rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-5 shadow-2xl animate-in slide-in-from-top-2 duration-200">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800pb-3 pb-3">
-                            <div className="flex items-center gap-2">
-                              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                              <h4 className="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-widest">
-                                Chronological Ledger: <span className="text-indigo-400 font-black">{p.panelName}</span>
-                              </h4>
-                            </div>
-                            <span className="text-[9px] text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase font-black tracking-widest">
-                              {expandedPanelPayments.length} transaction entries found
-                            </span>
-                          </div>
-
-                          {expandedLoading ? (
-                            <div className="overflow-x-auto rounded-xl border border-slate-300 dark:border-slate-800 animate-pulse">
-                              <div className="flex items-center justify-between mb-2 text-[10px] font-mono px-1 py-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded">Sheet2</span>
-                                  <span className="text-slate-600 dark:text-slate-400">Syncing Chronological Ledger...</span>
-                                </div>
-                              </div>
-                              <table className="w-full text-left border border-slate-300 dark:border-slate-800 font-mono text-xs md:text-[13px] border-collapse bg-slate-100/10 dark:bg-slate-900/10">
-                                <thead>
-                                  <tr className="bg-slate-100 dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 text-slate-600 text-center text-[9px]">
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[4%] bg-slate-50 dark:bg-slate-950"></th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[12%] bg-slate-50 dark:bg-slate-950">A</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[12%] bg-slate-50 dark:bg-slate-950">B</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[6%] bg-slate-50 dark:bg-slate-950">C</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[10%] bg-slate-50 dark:bg-slate-950">D</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[12%] bg-slate-50 dark:bg-slate-950">E</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[12%] bg-slate-50 dark:bg-slate-950">F</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[12%] bg-slate-50 dark:bg-slate-950">G</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[22%] bg-slate-50 dark:bg-slate-950">H</th>
-                                    <th className="py-1 w-[10%] bg-slate-50 dark:bg-slate-950">I</th>
-                                  </tr>
-                                  <tr className="bg-slate-100/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 border-b border-slate-300 dark:border-slate-800 uppercase tracking-wider text-xs md:text-[13px]">
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 text-center text-slate-600 bg-slate-100 dark:bg-slate-900 py-2">#</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2">Date</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2">Type</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 text-center">Qty</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 text-right">Rate</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 text-right">Bill Amount</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 text-right">Amt Paid</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 text-right">Net Due</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2">Remarks / Note</th>
-                                    <th className="px-3 py-2 text-center">Actions</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {[1, 2, 3, 4].map((n) => (
-                                    <tr key={n} className="border-b border-slate-300/80 dark:border-slate-800/80 bg-slate-50/10 dark:bg-slate-950/10">
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 text-center py-3 bg-slate-200/10 dark:bg-slate-800/10 text-slate-700 font-bold">
-                                        {n + 1}
-                                      </td>
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-3">
-                                        <div className="h-3.5 bg-slate-200/80 dark:bg-slate-800/80 rounded w-16 animate-pulse"></div>
-                                      </td>
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-3">
-                                        <div className="h-5 bg-indigo-500/10 border border-indigo-500/15 rounded w-14 animate-pulse"></div>
-                                      </td>
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-3">
-                                        <div className="h-3.5 bg-slate-200/80 dark:bg-slate-800/80 rounded w-8 mx-auto animate-pulse"></div>
-                                      </td>
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-3">
-                                        <div className="h-3.5 bg-slate-200/80 dark:bg-slate-800/80 rounded w-12 ml-auto animate-pulse"></div>
-                                      </td>
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-3">
-                                        <div className="h-3.5 bg-amber-500/10 rounded w-14 ml-auto animate-pulse"></div>
-                                      </td>
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-3">
-                                        <div className="h-3.5 bg-emerald-500/10 rounded w-14 ml-auto animate-pulse"></div>
-                                      </td>
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-3">
-                                        <div className="h-3.5 bg-rose-500/10 rounded w-14 ml-auto animate-pulse"></div>
-                                      </td>
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-3">
-                                        <div className="h-3.5 bg-slate-200/80 dark:bg-slate-800/80 rounded w-28 animate-pulse"></div>
-                                      </td>
-                                      <td className="px-3 py-3">
-                                        <div className="flex gap-1.5 justify-center">
-                                          <div className="h-6 w-6 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded animate-pulse"></div>
-                                          <div className="h-6 w-6 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded animate-pulse"></div>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          ) : (
-                            <div className="overflow-x-auto rounded-xl border border-slate-300 dark:border-slate-800">
-                              <div className="flex items-center justify-between mb-2 text-[10px] font-mono px-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400  rounded">Sheet2</span>
-                                  <span className="text-slate-600 dark:text-slate-400 ">Transaction Ledger</span>
-                                </div>
-                                <span className="text-slate-500 dark:text-slate-500 dark:text-slate-500 text-[9px] hidden sm:inline">Formula Bar: <span className="text-indigo-400 ">f(x)</span> = Outstanding = SUM(E - F) - SUM(G + H)</span>
-                              </div>
-
-                              <table className="w-full text-left border border-slate-300 dark:border-slate-800 font-mono text-xs md:text-[13px] border-collapse bg-slate-100/10 dark:bg-slate-900/10">
-                                <thead>
-                                  {/* <tr className="bg-slate-100 dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 text-slate-600 text-center text-[9px]">
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[4%] bg-slate-50 dark:bg-slate-950"></th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[10%] bg-slate-50 dark:bg-slate-950">A</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[10%] bg-slate-50 dark:bg-slate-950">B</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[5%] bg-slate-50 dark:bg-slate-950">C</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[8%] bg-slate-50 dark:bg-slate-950">D</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[10%] bg-slate-50 dark:bg-slate-950">E</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[10%] bg-slate-50 dark:bg-slate-950">F</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[10%] bg-slate-50 dark:bg-slate-950">G</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[10%] bg-slate-50 dark:bg-slate-950">H</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[10%] bg-slate-50 dark:bg-slate-950">I</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[18%] bg-slate-50 dark:bg-slate-950">J</th>
-                                    <th className="py-1 w-[8%] bg-slate-50 dark:bg-slate-950">K</th>
-                                  </tr> */}
-                                  <tr className="bg-slate-100/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 border-b border-slate-300 dark:border-slate-800  uppercase tracking-wider text-xs md:text-[13px]">
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 text-center text-slate-600 bg-slate-100 dark:bg-slate-900 py-2 w-[4%]">#</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 w-[10%] bg-slate-100/50 dark:bg-slate-900/50">Date</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 w-[10%] bg-slate-100/50 dark:bg-slate-900/50">Type</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 text-center w-[5%] bg-slate-100/50 dark:bg-slate-900/50">Qty</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 text-right w-[8%] bg-slate-100/50 dark:bg-slate-900/50">Rate</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 text-right w-[10%] bg-slate-100/50 dark:bg-slate-900/50">Bill Amount</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 text-right w-[10%] bg-slate-100/50 dark:bg-slate-900/50">Bill Discount</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 text-right w-[10%] bg-slate-100/50 dark:bg-slate-900/50">Amt Paid</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 text-right w-[10%] bg-slate-100/50 dark:bg-slate-900/50">Pay Discount</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 text-right w-[10%] bg-slate-100/50 dark:bg-slate-900/50">Net Due</th>
-                                    <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 bg-slate-100/50 dark:bg-slate-900/50 w-[18%]">Remarks / Note</th>
-                                    <th className="px-3 py-2 text-center bg-slate-100/50 dark:bg-slate-900/50 w-[8%]">Actions</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {getLast30DaysData(expandedPanelPayments).map((row, hIdx) => (
-                                    <tr
-                                      key={row.id}
-                                      className={`border-b border-slate-300/80 dark:border-slate-800/80 hover:bg-slate-200/30 dark:hover:bg-slate-800/30 transition-colors ${row.hasData
-                                        ? 'bg-indigo-500/5 font-semibold text-slate-900 dark:text-white'
-                                        : hIdx % 2 === 0
-                                          ? 'bg-slate-50/10 dark:bg-slate-950/10'
-                                          : 'bg-slate-50/30 dark:bg-slate-950/30'
-                                        }`}
-                                    >
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 text-center text-slate-500 dark:text-slate-500 dark:text-slate-500 py-2">
-                                        {hIdx + 2}
-                                      </td>
-
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-2 text-slate-700 dark:text-slate-300">
-                                        {row.displayDate}
-                                      </td>
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-2">
-                                        {row.paymentType !== "-" ? (
-                                          <span
-                                            className={`px-3 py-1 rounded text-sm md:text-base font-semibold uppercase tracking-wider ${row.paymentType === "License"
-                                              ? "bg-indigo-500/20 text-indigo-300 border border-indigo-400/40"
-                                              : row.paymentType === "IP Charges"
-                                                ? "bg-violet-500/20 text-violet-300 border border-violet-400/40"
-                                                : "bg-amber-400/20 text-amber-200 border border-amber-400/50"
-                                              }`}
-                                          >
-                                            {row.paymentType}
-                                          </span>
-                                        ) : (
-                                          "-"
-                                        )}
-                                      </td>
-                                      <td
-                                        className={`border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-1.5 text-center ${row.hasData ? 'cursor-pointer hover:bg-slate-200/40 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-white group' : 'text-slate-600 dark:text-slate-400'}`}
-                                        onClick={() => row.hasData && setEditingCell({ paymentId: row.originalPayment._id, field: 'quantity', value: row.quantity })}
-                                      >
-                                        {editingCell && editingCell.paymentId === row.originalPayment?._id && editingCell.field === 'quantity' ? (
-                                          <input
-                                            type="number"
-                                            className="w-16 bg-slate-50 dark:bg-slate-950 border border-indigo-500 rounded px-1 text-center text-xs text-indigo-300 font-mono focus:outline-none"
-                                            value={editingCell.value}
-                                            onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                                            onBlur={() => handleInlineCellSave(row.originalPayment, 'quantity', editingCell.value)}
-                                            onKeyDown={(e) => {
-                                              if (e.key === 'Enter') handleInlineCellSave(row.originalPayment, 'quantity', editingCell.value);
-                                              if (e.key === 'Escape') setEditingCell(null);
-                                            }}
-                                            autoFocus
-                                            onClick={(e) => e.stopPropagation()}
-                                          />
-                                        ) : (
-                                          <div className="flex items-center justify-center gap-1 text-slate-600 dark:text-slate-400">
-                                            <span>{row.quantity}</span>
-                                            {row.hasData && <span className="text-[9px] text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">✏️</span>}
-                                          </div>
-                                        )}
-                                      </td>
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-1.5 text-right text-slate-600 dark:text-slate-400">
-                                        {row.unitPrice !== '-' ? `₹${row.unitPrice.toLocaleString()}` : '-'}
-                                      </td>
-                                      <td
-                                        className={`border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-1.5 text-right  ${row.billAmount > 0 ? 'text-amber-400 bg-amber-400/5' : 'text-slate-500 dark:text-slate-500 dark:text-slate-500'} ${row.hasData ? 'cursor-pointer hover:bg-slate-200/40 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-white group' : ''}`}
-                                        onClick={() => row.hasData && setEditingCell({ paymentId: row.originalPayment._id, field: 'billAmount', value: row.billAmount })}
-                                      >
-                                        {editingCell && editingCell.paymentId === row.originalPayment?._id && editingCell.field === 'billAmount' ? (
-                                          <input
-                                            type="number"
-                                            className="w-20 bg-slate-50 dark:bg-slate-950 border border-indigo-500 rounded px-1 text-right text-xs text-indigo-300 font-mono  focus:outline-none"
-                                            value={editingCell.value}
-                                            onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                                            onBlur={() => handleInlineCellSave(row.originalPayment, 'billAmount', editingCell.value)}
-                                            onKeyDown={(e) => {
-                                              if (e.key === 'Enter') handleInlineCellSave(row.originalPayment, 'billAmount', editingCell.value);
-                                              if (e.key === 'Escape') setEditingCell(null);
-                                            }}
-                                            autoFocus
-                                            onClick={(e) => e.stopPropagation()}
-                                          />
-                                        ) : (
-                                          <div className="flex items-center justify-end gap-1">
-                                            <span>₹{row.billAmount.toLocaleString()}</span>
-                                            {row.hasData && <span className="text-[9px] text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity ">✏️</span>}
-                                          </div>
-                                        )}
-                                      </td>
-                                      <td className={`border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-1.5 text-right  ${row.billDiscount > 0 ? 'text-orange-400 bg-orange-400/5' : 'text-slate-500 dark:text-slate-500 dark:text-slate-500'}`}>
-                                        ₹{row.billDiscount.toLocaleString()}
-                                      </td>
-                                      <td
-                                        className={`border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-1.5 text-right  ${row.amountReceived > 0 ? 'text-emerald-400 bg-emerald-400/5' : 'text-slate-500 dark:text-slate-500 dark:text-slate-500'} ${row.hasData ? 'cursor-pointer hover:bg-slate-200/40 dark:hover:bg-slate-800/40 hover:text-emerald-300 group' : ''}`}
-                                        onClick={() => row.hasData && setEditingCell({ paymentId: row.originalPayment._id, field: 'amountReceived', value: row.amountReceived })}
-                                      >
-                                        {editingCell && editingCell.paymentId === row.originalPayment?._id && editingCell.field === 'amountReceived' ? (
-                                          <input
-                                            type="number"
-                                            className="w-20 bg-slate-50 dark:bg-slate-950 border border-emerald-500 rounded px-1 text-right text-xs text-emerald-300 font-mono  focus:outline-none"
-                                            value={editingCell.value}
-                                            onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                                            onBlur={() => handleInlineCellSave(row.originalPayment, 'amountReceived', editingCell.value)}
-                                            onKeyDown={(e) => {
-                                              if (e.key === 'Enter') handleInlineCellSave(row.originalPayment, 'amountReceived', editingCell.value);
-                                              if (e.key === 'Escape') setEditingCell(null);
-                                            }}
-                                            autoFocus
-                                            onClick={(e) => e.stopPropagation()}
-                                          />
-                                        ) : (
-                                          <div className="flex items-center justify-end gap-1">
-                                            <span>₹{row.amountReceived.toLocaleString()}</span>
-                                            {row.hasData && <span className="text-[9px] text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity ">✏️</span>}
-                                          </div>
-                                        )}
-                                      </td>
-                                      <td className={`border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-1.5 text-right  ${row.paymentDiscount > 0 ? 'text-rose-400 bg-rose-400/5' : 'text-slate-500 dark:text-slate-500 dark:text-slate-500'}`}>
-                                        ₹{row.paymentDiscount.toLocaleString()}
-                                      </td>
-                                      <td className={`border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-1.5 text-right  ${(row.billAmount - row.billDiscount) - (row.amountReceived + row.paymentDiscount) > 0 ? 'text-rose-400 bg-rose-400/5' : 'text-slate-500 dark:text-slate-500 dark:text-slate-500'}`}>
-                                        ₹{((row.billAmount - row.billDiscount) - (row.amountReceived + row.paymentDiscount)).toLocaleString()}
-                                      </td>
-                                      <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-3 py-1.5 text-slate-600 dark:text-slate-400 truncate max-w-[200px] font-sans" title={row.remark}>
-                                        {row.remark}
-                                      </td>
-                                      <td className="px-3 py-1.5 text-center">
-                                        {row.hasData ? (
-                                          <div className="flex items-center justify-center gap-1.5">
-                                            <button
-                                              onClick={() => setViewingPayment(row.originalPayment)}
-                                              className="p-1 rounded bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-700 transition-all shadow"
-                                              title="View Full Details / Audit logs"
-                                            >
-                                              <Eye className="h-3.5 w-3.5" />
-                                            </button>
-                                            <button
-                                              onClick={() => setSelectedReceiptPayment(row.originalPayment)}
-                                              className="p-1 rounded bg-indigo-500/10 hover:bg-indigo-600 text-indigo-400 hover:text-slate-900 dark:hover:text-white border border-indigo-500/10 hover:border-transparent transition-all shadow"
-                                              title="Generate Print Receipt"
-                                            >
-                                              <Printer className="h-3.5 w-3.5" />
-                                            </button>
-                                            {userRole === 'Admin' && (
-                                              <button
-                                                onClick={() => handleDeletePaymentClick(row.originalPayment)}
-                                                className="p-1 rounded bg-rose-50 hover:bg-rose-600 text-rose-500 hover:text-white border border-rose-200 hover:border-transparent transition-all shadow active:scale-95"
-                                                title="Delete Transaction Record"
-                                              >
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                              </button>
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <span className="text-slate-600 font-semibold text-[10px]">-</span>
-                                        )}
-                                      </td>
-                                    </tr>
-                                  ))}
-
-                                  {/* Sheet2 Summary Formula Row */}
-                                  <tr className="bg-slate-100 dark:bg-slate-900 border-t border-slate-300 dark:border-slate-800  text-slate-900 dark:text-white text-[11px]">
-                                    <td className="border-r border-slate-300 dark:border-slate-800 text-center text-slate-500 dark:text-slate-500 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 py-2.5">
-                                      {getLast30DaysData(expandedPanelPayments).length + 2}
-                                    </td>
-                                    <td className="border-r border-slate-300 dark:border-slate-800 px-3 py-2.5 uppercase tracking-wider text-slate-600 dark:text-slate-400 text-[9px]" colSpan="5">
-                                      =SUM(E2:E{getLast30DaysData(expandedPanelPayments).length + 1}) - SUM(F2:F{getLast30DaysData(expandedPanelPayments).length + 1}) - SUM(G2:G{getLast30DaysData(expandedPanelPayments).length + 1}) - SUM(H2:H{getLast30DaysData(expandedPanelPayments).length + 1})
-                                    </td>
-                                    <td className="border-r border-slate-300 dark:border-slate-800 px-3 py-2.5 text-right text-amber-400 bg-amber-500/5">
-                                      ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.billAmount, 0).toLocaleString()}
-                                    </td>
-                                    <td className="border-r border-slate-300 dark:border-slate-800 px-3 py-2.5 text-right text-orange-400 bg-orange-500/5">
-                                      ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.billDiscount, 0).toLocaleString()}
-                                    </td>
-                                    <td className="border-r border-slate-300 dark:border-slate-800 px-3 py-2.5 text-right text-emerald-400 bg-emerald-500/5">
-                                      ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.amountReceived, 0).toLocaleString()}
-                                    </td>
-                                    <td className="border-r border-slate-300 dark:border-slate-800 px-3 py-2.5 text-right text-rose-400 bg-rose-500/5">
-                                      ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.paymentDiscount, 0).toLocaleString()}
-                                    </td>
-                                    {(() => {
-                                      const netVal = getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + (r.billAmount - r.billDiscount) - (r.amountReceived + r.paymentDiscount), 0);
-                                      return (
-                                        <td className={`border-r border-slate-300 dark:border-slate-800 px-3 py-2.5 text-right  transition-all ${netVal > 0
-                                          ? 'text-rose-400 bg-rose-500/5'
-                                          : netVal < 0
-                                            ? 'text-emerald-400 bg-emerald-500/5'
-                                            : 'text-slate-500 dark:text-slate-500 dark:text-slate-500 bg-slate-200/10 dark:bg-slate-800/10'
-                                          }`}>
-                                          {netVal < 0 ? `₹${Math.abs(netVal).toLocaleString()}` : `₹${netVal.toLocaleString()}`}
-                                        </td>
-                                      );
-                                    })()}
-                                    <td className="px-3 py-2.5 text-indigo-400 font-semibold italic text-[10px]" colSpan="2">
-                                      Total Ledger Activity Summary
-                                    </td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tr>
-              ))}
-
-              {/* Excel Summary Row */}
-              <tr className="bg-slate-200/80 dark:bg-slate-800/80 border-t-2 border-slate-300 dark:border-slate-700  text-slate-900 dark:text-white text-xs">
-                <td className="border-r border-slate-300 dark:border-slate-700 text-center text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 py-3 w-12">
-                  {panels.length + 1}
-                </td>
-                <td className="border-r border-slate-300 dark:border-slate-700 px-4 py-3 uppercase tracking-wider text-slate-600 dark:text-slate-400 text-[10px]" colSpan="2">
-                  =SUM(C2:C{panels.length + 1}) ...
-                </td>
-                <td className="border-r border-slate-300 dark:border-slate-700 px-4 py-3 text-right text-slate-700 dark:text-slate-300">
-                  ₹{panels.reduce((sum, p) => sum + (p.openingBalance || 0), 0).toLocaleString()}
-                </td>
-                <td className="border-r border-slate-300 dark:border-slate-700 px-4 py-3 text-right text-slate-600 dark:text-slate-400" colSpan="3">
-                  Total Sheets Activity
-                </td>
-                <td className="border-r border-slate-300 dark:border-slate-700 px-4 py-3 text-right text-emerald-400 bg-emerald-500/5">
-                  ₹{panels.reduce((sum, p) => sum + (p.totalPaid || 0), 0).toLocaleString()}
-                </td>
-                <td className="border-r border-slate-300 dark:border-slate-700 px-4 py-3 text-right text-rose-400 bg-rose-500/5">
-                  ₹{panels.reduce((sum, p) => sum + (p.outstanding || 0), 0).toLocaleString()}
-                </td>
-                <td className="px-4 py-3 text-indigo-400  text-center">
-                  All Clients Active Summary
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <ConsolidatedLedgerTab
+          panels={panels}
+          userRole={userRole}
+          setViewingPayment={setViewingPayment}
+          setSelectedReceiptPayment={setSelectedReceiptPayment}
+          handleDeletePaymentClick={handleDeletePaymentClick}
+          handleInlineCellSave={handleInlineCellSave}
+          getLast30DaysData={getLast30DaysData}
+        />
       )}
+
 
       {/* RECEIVE PAYMENT / GENERATE BILL FORM MODAL */}
       {isModalOpen && (

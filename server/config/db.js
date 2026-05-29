@@ -49,7 +49,7 @@ const connectDB = async () => {
 
     mongoose.connection.on("disconnected", () => {
       console.log(getISTTime() + "⚠️ MongoDB connection lost at IST Time:");
-      connectToMongoDB();
+
     });
 
   } catch (error) {

@@ -21,6 +21,53 @@ import {
 export default function Settings() {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const handleInputChange = (field, value, setter) => {
+    setter(value);
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => {
+        const updated = { ...prev };
+        delete updated[field];
+        return updated;
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!orgName || orgName.trim().length < 3) {
+      newErrors.orgName = 'Organization Name must be at least 3 characters.';
+    }
+    if (!invoicePrefix || invoicePrefix.trim().length === 0) {
+      newErrors.invoicePrefix = 'Invoice Prefix is required.';
+    } else if (invoicePrefix.length > 8) {
+      newErrors.invoicePrefix = 'Invoice Prefix cannot exceed 8 characters.';
+    }
+    if (!contactEmail) {
+      newErrors.contactEmail = 'Contact Email Address is required.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+      newErrors.contactEmail = 'Please enter a valid email address.';
+    }
+    if (!supportPhone) {
+      newErrors.supportPhone = 'Support Phone Number is required.';
+    } else if (!/^\+?[0-9\s\-()]{8,20}$/.test(supportPhone.trim())) {
+      newErrors.supportPhone = 'Please enter a valid phone number (8-20 characters).';
+    }
+
+    if (defaultLicense !== '' && Number(defaultLicense) < 0) {
+      newErrors.defaultLicense = 'Default License Fee cannot be negative.';
+    }
+    if (defaultIp !== '' && Number(defaultIp) < 0) {
+      newErrors.defaultIp = 'Default IP Routing Fee cannot be negative.';
+    }
+    if (defaultMaint !== '' && Number(defaultMaint) < 0) {
+      newErrors.defaultMaint = 'Default Maintenance Fee cannot be negative.';
+    }
+
+    setValidationErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // Categories CRUD States
   const [categories, setCategories] = useState([]);
@@ -353,6 +400,11 @@ export default function Settings() {
     setSuccess('');
     setError('');
 
+    if (!validateForm()) {
+      setError('Please resolve all validation errors in the form.');
+      return;
+    }
+
     try {
       const settingsPayload = {
         orgName,
@@ -423,7 +475,7 @@ export default function Settings() {
           <button
             onClick={() => setActiveSubTab('branding')}
             className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${activeSubTab === 'branding'
-              ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+              ? 'bg-[#0A2540] text-white border-[#0A2540]'
               : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
               }`}
           >
@@ -434,7 +486,7 @@ export default function Settings() {
           <button
             onClick={() => setActiveSubTab('billing')}
             className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${activeSubTab === 'billing'
-              ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+              ? 'bg-[#0A2540] text-white border-[#0A2540]'
               : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
               }`}
           >
@@ -447,7 +499,7 @@ export default function Settings() {
           <button
             onClick={() => setActiveSubTab('categories')}
             className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${activeSubTab === 'categories'
-              ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+              ? 'bg-[#0A2540] text-white border-[#0A2540]'
               : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
               }`}
             type="button"
@@ -459,7 +511,7 @@ export default function Settings() {
           <button
             onClick={() => setActiveSubTab('banks')}
             className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${activeSubTab === 'banks'
-              ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+              ? 'bg-[#0A2540] text-white border-[#0A2540]'
               : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
               }`}
             type="button"
@@ -471,7 +523,7 @@ export default function Settings() {
           <button
             onClick={() => setActiveSubTab('payment-types')}
             className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3 border ${activeSubTab === 'payment-types'
-              ? 'bg-indigo-600/10 text-indigo-400 border-indigo-500/20'
+              ? 'bg-[#0A2540] text-white border-[#0A2540]'
               : 'text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
               }`}
             type="button"
@@ -495,66 +547,90 @@ export default function Settings() {
           {/* BRANDING SUBTAB */}
           {activeSubTab === 'branding' && (
             <div className="space-y-4 animate-in fade-in duration-200">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white border-b border-slate-300 dark:border-slate-800 pb-3">Organization Profile Settings</h3>
+              <h3 className="text-base font-bold text-white bg-[#0A2540] px-4 py-3 rounded-xl mb-4">Organization Profile Settings</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Organization / Brand Name</label>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block mb-1">Organization / Brand Name</label>
                   <input
                     type="text"
                     value={orgName}
-                    onChange={(e) => setOrgName(e.target.value)}
+                    onChange={(e) => handleInputChange('orgName', e.target.value, setOrgName)}
                     placeholder="E.g., Deepmind Infotech"
-                    className="w-full glass-input"
+                    className={`w-full rounded-xl px-4 py-3 text-sm glass-input transition-all duration-200 focus:outline-none focus:ring-2 ${validationErrors.orgName
+                      ? 'border-rose-500/50 focus:ring-rose-500/30 focus:border-rose-500'
+                      : 'focus:ring-[#0A2540]/30 focus:border-[#0A2540]'
+                      }`}
                     required
                   />
+                  {validationErrors.orgName && (
+                    <p className="text-xs text-rose-500 font-semibold mt-1 animate-in fade-in duration-150">{validationErrors.orgName}</p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Invoice Prefix</label>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block mb-1">Invoice Prefix</label>
                   <input
                     type="text"
                     value={invoicePrefix}
-                    onChange={(e) => setInvoicePrefix(e.target.value)}
+                    onChange={(e) => handleInputChange('invoicePrefix', e.target.value, setInvoicePrefix)}
                     placeholder="E.g., INV-"
-                    className="w-full glass-input"
+                    className={`w-full rounded-xl px-4 py-3 text-sm glass-input transition-all duration-200 focus:outline-none focus:ring-2 ${validationErrors.invoicePrefix
+                      ? 'border-rose-500/50 focus:ring-rose-500/30 focus:border-rose-500'
+                      : 'focus:ring-[#0A2540]/30 focus:border-[#0A2540]'
+                      }`}
                     required
                   />
+                  {validationErrors.invoicePrefix && (
+                    <p className="text-xs text-rose-500 font-semibold mt-1 animate-in fade-in duration-150">{validationErrors.invoicePrefix}</p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Contact Email Address</label>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block mb-1">Contact Email Address</label>
                   <input
                     type="email"
                     value={contactEmail}
-                    onChange={(e) => setContactEmail(e.target.value)}
+                    onChange={(e) => handleInputChange('contactEmail', e.target.value, setContactEmail)}
                     placeholder="billing@company.com"
-                    className="w-full glass-input"
+                    className={`w-full rounded-xl px-4 py-3 text-sm glass-input transition-all duration-200 focus:outline-none focus:ring-2 ${validationErrors.contactEmail
+                      ? 'border-rose-500/50 focus:ring-rose-500/30 focus:border-rose-500'
+                      : 'focus:ring-[#0A2540]/30 focus:border-[#0A2540]'
+                      }`}
                     required
                   />
+                  {validationErrors.contactEmail && (
+                    <p className="text-xs text-rose-500 font-semibold mt-1 animate-in fade-in duration-150">{validationErrors.contactEmail}</p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Support Phone Number</label>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block mb-1">Support Phone Number</label>
                   <input
                     type="text"
                     value={supportPhone}
-                    onChange={(e) => setSupportPhone(e.target.value)}
+                    onChange={(e) => handleInputChange('supportPhone', e.target.value, setSupportPhone)}
                     placeholder="+91 9999999999"
-                    className="w-full glass-input"
+                    className={`w-full rounded-xl px-4 py-3 text-sm glass-input transition-all duration-200 focus:outline-none focus:ring-2 ${validationErrors.supportPhone
+                      ? 'border-rose-500/50 focus:ring-rose-500/30 focus:border-rose-500'
+                      : 'focus:ring-[#0A2540]/30 focus:border-[#0A2540]'
+                      }`}
                     required
                   />
+                  {validationErrors.supportPhone && (
+                    <p className="text-xs text-rose-500 font-semibold mt-1 animate-in fade-in duration-150">{validationErrors.supportPhone}</p>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">System Default Currency</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block mb-1">System Default Currency</label>
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#0A2540]/30 focus:border-[#0A2540]"
                 >
                   <option value="INR (₹)">INR (₹) - Indian Rupee</option>
                   <option value="USD ($)">USD ($) - US Dollar</option>
@@ -638,19 +714,17 @@ export default function Settings() {
           {activeSubTab === "billing" && (
             <div className="space-y-5 animate-in fade-in duration-200">
 
-              <h3 className="text-base font-bold text-slate-900 dark:text-white border-b border-slate-300 dark:border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-white bg-[#0A2540] px-4 py-3 rounded-xl mb-4">
                 Standard Base Charge Rates Defaults
               </h3>
 
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                These rates populate as defaults when onboarding new software panel clients into the ledger system.
-              </p>
+
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
                 {/* License Fee */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block mb-1">
                     Default License Fee
                   </label>
 
@@ -662,28 +736,23 @@ export default function Settings() {
                     <input
                       type="number"
                       value={defaultLicense}
-                      onChange={(e) => setDefaultLicense(e.target.value)}
+                      onChange={(e) => handleInputChange('defaultLicense', e.target.value, setDefaultLicense)}
                       placeholder="1000"
                       min="0"
-                      className="
-              w-full pl-7 pr-3 py-2.5 rounded-xl
-              bg-white/70 dark:bg-slate-900/70
-              border border-slate-300 dark:border-slate-700
-              text-sm text-slate-900 dark:text-white
-              placeholder:text-slate-400 dark:placeholder:text-slate-500
-              backdrop-blur-md
-              font-mono
-              transition-all duration-200
-              focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500
-              hover:border-slate-400 dark:hover:border-slate-600
-            "
+                      className={`w-full pl-7 pr-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-900/70 border text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 backdrop-blur-md font-mono transition-all duration-200 focus:outline-none focus:ring-2 ${validationErrors.defaultLicense
+                        ? 'border-rose-500/50 focus:ring-rose-500/30 focus:border-rose-500'
+                        : 'border-slate-300 dark:border-slate-700 focus:ring-[#0A2540]/30 focus:border-[#0A2540] hover:border-slate-400 dark:hover:border-slate-600'
+                        }`}
                     />
                   </div>
+                  {validationErrors.defaultLicense && (
+                    <p className="text-xs text-rose-500 font-semibold mt-1 animate-in fade-in duration-150">{validationErrors.defaultLicense}</p>
+                  )}
                 </div>
 
                 {/* IP Routing Fee */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block mb-1">
                     Default IP Routing Fee
                   </label>
 
@@ -695,28 +764,23 @@ export default function Settings() {
                     <input
                       type="number"
                       value={defaultIp}
-                      onChange={(e) => setDefaultIp(e.target.value)}
+                      onChange={(e) => handleInputChange('defaultIp', e.target.value, setDefaultIp)}
                       placeholder="500"
                       min="0"
-                      className="
-              w-full pl-7 pr-3 py-2.5 rounded-xl
-              bg-white/70 dark:bg-slate-900/70
-              border border-slate-300 dark:border-slate-700
-              text-sm text-slate-900 dark:text-white
-              placeholder:text-slate-400 dark:placeholder:text-slate-500
-              backdrop-blur-md
-              font-mono
-              transition-all duration-200
-              focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500
-              hover:border-slate-400 dark:hover:border-slate-600
-            "
+                      className={`w-full pl-7 pr-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-900/70 border text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 backdrop-blur-md font-mono transition-all duration-200 focus:outline-none focus:ring-2 ${validationErrors.defaultIp
+                        ? 'border-rose-500/50 focus:ring-rose-500/30 focus:border-rose-500'
+                        : 'border-slate-300 dark:border-slate-700 focus:ring-[#0A2540]/30 focus:border-[#0A2540] hover:border-slate-400 dark:hover:border-slate-600'
+                        }`}
                     />
                   </div>
+                  {validationErrors.defaultIp && (
+                    <p className="text-xs text-rose-500 font-semibold mt-1 animate-in fade-in duration-150">{validationErrors.defaultIp}</p>
+                  )}
                 </div>
 
                 {/* Maintenance Fee */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block mb-1">
                     Default Maintenance Fee
                   </label>
 
@@ -728,23 +792,18 @@ export default function Settings() {
                     <input
                       type="number"
                       value={defaultMaint}
-                      onChange={(e) => setDefaultMaint(e.target.value)}
+                      onChange={(e) => handleInputChange('defaultMaint', e.target.value, setDefaultMaint)}
                       placeholder="10000"
                       min="0"
-                      className="
-              w-full pl-7 pr-3 py-2.5 rounded-xl
-              bg-white/70 dark:bg-slate-900/70
-              border border-slate-300 dark:border-slate-700
-              text-sm text-slate-900 dark:text-white
-              placeholder:text-slate-400 dark:placeholder:text-slate-500
-              backdrop-blur-md
-              font-mono
-              transition-all duration-200
-              focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500
-              hover:border-slate-400 dark:hover:border-slate-600
-            "
+                      className={`w-full pl-7 pr-3 py-2.5 rounded-xl bg-white/70 dark:bg-slate-900/70 border text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 backdrop-blur-md font-mono transition-all duration-200 focus:outline-none focus:ring-2 ${validationErrors.defaultMaint
+                        ? 'border-rose-500/50 focus:ring-rose-500/30 focus:border-rose-500'
+                        : 'border-slate-300 dark:border-slate-700 focus:ring-[#0A2540]/30 focus:border-[#0A2540] hover:border-slate-400 dark:hover:border-slate-600'
+                        }`}
                     />
                   </div>
+                  {validationErrors.defaultMaint && (
+                    <p className="text-xs text-rose-500 font-semibold mt-1 animate-in fade-in duration-150">{validationErrors.defaultMaint}</p>
+                  )}
                 </div>
 
               </div>
@@ -756,11 +815,9 @@ export default function Settings() {
           {/* CATEGORIES SUBTAB */}
           {activeSubTab === 'categories' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="border-b border-slate-300 dark:border-slate-800 pb-3">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Manage Client Panel Categories</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                  Add, edit, or delete categories used to classify software panel clients.
-                </p>
+              <div className="space-y-3">
+                <h3 className="text-base font-bold text-white bg-[#0A2540] px-4 py-3 rounded-xl">Manage Client Panel Categories</h3>
+
               </div>
 
               {/* Add Category Form */}
@@ -780,14 +837,7 @@ export default function Settings() {
                   <button
                     onClick={handleAddCategory}
                     type="button"
-                    className="
-    flex items-center gap-2
-    px-5 py-2.5
-    rounded-lg
-    bg-purple-600
-    text-white
-    hover:bg-purple-700
-  "
+                    className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 text-sm transition-all"
                   >
                     <Plus className="h-4 w-4" />
                     Add Category
@@ -895,11 +945,9 @@ export default function Settings() {
           {/* BANKS SUBTAB */}
           {activeSubTab === 'banks' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="border-b border-slate-300 dark:border-slate-800 pb-3">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Manage System Bank Accounts</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                  Add, edit, or delete bank options used to select receiving banks when collecting subscription payments.
-                </p>
+              <div className="space-y-3">
+                <h3 className="text-base font-bold text-white bg-[#0A2540] px-4 py-3 rounded-xl">Manage System Bank Accounts</h3>
+
               </div>
 
               {/* Add Bank Form */}
@@ -919,15 +967,7 @@ export default function Settings() {
                   <button
                     onClick={handleAddBank}
                     type="button"
-                    className="
-    flex items-center justify-center gap-2
-    px-5 py-2.5
-    rounded-lg
-    bg-purple-600
-    text-white
-    text-sm font-semibold
-    hover:bg-purple-700
-  "
+                    className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 text-sm transition-all"
                   >
                     <Plus className="h-4 w-4" />
                     Add Bank
@@ -1028,11 +1068,9 @@ export default function Settings() {
           {/* PAYMENT TYPES SUBTAB */}
           {activeSubTab === 'payment-types' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="border-b border-slate-300 dark:border-slate-800 pb-3">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Manage Bill / Charge Types</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                  Add custom charge types used in bills and payment receipts. The 4 default types (License, IP Charges, Maintenance, Other) cannot be deleted.
-                </p>
+              <div className="space-y-3">
+                <h3 className="text-base font-bold text-white bg-[#0A2540] px-4 py-3 rounded-xl">Manage Bill / Charge Types</h3>
+
               </div>
 
               {/* Add Payment Type Form */}
@@ -1052,7 +1090,7 @@ export default function Settings() {
                   <button
                     onClick={handleAddPaymentType}
                     type="button"
-                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 text-sm transition-all"
                   >
                     <Plus className="h-4 w-4" />
                     Add Type
@@ -1151,10 +1189,10 @@ export default function Settings() {
 
           {/* Form Actions Footer */}
           {activeSubTab !== 'categories' && activeSubTab !== 'banks' && activeSubTab !== 'payment-types' && activeSubTab !== 'toggles' && (
-            <div className="flex justify-end pt-4 border-t border-slate-300 dark:border-slate-800">
+            <div className="flex justify-end pt-4">
               <button
                 type="submit"
-                className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 text-slate-900 dark:text-white font-bold px-6 py-3 text-sm transition-all shadow-lg shadow-indigo-600/10"
+                className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 text-sm transition-all"
               >
                 <Save className="h-4.5 w-4.5 text-white" />
                 <span className='text-white'>Save Changes</span>

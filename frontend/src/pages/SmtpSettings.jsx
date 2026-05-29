@@ -275,11 +275,10 @@ export default function SmtpSettings() {
                         key={enc}
                         type="button"
                         onClick={() => setEncryption(enc)}
-                        className={`py-3 rounded-xl border text-xs font-bold transition-all ${
-                          encryption === enc
+                        className={`py-3 rounded-xl border text-xs font-bold transition-all ${encryption === enc
                             ? 'bg-indigo-600/10 border-indigo-500 text-indigo-400'
                             : 'bg-slate-100/40 dark:bg-slate-900/40 border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
-                        }`}
+                          }`}
                       >
                         {enc}
                       </button>
