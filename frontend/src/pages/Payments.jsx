@@ -1378,7 +1378,7 @@ export default function Payments() {
                     <td className="border-r border-slate-300/40 dark:border-slate-700/40 text-center text-slate-500 dark:text-slate-500 dark:text-slate-500 bg-slate-200/10 dark:bg-slate-800/10 py-2.5  w-12">
                       {idx + 1}
                     </td>
-                    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-slate-900 dark:text-white ">
+                    <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-slate-900 dark:text-white break-words whitespace-normal max-w-[200px]">
                       {p.panelName}
                     </td>
                     <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-slate-800 dark:text-slate-200 ">
@@ -1530,7 +1530,7 @@ export default function Payments() {
 
                               <table className="w-full text-left border border-slate-300 dark:border-slate-800 font-mono text-xs md:text-[13px] border-collapse bg-slate-100/10 dark:bg-slate-900/10">
                                 <thead>
-                                  <tr className="bg-slate-100 dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 text-slate-600 text-center text-[9px]">
+                                  {/* <tr className="bg-slate-100 dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 text-slate-600 text-center text-[9px]">
                                     <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[4%] bg-slate-50 dark:bg-slate-950"></th>
                                     <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[10%] bg-slate-50 dark:bg-slate-950">A</th>
                                     <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[10%] bg-slate-50 dark:bg-slate-950">B</th>
@@ -1543,7 +1543,7 @@ export default function Payments() {
                                     <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[10%] bg-slate-50 dark:bg-slate-950">I</th>
                                     <th className="border-r border-slate-300/60 dark:border-slate-800/60 py-1 w-[18%] bg-slate-50 dark:bg-slate-950">J</th>
                                     <th className="py-1 w-[8%] bg-slate-50 dark:bg-slate-950">K</th>
-                                  </tr>
+                                  </tr> */}
                                   <tr className="bg-slate-100/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 border-b border-slate-300 dark:border-slate-800  uppercase tracking-wider text-xs md:text-[13px]">
                                     <th className="border-r border-slate-300/60 dark:border-slate-800/60 text-center text-slate-600 bg-slate-100 dark:bg-slate-900 py-2 w-[4%]">#</th>
                                     <th className="border-r border-slate-300/60 dark:border-slate-800/60 px-3 py-2 w-[10%] bg-slate-100/50 dark:bg-slate-900/50">Date</th>
@@ -1843,7 +1843,7 @@ export default function Payments() {
                       </span>
                       <span className="text-slate-500 text-xs">▼</span>
                     </button>
-                    
+
                     {/* Hidden input to enforce HTML5 validation / required attribute */}
                     <input
                       type="text"
@@ -1856,11 +1856,11 @@ export default function Payments() {
                     {isPanelDropdownOpen && (
                       <>
                         {/* Background overlay to close dropdown on click outside */}
-                        <div 
-                          className="fixed inset-0 z-[160]" 
+                        <div
+                          className="fixed inset-0 z-[160]"
                           onClick={() => setIsPanelDropdownOpen(false)}
                         />
-                        
+
                         {/* Dropdown Container */}
                         <div className="absolute left-0 right-0 mt-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl z-[170] overflow-hidden p-2.5 space-y-2 animate-in fade-in slide-in-from-top-1 duration-150">
                           {/* Search Input inside Dropdown */}
@@ -1884,7 +1884,7 @@ export default function Payments() {
 
                           {/* List of Panels */}
                           <div className="max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/50 scrollbar-thin">
-                            {panels.filter(p => 
+                            {panels.filter(p =>
                               p.panelName.toLowerCase().includes(panelSearchQuery.toLowerCase()) ||
                               p.ownerName.toLowerCase().includes(panelSearchQuery.toLowerCase())
                             ).length === 0 ? (
@@ -1892,7 +1892,7 @@ export default function Payments() {
                                 No clients found matching your search.
                               </div>
                             ) : (
-                              panels.filter(p => 
+                              panels.filter(p =>
                                 p.panelName.toLowerCase().includes(panelSearchQuery.toLowerCase()) ||
                                 p.ownerName.toLowerCase().includes(panelSearchQuery.toLowerCase())
                               ).map((p) => (
@@ -1904,11 +1904,10 @@ export default function Payments() {
                                     setIsPanelDropdownOpen(false);
                                     setPanelSearchQuery('');
                                   }}
-                                  className={`w-full text-left px-3 py-2 text-xs hover:bg-indigo-600 hover:text-white rounded-lg transition-colors flex flex-col gap-0.5 ${
-                                    p._id === selectedPanelId 
-                                      ? 'bg-indigo-500/10 text-indigo-400 dark:text-indigo-300 font-semibold' 
-                                      : 'text-slate-700 dark:text-slate-300'
-                                  }`}
+                                  className={`w-full text-left px-3 py-2 text-xs hover:bg-indigo-600 hover:text-white rounded-lg transition-colors flex flex-col gap-0.5 ${p._id === selectedPanelId
+                                    ? 'bg-indigo-500/10 text-indigo-400 dark:text-indigo-300 font-semibold'
+                                    : 'text-slate-700 dark:text-slate-300'
+                                    }`}
                                 >
                                   <span className="font-bold tracking-wide">{p.panelName}</span>
                                   <span className="text-[10px] opacity-75">{p.ownerName}</span>

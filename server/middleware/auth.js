@@ -16,6 +16,11 @@ const protect = async (req, res, next) => {
       // Verify token signature and expiry
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+      // Block temporary 2FA tokens from standard protected routes
+      if (decoded.isTemp2FA) {
+        return res.status(401).json({ success: false, message: 'Not authorized, 2FA verification required' });
+      }
+
       // Get user from DB
       req.user = await User.findById(decoded.id).select('-password');
       if (!req.user) {
@@ -33,6 +38,39 @@ const protect = async (req, res, next) => {
       next();
     } catch (error) {
       console.error('Auth protect error:', error);
+      res.status(401).json({ success: false, message: 'Not authorized, token failed' });
+    }
+  }
+
+  if (!token) {
+    res.status(401).json({ success: false, message: 'Not authorized, no token provided' });
+  }
+};
+
+// Protect temporary routes for 2FA Setup/Verify
+const protectTemp = async (req, res, next) => {
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      if (!decoded.isTemp2FA) {
+        return res.status(401).json({ success: false, message: 'Invalid token, 2FA temporary token required' });
+      }
+
+      req.user = await User.findById(decoded.id).select('-password');
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Not authorized, user not found' });
+      }
+
+      next();
+    } catch (error) {
+      console.error('Auth protectTemp error:', error);
       res.status(401).json({ success: false, message: 'Not authorized, token failed' });
     }
   }
@@ -65,4 +103,4 @@ const hasPermission = (permission) => {
   };
 };
 
-module.exports = { protect, adminOnly, hasPermission };
+module.exports = { protect, protectTemp, adminOnly, hasPermission };

@@ -4,6 +4,7 @@ const Payment = require('../models/Payment');
 const Panel = require('../models/Panel');
 const Log = require('../models/Log');
 const { protect, hasPermission, adminOnly } = require('../middleware/auth');
+const getClientIp = require('../utils/getClientIp');
 
 // @desc    Get all payments (with pagination support)
 // @route   GET /api/payments
@@ -177,6 +178,7 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
       actionType: 'ADD',
       module: 'Payment',
       details: logDetails,
+      ipAddress: getClientIp(req),
     });
 
     res.status(201).json({ success: true, payment });
@@ -274,6 +276,7 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
       actionType: 'EDIT',
       module: 'Payment',
       details: `Edited payment for panel ${payment.panelId.panelName}. Changes: ${changesArray.join(' | ')}`,
+      ipAddress: getClientIp(req),
     });
 
     res.json({ success: true, payment: updatedPayment });
@@ -300,6 +303,7 @@ router.delete('/:id', protect, adminOnly, async (req, res) => {
       actionType: 'DELETE',
       module: 'Payment',
       details: `Deleted payment record of ₹${payment.amountReceived} from panel ${payment.panelId.panelName}`,
+      ipAddress: getClientIp(req),
     });
 
     res.json({ success: true, message: 'Payment record deleted successfully' });

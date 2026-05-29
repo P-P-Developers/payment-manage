@@ -14,6 +14,13 @@ export default function Login() {
   const [touched, setTouched] = useState({ email: false, password: false });
   const [fieldErrors, setFieldErrors] = useState({ email: '', password: '' });
 
+  // 2FA Integration State
+  const [step, setStep] = useState('login'); // 'login' | 'setup' | 'verify'
+  const [tempToken, setTempToken] = useState('');
+  const [qrCode, setQrCode] = useState('');
+  const [secret, setSecret] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+
   useEffect(() => {
     const token = getAuthToken();
     if (token) navigate('/dashboard', { replace: true });
@@ -57,6 +64,62 @@ export default function Login() {
     }
   };
 
+  const fetchGenerate2FA = async (token) => {
+    setError('');
+    setLoading(true);
+    try {
+      const data = await apiRequest('/auth/generate-2fa', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (data.success) {
+        setQrCode(data.qrCode);
+        setSecret(data.secret);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to generate 2FA credentials');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtpChange = (index, value) => {
+    if (isNaN(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value.substring(value.length - 1);
+    setOtp(newOtp);
+
+    // Auto-focus next input field
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      if (prevInput) {
+        prevInput.focus();
+        const newOtp = [...otp];
+        newOtp[index - 1] = '';
+        setOtp(newOtp);
+      }
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('text').trim();
+    if (/^\d{6}$/.test(pasteData)) {
+      const newOtp = pasteData.split('');
+      setOtp(newOtp);
+      document.getElementById('otp-5')?.focus();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const emailErr = validateEmail(email);
@@ -72,6 +135,53 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
       if (data.success) {
+        if (data.twoFactorRequired) {
+          setTempToken(data.tempToken);
+          setOtp(['', '', '', '', '', '']);
+          if (data.twoFactorEnabled) {
+            setStep('verify');
+          } else {
+            setStep('setup');
+            await fetchGenerate2FA(data.tempToken);
+          }
+        } else {
+          // Fallback if 2FA is somehow bypassed or disabled
+          setAuthToken(data.token);
+          setLoggedUser({
+            _id: data._id,
+            name: data.name,
+            email: data.email,
+            role: data.role,
+            permissions: data.permissions,
+          });
+          navigate('/dashboard', { replace: true });
+        }
+      }
+    } catch (err) {
+      setError(err.message || 'Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify2FA = async (e) => {
+    e.preventDefault();
+    const code = otp.join('');
+    if (code.length !== 6) {
+      setError('Please enter a valid 6-digit OTP code');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      const data = await apiRequest('/auth/verify-2fa', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${tempToken}`,
+        },
+        body: JSON.stringify({ code }),
+      });
+      if (data.success) {
         setAuthToken(data.token);
         setLoggedUser({
           _id: data._id,
@@ -83,7 +193,7 @@ export default function Login() {
         navigate('/dashboard', { replace: true });
       }
     } catch (err) {
-      setError(err.message || 'Invalid email or password');
+      setError(err.message || 'Verification failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -176,8 +286,26 @@ export default function Login() {
 
         <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent mb-6" />
 
-        <h2 className="text-lg font-bold text-slate-900 font-display">Welcome Back</h2>
-        <p className="text-xs text-slate-500 mb-6 mt-1">Sign in to manage client software sales &amp; ledgers</p>
+        {step === 'login' && (
+          <>
+            <h2 className="text-lg font-bold text-slate-900 font-display">Welcome Back</h2>
+            <p className="text-xs text-slate-500 mb-6 mt-1">Sign in to manage client software sales &amp; ledgers</p>
+          </>
+        )}
+
+        {step === 'setup' && (
+          <>
+            <h2 className="text-lg font-bold text-slate-900 font-display">Setup Two-Factor (2FA)</h2>
+            <p className="text-xs text-slate-500 mb-5 mt-1">Scan this QR code using Google Authenticator application to register your profile.</p>
+          </>
+        )}
+
+        {step === 'verify' && (
+          <>
+            <h2 className="text-lg font-bold text-slate-900 font-display">Two-Factor Authentication</h2>
+            <p className="text-xs text-slate-500 mb-6 mt-1">Provide the 6-digit OTP code from Google Authenticator to access your dashboard.</p>
+          </>
+        )}
 
         {error && (
           <div className="mb-5 rounded-xl bg-rose-50 border border-rose-100 p-4 text-sm text-rose-600 flex items-start gap-3 animate-pulse-subtle">
@@ -188,78 +316,181 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} noValidate className="space-y-5">
-          {/* Email */}
-          <div>
-            <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-2">Email Address</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => handleChange('email', e.target.value)}
-              onBlur={() => handleBlur('email')}
-              placeholder="name@company.com"
-              className={`w-full premium-input px-4 py-3 text-sm ${touched.email && fieldErrors.email ? 'border-rose-400 bg-rose-50/30' : ''}`}
-            />
-            {touched.email && fieldErrors.email && (
-              <div className="text-xs text-rose-600 mt-1.5 flex items-center gap-1.5 font-semibold">
-                <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                {fieldErrors.email}
-              </div>
-            )}
-          </div>
-
-          {/* Password with eye toggle */}
-          <div>
-            <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-2">Password</label>
-            <div className="relative">
+        {/* Step 1: Standard Username/Password Login */}
+        {step === 'login' && (
+          <form onSubmit={handleSubmit} noValidate className="space-y-5">
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-2">Email Address</label>
               <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => handleChange('password', e.target.value)}
-                onBlur={() => handleBlur('password')}
-                placeholder="••••••••"
-                className={`w-full premium-input pl-4 pr-12 py-3 text-sm ${touched.password && fieldErrors.password ? 'border-rose-450 bg-rose-50/30' : ''}`}
+                type="email"
+                value={email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                onBlur={() => handleBlur('email')}
+                placeholder="name@company.com"
+                className={`w-full premium-input px-4 py-3 text-sm ${touched.email && fieldErrors.email ? 'border-rose-400 bg-rose-50/30' : ''}`}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors flex items-center justify-center"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                <EyeIcon open={showPassword} />
-              </button>
+              {touched.email && fieldErrors.email && (
+                <div className="text-xs text-rose-600 mt-1.5 flex items-center gap-1.5 font-semibold">
+                  <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                  {fieldErrors.email}
+                </div>
+              )}
             </div>
-            {touched.password && fieldErrors.password && (
-              <div className="text-xs text-rose-600 mt-1.5 flex items-center gap-1.5 font-semibold">
-                <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                {fieldErrors.password}
-              </div>
-            )}
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full btn-primary py-3.5 text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#0A2540]/10 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <>
-                <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                <span>Verifying Session...</span>
-              </>
-            ) : (
-              <>
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                </svg>
-                <span>Sign In to Dashboard</span>
-              </>
-            )}
-          </button>
-        </form>
+            {/* Password with eye toggle */}
+            <div>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-2">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => handleChange('password', e.target.value)}
+                  onBlur={() => handleBlur('password')}
+                  placeholder="••••••••"
+                  className={`w-full premium-input pl-4 pr-12 py-3 text-sm ${touched.password && fieldErrors.password ? 'border-rose-450 bg-rose-50/30' : ''}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors flex items-center justify-center"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  <EyeIcon open={showPassword} />
+                </button>
+              </div>
+              {touched.password && fieldErrors.password && (
+                <div className="text-xs text-rose-600 mt-1.5 flex items-center gap-1.5 font-semibold">
+                  <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                  {fieldErrors.password}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full btn-primary py-3.5 text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#0A2540]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span>Verifying Session...</span>
+                </>
+              ) : (
+                <>
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
+                  <span>Sign In to Dashboard</span>
+                </>
+              )}
+            </button>
+          </form>
+        )}
+
+        {/* Step 2: First-Time 2FA Setup */}
+        {step === 'setup' && (
+          <form onSubmit={handleVerify2FA} className="space-y-6">
+            <div className="flex flex-col items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl p-4">
+              {qrCode ? (
+                <img src={qrCode} alt="2FA QR Code" className="w-44 h-44 object-contain shadow-inner rounded-lg bg-white p-2 border border-slate-200" />
+              ) : (
+                <div className="w-44 h-44 flex items-center justify-center bg-slate-100 rounded-lg border border-slate-200 border-dashed animate-pulse">
+                  <span className="text-xs text-slate-400 font-bold">Generating QR Code...</span>
+                </div>
+              )}
+              {secret && (
+                <div className="mt-3.5 text-center">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Secret Key</p>
+                  <p className="text-xs font-mono font-bold text-[#0A2540] bg-white border border-slate-200 px-3 py-1.5 rounded-lg mt-1 select-all shadow-sm tracking-wide">
+                    {secret}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-3 text-center">
+                Enter 6-Digit Verification Code
+              </label>
+              <div className="flex justify-center gap-2" onPaste={handleOtpPaste}>
+                {otp.map((digit, idx) => (
+                  <input
+                    key={idx}
+                    id={`otp-${idx}`}
+                    type="text"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(idx, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                    className="w-11 h-12 text-center text-lg font-bold text-slate-800 bg-white border border-slate-200 rounded-xl focus:border-[#0A2540] focus:ring-1 focus:ring-[#0A2540] outline-none shadow-sm transition-all"
+                  />
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || otp.some(d => !d)}
+              className="w-full btn-primary py-3.5 text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#0A2540]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Verifying 2FA...' : 'Complete Registration & Login'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setStep('login')}
+              className="w-full text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors text-center block mt-2"
+            >
+              Back to Login
+            </button>
+          </form>
+        )}
+
+        {/* Step 3: Regular 2FA Verification */}
+        {step === 'verify' && (
+          <form onSubmit={handleVerify2FA} className="space-y-6">
+            <div>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-3 text-center">
+                Enter 6-Digit Authenticator Code
+              </label>
+              <div className="flex justify-center gap-2" onPaste={handleOtpPaste}>
+                {otp.map((digit, idx) => (
+                  <input
+                    key={idx}
+                    id={`otp-${idx}`}
+                    type="text"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(idx, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                    className="w-11 h-12 text-center text-lg font-bold text-slate-800 bg-white border border-slate-200 rounded-xl focus:border-[#0A2540] focus:ring-1 focus:ring-[#0A2540] outline-none shadow-sm transition-all"
+                  />
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || otp.some(d => !d)}
+              className="w-full btn-primary py-3.5 text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#0A2540]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Verifying...' : 'Verify Code & Sign In'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setStep('login')}
+              className="w-full text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors text-center block mt-2"
+            >
+              Back to Login
+            </button>
+          </form>
+        )}
 
         <div className="mt-8 pt-5 border-t border-slate-100 flex items-center justify-center gap-2.5 text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />

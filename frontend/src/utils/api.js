@@ -3,6 +3,30 @@ const BASE_URL = typeof window !== 'undefined'
   : 'http://localhost:8005/api';
 // const BASE_URL = "https://payment.deepmindinfotech.com/backend/api";
 
+// ─── Public IP cache ────────────────────────────────────────────────────────
+// Fetched once from ipify, then reused for every API request.
+// The server cannot see the real internet IP when client & server are on the
+// same machine (localhost), so we send it ourselves in X-Client-IP header.
+let cachedPublicIp = null;
+
+const getPublicIp = async () => {
+  if (cachedPublicIp) return cachedPublicIp;
+  try {
+    const res = await fetch('https://api.ipify.org?format=json', { cache: 'force-cache' });
+    const data = await res.json();
+    cachedPublicIp = data.ip || null;
+  } catch {
+    cachedPublicIp = null; // silently fail — server will fall back to req.ip
+  }
+  return cachedPublicIp;
+};
+
+// Kick off IP fetch immediately on page load (warm the cache)
+if (typeof window !== 'undefined') {
+  getPublicIp();
+}
+// ────────────────────────────────────────────────────────────────────────────
+
 // Helper to set a cookie with a 7-day expiration by default
 export const setCookie = (name, value, days = 7) => {
   if (typeof window !== 'undefined') {
@@ -76,9 +100,14 @@ export const clearAuth = () => {
 
 export const apiRequest = async (endpoint, options = {}) => {
   const token = getAuthToken();
+
+  // Attach real public IP so server can log it accurately
+  const publicIp = await getPublicIp();
+
   const headers = {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` }),
+    ...(publicIp && { 'X-Client-IP': publicIp }),
     ...options.headers,
   };
 

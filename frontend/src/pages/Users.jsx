@@ -13,6 +13,15 @@ import {
   AlertCircle,
   ShieldAlert,
   History,
+  ShieldCheck,
+  ShieldX,
+  RefreshCw,
+  Server,
+  LogIn,
+  LogOut,
+  PlusCircle,
+  Edit,
+  Calendar,
 } from 'lucide-react';
 
 const SkeletonRow = () => (
@@ -56,6 +65,8 @@ export default function Users() {
   const [editUserId, setEditUserId] = useState(null); // null = adding user, string = editing user
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [isReset2faModalOpen, setIsReset2faModalOpen] = useState(false);
+  const [userToReset, setUserToReset] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Activity Log Modal State
@@ -216,6 +227,29 @@ export default function Users() {
     }
   };
 
+  const handleReset2FA = (user) => {
+    setUserToReset(user);
+    setIsReset2faModalOpen(true);
+  };
+
+  const handleConfirmReset2FA = async () => {
+    if (!userToReset) return;
+    setError('');
+    setSuccess('');
+
+    try {
+      const data = await apiRequest(`/auth/users/${userToReset._id}/reset-2fa`, {
+        method: 'POST',
+      });
+      if (data.success) {
+        setSuccess(`Successfully reset 2FA protection settings for "${userToReset.name}".`);
+        fetchUsers(true);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to reset 2FA');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Action Header */}
@@ -272,6 +306,7 @@ export default function Users() {
               <tr className="bg-slate-100/80 dark:bg-slate-900/80 border-b border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-xs uppercase font-semibold tracking-wider">
                 <th className="px-6 py-4">User Info</th>
                 <th className="px-6 py-4">System Role</th>
+                <th className="px-6 py-4">2FA Protection</th>
                 <th className="px-6 py-4">Enabled Permissions</th>
                 <th className="px-6 py-4 text-center">Actions</th>
               </tr>
@@ -308,6 +343,19 @@ export default function Users() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
+                      {user.twoFactorEnabled ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <ShieldCheck className="h-3.5 w-3.5" />
+                          <span>Enabled</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                          <ShieldX className="h-3.5 w-3.5" />
+                          <span>Not Setup</span>
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
                       {user.role === 'Admin' ? (
                         <span className="text-xs text-indigo-400 font-semibold italic">Full System Access</span>
                       ) : (
@@ -336,6 +384,15 @@ export default function Users() {
                         >
                           <History className="h-4 w-4" />
                         </button>
+                        {user.twoFactorEnabled && (
+                          <button
+                            onClick={() => handleReset2FA(user)}
+                            className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-amber-600/20 hover:border-amber-500/30 text-amber-500 flex items-center justify-center border border-slate-300 dark:border-slate-700 transition-colors"
+                            title="Reset 2FA Protection"
+                          >
+                            <RefreshCw className="h-4 w-4 animate-spin-hover" />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleOpenEditModal(user)}
                           className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-300 dark:border-slate-700 transition-colors"
@@ -400,14 +457,27 @@ export default function Users() {
                     <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">{user.email}</p>
                   </div>
                 </div>
-                <span
-                  className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${user.role === 'Admin'
-                    ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                    : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    }`}
-                >
-                  {user.role}
-                </span>
+                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                  <span
+                    className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold ${user.role === 'Admin'
+                      ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                      }`}
+                  >
+                    {user.role}
+                  </span>
+                  {user.twoFactorEnabled ? (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <ShieldCheck className="h-2.5 w-2.5" />
+                      <span>2FA</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                      <ShieldX className="h-2.5 w-2.5" />
+                      <span>No 2FA</span>
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -442,6 +512,15 @@ export default function Users() {
                   >
                     <History className="h-3.5 w-3.5" />
                   </button>
+                  {user.twoFactorEnabled && (
+                    <button
+                      onClick={() => handleReset2FA(user)}
+                      className="h-8 w-8 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-amber-600/20 text-amber-500 flex items-center justify-center border border-slate-300 dark:border-slate-700 transition-colors"
+                      title="Reset 2FA"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin-hover" />
+                    </button>
+                  )}
                   <button
                     onClick={() => handleOpenEditModal(user)}
                     className="h-8 w-8 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center border border-slate-300 dark:border-slate-700 transition-colors"
@@ -451,7 +530,7 @@ export default function Users() {
                   </button>
                   <button
                     onClick={() => handleDeleteUser(user)}
-                    className="h-8 w-8 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-rose-600/20 text-rose-400 flex items-center justify-center border border-slate-300 dark:border-slate-700 hover:border-rose-500/30 transition-colors"
+                    className="h-8 w-8 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-rose-600/20 text-rose-450 flex items-center justify-center border border-slate-300 dark:border-slate-700 hover:border-rose-500/30 transition-colors"
                     title="Delete"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -625,78 +704,103 @@ export default function Users() {
       )}
       {/* USER ACTIVITY LOGS MODAL */}
       {selectedLogUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div onClick={() => setSelectedLogUser(null)} className="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
+          <div onClick={() => setSelectedLogUser(null)} className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
 
-          <div className="relative w-full max-w-2xl rounded-2xl glass-card p-6 md:p-8 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
-            <button
-              onClick={() => setSelectedLogUser(null)}
-              className="absolute top-4 right-4 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-            >
-              <X className="h-6 w-6" />
-            </button>
-
-            <div className="flex items-center gap-3.5 mb-6 pb-4 border-b border-slate-300/80 dark:border-slate-800/80">
-              <div className="h-11 w-11 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm font-bold uppercase">
+          <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh] overflow-hidden bg-white dark:bg-slate-900">
+            {/* ── Modal Header ── */}
+            <div className="flex items-center gap-4 px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-indigo-500/5 to-violet-500/5 shrink-0">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold uppercase shadow-lg shrink-0">
                 {selectedLogUser.name.substring(0, 2)}
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Activity History</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Showing recent actions for {selectedLogUser.name} ({selectedLogUser.email})</p>
+              <div className="min-w-0">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">Activity History</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">{selectedLogUser.name} · {selectedLogUser.email}</p>
               </div>
+              <button
+                onClick={() => setSelectedLogUser(null)}
+                className="ml-auto shrink-0 h-8 w-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-1 space-y-3.5">
+            {/* ── Log List ── */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-3">
               {loadingLogs ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-3">
-                  <div className="h-8 w-8 animate-spin rounded-full border-3 border-indigo-500 border-t-transparent"></div>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm">Loading activity logs...</p>
+                <div className="flex flex-col items-center justify-center py-16 gap-3">
+                  <div className="h-9 w-9 animate-spin rounded-full border-[3px] border-indigo-500 border-t-transparent" />
+                  <p className="text-slate-500 dark:text-slate-400 text-sm">Loading activity logs…</p>
                 </div>
               ) : userLogs.length > 0 ? (
                 userLogs.map((log) => {
-                  let actionBg = 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300/50 dark:border-slate-700/50';
-                  if (log.actionType === 'ADD') actionBg = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-                  if (log.actionType === 'EDIT') actionBg = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-                  if (log.actionType === 'DELETE') actionBg = 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+                  /* ── per-action colour tokens ── */
+                  const actionMeta = {
+                    ADD:    { badge: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25', dot: 'bg-emerald-400', Icon: PlusCircle },
+                    EDIT:   { badge: 'bg-amber-500/10  text-amber-500  border-amber-500/25',   dot: 'bg-amber-400',   Icon: Edit },
+                    DELETE: { badge: 'bg-rose-500/10   text-rose-500   border-rose-500/25',    dot: 'bg-rose-400',    Icon: Trash2 },
+                    LOGIN:  { badge: 'bg-teal-500/10   text-teal-500   border-teal-500/25',    dot: 'bg-teal-400',    Icon: LogIn },
+                    LOGOUT: { badge: 'bg-orange-500/10 text-orange-500 border-orange-500/25', dot: 'bg-orange-400',  Icon: LogOut },
+                  };
+                  const meta = actionMeta[log.actionType] || actionMeta.EDIT;
+                  const ActionIcon = meta.Icon;
 
                   return (
-                    <div key={log._id} className="p-4 rounded-xl bg-slate-100/40 dark:bg-slate-900/40 border border-slate-300/80 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-start justify-between gap-3 hover:border-slate-300/40 dark:hover:border-slate-700/40 transition-colors">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded border uppercase tracking-wider ${actionBg}`}>
-                            {log.actionType}
-                          </span>
-                          <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold bg-slate-200/50 dark:bg-slate-800/50 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-800">
-                            Module: {log.module}
+                    <div
+                      key={log._id}
+                      className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 hover:border-indigo-300 dark:hover:border-indigo-700/50 transition-colors"
+                    >
+                      {/* top row: badge + module + timestamp */}
+                      <div className="flex flex-wrap items-center gap-2 px-4 pt-3 pb-2">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded border uppercase tracking-wider ${meta.badge}`}>
+                          <ActionIcon className="h-3 w-3" />
+                          {log.actionType}
+                        </span>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">
+                          {log.module}
+                        </span>
+                        <span className="ml-auto flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500 font-mono whitespace-nowrap">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(log.timestamp).toLocaleString('en-IN', {
+                            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true,
+                          })}
+                        </span>
+                      </div>
+
+                      {/* details text */}
+                      <p className="px-4 pb-3 text-sm text-slate-700 dark:text-slate-200 leading-relaxed break-words">
+                        {log.details}
+                      </p>
+
+                      {/* footer: IP address */}
+                      {log.ipAddress && (
+                        <div className="flex items-center gap-1.5 px-4 py-2 border-t border-slate-200 dark:border-slate-700/60 bg-slate-100/50 dark:bg-slate-900/30 rounded-b-xl">
+                          <Server className="h-3 w-3 text-slate-400 shrink-0" />
+                          <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">IP:</span>
+                          <span className="text-[11px] font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 px-1.5 py-0.5 rounded">
+                            {log.ipAddress}
                           </span>
                         </div>
-                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 pt-1 leading-relaxed">{log.details}</p>
-                      </div>
-                      <span className="text-xs text-slate-500 dark:text-slate-500 whitespace-nowrap pt-1 font-mono">
-                        {new Date(log.timestamp).toLocaleString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: true,
-                        })}
-                      </span>
+                      )}
                     </div>
                   );
                 })
               ) : (
-                <div className="text-center py-12 text-slate-500 dark:text-slate-500 text-sm">
-                  No activity history found for this staff account.
+                <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-400 dark:text-slate-500">
+                  <History className="h-10 w-10 opacity-40" />
+                  <p className="text-sm font-medium">No activity history found.</p>
                 </div>
               )}
             </div>
 
-            <div className="mt-6 pt-4 border-t border-slate-300/80 dark:border-slate-800/80 flex justify-end">
+            {/* ── Footer ── */}
+            <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 flex justify-between items-center shrink-0">
+              <span className="text-xs text-slate-400 dark:text-slate-500">{userLogs.length} event{userLogs.length !== 1 ? 's' : ''} found</span>
               <button
                 onClick={() => setSelectedLogUser(null)}
-                className="px-5 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors"
+                className="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors"
               >
-                Close History
+                Close
               </button>
             </div>
           </div>
@@ -711,6 +815,16 @@ export default function Users() {
         onConfirm={handleConfirmDeleteUser}
         title="Delete Staff Account"
         message={`Are you absolutely sure you want to delete staff account: ${userToDelete?.name}? This action cannot be undone!`}
+      />
+      <ConfirmModal
+        isOpen={isReset2faModalOpen}
+        onClose={() => {
+          setIsReset2faModalOpen(false);
+          setUserToReset(null);
+        }}
+        onConfirm={handleConfirmReset2FA}
+        title="Reset 2FA Protection"
+        message={`Are you absolutely sure you want to reset 2FA protection settings for staff account: ${userToReset?.name}? This will force them to re-configure their Google Authenticator app on next login.`}
       />
     </div>
   );

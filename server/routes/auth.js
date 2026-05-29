@@ -3,7 +3,10 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Log = require('../models/Log');
-const { protect, adminOnly } = require('../middleware/auth');
+const { protect, protectTemp, adminOnly } = require('../middleware/auth');
+const getClientIp = require('../utils/getClientIp');
+const speakeasy = require('speakeasy');
+const QRCode = require('qrcode');
 
 const crypto = require('crypto');
 
@@ -33,27 +36,109 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
-      // Generate a new sessionToken - this invalidates any other active sessions
+      // 2FA Mandatory Step - Return a temporary short-lived token to perform 2FA verification
+      const tempToken = jwt.sign({ id: user._id, isTemp2FA: true }, process.env.JWT_SECRET, {
+        expiresIn: '5m',
+      });
+
+      res.json({
+        success: true,
+        twoFactorRequired: true,
+        twoFactorEnabled: user.twoFactorEnabled,
+        tempToken,
+        email: user.email,
+      });
+    } else {
+      res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Generate 2FA Secret and QR Code
+// @route   POST /api/auth/generate-2fa
+// @access  Private (Temporary)
+router.post('/generate-2fa', protectTemp, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (user.twoFactorEnabled) {
+      return res.status(400).json({ success: false, message: '2FA is already enabled for this account' });
+    }
+
+    // Generate a unique base32 secret
+    const secret = speakeasy.generateSecret({
+      name: `PanelAccounting:${user.email}`,
+    });
+
+    // Save secret to database
+    user.twoFactorSecret = secret.base32;
+    await user.save();
+
+    // Generate QR code data URL
+    const qrCodeDataUrl = await QRCode.toDataURL(secret.otpauth_url);
+
+    res.json({
+      success: true,
+      qrCode: qrCodeDataUrl,
+      secret: secret.base32,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Verify 2FA OTP Code & Log In
+// @route   POST /api/auth/verify-2fa
+// @access  Private (Temporary)
+router.post('/verify-2fa', protectTemp, async (req, res) => {
+  const { code } = req.body;
+
+  try {
+    if (!code) {
+      return res.status(400).json({ success: false, message: 'Please provide OTP verification code' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (!user.twoFactorSecret) {
+      return res.status(400).json({ success: false, message: '2FA has not been generated for this account. Please generate first.' });
+    }
+
+    // Verify OTP code
+    const verified = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: 'base32',
+      token: code,
+      window: 1, // allows +/- 30 seconds clock drift
+    });
+
+    if (verified) {
+      // Mark 2FA as fully enabled
+      user.twoFactorEnabled = true;
+
+      // Generate final sessionToken
       const sessionToken = generateSessionToken();
       user.sessionToken = sessionToken;
       await user.save();
 
-      // Capture IP Address robustly (handling proxy headers and stripping IPv6 translation prefixes)
-      let ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || '';
-      if (ipAddress.includes(',')) {
-        ipAddress = ipAddress.split(',')[0].trim();
-      }
-      if (ipAddress.startsWith('::ffff:')) {
-        ipAddress = ipAddress.substring(7);
-      }
+      // Capture IP Address robustly
+      const ipAddress = getClientIp(req);
 
       // Create login activity log
       await Log.create({
         userId: user._id,
         actionType: 'LOGIN',
         module: 'Auth',
-        details: `User (${user.name}) logged into the system.`,
-        ipAddress: ipAddress,
+        details: `User (${user.name}) successfully authenticated using 2FA and logged into the system.`,
+        ipAddress,
       });
 
       res.json({
@@ -66,7 +151,7 @@ router.post('/login', async (req, res) => {
         token: generateToken(user._id, sessionToken),
       });
     } else {
-      res.status(401).json({ success: false, message: 'Invalid email or password' });
+      res.status(400).json({ success: false, message: 'Invalid 6-digit OTP code. Please try again.' });
     }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -95,20 +180,14 @@ router.post('/logout', protect, async (req, res) => {
       user.sessionToken = null;
       await user.save();
 
-      let ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || '';
-      if (ipAddress.includes(',')) {
-        ipAddress = ipAddress.split(',')[0].trim();
-      }
-      if (ipAddress.startsWith('::ffff:')) {
-        ipAddress = ipAddress.substring(7);
-      }
+      const ipAddress = getClientIp(req);
 
       await Log.create({
         userId: user._id,
         actionType: 'LOGOUT',
         module: 'Auth',
         details: `User (${user.name}) logged out of the system.`,
-        ipAddress: ipAddress,
+        ipAddress,
       });
     }
     res.json({ success: true, message: 'Logged out successfully' });
@@ -150,6 +229,7 @@ router.put('/change-password', protect, async (req, res) => {
       actionType: 'EDIT',
       module: 'User',
       details: `User (${user.name}) updated their account password.`,
+      ipAddress: getClientIp(req),
     });
 
     res.json({ success: true, message: 'Password changed successfully' });
@@ -197,6 +277,7 @@ router.post('/users', protect, adminOnly, async (req, res) => {
       actionType: 'ADD',
       module: 'User',
       details: `Created user account: ${name} (${email}) with role: ${role || 'User'}`,
+      ipAddress: getClientIp(req),
     });
 
     res.status(201).json({
@@ -240,6 +321,7 @@ router.put('/users/:id', protect, adminOnly, async (req, res) => {
       actionType: 'EDIT',
       module: 'User',
       details: `Updated user account: ${user.name} (${user.email}). New role: ${user.role}`,
+      ipAddress: getClientIp(req),
     });
 
     res.json({
@@ -278,9 +360,39 @@ router.delete('/users/:id', protect, adminOnly, async (req, res) => {
       actionType: 'DELETE',
       module: 'User',
       details: `Deleted user account: ${user.name} (${user.email})`,
+      ipAddress: getClientIp(req),
     });
 
     res.json({ success: true, message: 'User removed successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Reset 2FA for a user (Admin Only)
+// @route   POST /api/auth/users/:id/reset-2fa
+// @access  Private/AdminOnly
+router.post('/users/:id/reset-2fa', protect, adminOnly, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.twoFactorEnabled = false;
+    user.twoFactorSecret = null;
+    await user.save();
+
+    // Create activity log
+    await Log.create({
+      userId: req.user._id,
+      actionType: 'EDIT',
+      module: 'User',
+      details: `Admin (${req.user.name}) reset 2FA settings for user: ${user.name} (${user.email}).`,
+      ipAddress: getClientIp(req),
+    });
+
+    res.json({ success: true, message: `Successfully reset 2FA settings for user "${user.name}".` });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

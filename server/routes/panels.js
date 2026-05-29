@@ -4,6 +4,7 @@ const Panel = require('../models/Panel');
 const Payment = require('../models/Payment');
 const Log = require('../models/Log');
 const { protect, hasPermission, adminOnly } = require('../middleware/auth');
+const getClientIp = require('../utils/getClientIp');
 
 // @desc    Get all panels with computed ledger/outstanding
 // @route   GET /api/panels
@@ -131,6 +132,7 @@ router.post('/', protect, adminOnly, async (req, res) => {
       actionType: 'ADD',
       module: 'Panel',
       details: `Created new panel client: ${panelName} (Owner: ${ownerName}) with opening balance: ${openingBalance}`,
+      ipAddress: getClientIp(req),
     });
 
     res.status(201).json({ success: true, panel });
@@ -179,6 +181,7 @@ router.put('/:id', protect, adminOnly, async (req, res) => {
       actionType: 'EDIT',
       module: 'Panel',
       details: `Updated panel client: ${panel.panelName}. Changes made: ${JSON.stringify(updatedFields)}`,
+      ipAddress: getClientIp(req),
     });
 
     res.json({ success: true, panel: updatedPanel });
@@ -207,6 +210,7 @@ router.delete('/:id', protect, adminOnly, async (req, res) => {
       actionType: 'DELETE',
       module: 'Panel',
       details: `Deleted panel client: ${panel.panelName} and all associated payment receipts`,
+      ipAddress: getClientIp(req),
     });
 
     res.json({ success: true, message: 'Panel and associated payments deleted successfully' });
