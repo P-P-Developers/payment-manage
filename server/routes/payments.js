@@ -3,8 +3,31 @@ const router = express.Router();
 const Payment = require('../models/Payment');
 const Panel = require('../models/Panel');
 const Log = require('../models/Log');
+const User = require('../models/User');
 const { protect, hasPermission, adminOnly } = require('../middleware/auth');
 const getClientIp = require('../utils/getClientIp');
+const { applyCreditToUnpaidBills } = require('../utils/creditHelper');
+
+// @desc    Get all unpaid or partially paid bills for a specific panel client
+// @route   GET /api/payments/unpaid/:panelId
+// @access  Private (view_panels permission)
+router.get('/unpaid/:panelId', protect, hasPermission('view_panels'), async (req, res) => {
+  try {
+    const bills = await Payment.find({
+      panelId: req.params.panelId,
+      billAmount: { $gt: 0 },
+      $or: [
+        { status: { $in: ['Unpaid', 'Partial'] } },
+        { status: { $exists: false } },
+        { status: null }
+      ]
+    }).sort({ timestamp: 1 }).lean();
+
+    res.json({ success: true, bills });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 // @desc    Get all payments (with pagination support)
 // @route   GET /api/payments
@@ -119,11 +142,8 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
   }
 });
 
-// @desc    Add a payment
-// @route   POST /api/payments
-// @access  Private (add_payments permission)
 router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
-  const { panelId, paymentType, amountReceived, paymentMode, bankName, quantity, remark, unitPrice, billAmount, billDiscount, paymentDiscount, timestamp } = req.body;
+  const { panelId, paymentType, amountReceived, paymentMode, bankName, quantity, remark, unitPrice, billAmount, billDiscount, paymentDiscount, timestamp, allocations } = req.body;
 
   try {
     if (!panelId || !paymentType || amountReceived === undefined || !paymentMode) {
@@ -146,21 +166,135 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
       return res.status(400).json({ success: false, message: 'Bill discount cannot exceed bill amount' });
     }
 
-    const payment = await Payment.create({
-      panelId,
-      paymentType,
-      amountReceived: Number(amountReceived),
-      paymentMode,
-      bankName: bankName || '',
-      quantity: (quantity !== undefined && quantity !== null && quantity !== '') ? Number(quantity) : 0,
-      unitPrice: Number(unitPrice) || 0,
-      billAmount: Number(billAmount) || 0,
-      billDiscount: Number(billDiscount) || 0,
-      paymentDiscount: Number(paymentDiscount) || 0,
-      remark: remark || '',
-      addedBy: req.user._id,
-      timestamp: timestamp ? new Date(timestamp) : undefined,
-    });
+    const isBill = Number(billAmount) > 0;
+    const isPayment = Number(amountReceived) > 0;
+    let payment;
+
+    if (isPayment) {
+      let totalAllocated = 0;
+      const parsedAllocations = [];
+      if (allocations && allocations.length > 0) {
+        allocations.forEach(alloc => {
+          if (Number(alloc.amount) > 0) {
+            totalAllocated += Number(alloc.amount);
+            parsedAllocations.push(alloc);
+          }
+        });
+      }
+
+      const excess = Number(amountReceived) - totalAllocated;
+
+      if (totalAllocated > 0) {
+        // Apply allocations: Create a separate receipt for each selected bill
+        for (const alloc of parsedAllocations) {
+          const bill = await Payment.findById(alloc.billId);
+          if (bill) {
+            // Create separate receipt for this specific bill allocation
+            const allocPayment = await Payment.create({
+              panelId,
+              paymentType: bill.paymentType, // Use the bill's actual payment type
+              amountReceived: Number(alloc.amount),
+              paymentMode,
+              bankName: bankName || '',
+              quantity: (quantity !== undefined && quantity !== null && quantity !== '') ? Number(quantity) : 0,
+              unitPrice: Number(unitPrice) || 0,
+              billAmount: 0,
+              billDiscount: 0,
+              paymentDiscount: 0,
+              remark: remark ? `${remark} (Payment applied to ${bill.paymentType} charge)` : `Payment applied to ${bill.paymentType} charge`,
+              addedBy: req.user._id,
+              timestamp: timestamp ? new Date(timestamp) : undefined,
+            });
+
+            // If we don't have a main payment object yet, set this as the default to return in response
+            if (!payment) {
+              payment = allocPayment;
+            }
+
+            bill.paidAmount += Number(alloc.amount);
+            if (bill.paidAmount >= (bill.billAmount - (bill.billDiscount || 0))) {
+              bill.status = 'Paid';
+            } else {
+              bill.status = 'Partial';
+            }
+            bill.appliedPayments.push({
+              paymentId: allocPayment._id,
+              amount: Number(alloc.amount),
+            });
+            await bill.save();
+          }
+        }
+
+        // Entry 2: If there is excess, create a separate receipt with paymentType 'Advance'
+        if (excess > 0) {
+          const creditPayment = await Payment.create({
+            panelId,
+            paymentType: 'Advance', // Changed from 'Other' to 'Advance'
+            amountReceived: excess,
+            paymentMode,
+            bankName: bankName || '',
+            quantity: 0,
+            unitPrice: 0,
+            billAmount: 0,
+            billDiscount: 0,
+            paymentDiscount: 0,
+            remark: remark ? `${remark} (Advance Credit Deposit)` : 'Advance Credit Deposit',
+            addedBy: req.user._id,
+            timestamp: timestamp ? new Date(timestamp) : undefined,
+          });
+
+          // Set this as returned payment if not set
+          if (!payment) {
+            payment = creditPayment;
+          }
+
+          panel.creditBalance += excess;
+          await panel.save();
+        }
+      } else {
+        // No allocations: create single payment receipt for the full amount and save to credit with type 'Advance'
+        payment = await Payment.create({
+          panelId,
+          paymentType: 'Advance', // Changed from 'Other' to 'Advance'
+          amountReceived: Number(amountReceived),
+          paymentMode,
+          bankName: bankName || '',
+          quantity: (quantity !== undefined && quantity !== null && quantity !== '') ? Number(quantity) : 0,
+          unitPrice: Number(unitPrice) || 0,
+          billAmount: 0,
+          billDiscount: 0,
+          paymentDiscount: Number(paymentDiscount) || 0,
+          remark: remark || 'Advance Credit Deposit',
+          addedBy: req.user._id,
+          timestamp: timestamp ? new Date(timestamp) : undefined,
+        });
+
+        panel.creditBalance += Number(amountReceived);
+        await panel.save();
+
+        // Automatically apply available credit to oldest unpaid bills
+        await applyCreditToUnpaidBills(panelId);
+      }
+    } else if (isBill) {
+      payment = await Payment.create({
+        panelId,
+        paymentType,
+        amountReceived: 0,
+        paymentMode,
+        bankName: bankName || '',
+        quantity: (quantity !== undefined && quantity !== null && quantity !== '') ? Number(quantity) : 0,
+        unitPrice: Number(unitPrice) || 0,
+        billAmount: Number(billAmount) || 0,
+        billDiscount: Number(billDiscount) || 0,
+        paymentDiscount: 0,
+        remark: remark || '',
+        addedBy: req.user._id,
+        timestamp: timestamp ? new Date(timestamp) : undefined,
+      });
+
+      // Automatically apply any existing credit to the new bill
+      await applyCreditToUnpaidBills(panelId);
+    }
 
     // Create custom detailed activity log
     let logDetails = `Received payment of ₹${amountReceived} (${paymentType}) from panel ${panel.panelName} via ${paymentMode}`;

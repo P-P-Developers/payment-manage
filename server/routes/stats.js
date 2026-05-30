@@ -25,7 +25,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
       totalMaintenanceCharges += panel.maintenanceCharges || 0;
     });
 
-    const totalPaymentsReceived = payments.reduce((sum, p) => sum + (p.amountReceived || 0), 0);
+    const totalPaymentsReceived = payments.reduce((sum, p) => p.bankName === 'System Credit' ? sum : sum + (p.amountReceived || 0), 0);
     const totalBillAmount = payments.reduce((sum, p) => sum + (p.billAmount || 0), 0);
     const totalBillDiscount = payments.reduce((sum, p) => sum + (p.billDiscount || 0), 0);
     const totalPaymentDiscount = payments.reduce((sum, p) => sum + (p.paymentDiscount || 0), 0);
@@ -40,6 +40,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
     };
 
     payments.forEach((p) => {
+      if (p.bankName === 'System Credit') return; // Exclude credit adjustments from new payments received breakdown
       if (paymentBreakdown[p.paymentType] !== undefined) {
         paymentBreakdown[p.paymentType] += p.amountReceived;
       } else {
@@ -56,6 +57,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
     };
 
     payments.forEach((p) => {
+      if (p.bankName === 'System Credit') return; // Exclude credit adjustments
       if (paymentModeBreakdown[p.paymentMode] !== undefined) {
         paymentModeBreakdown[p.paymentMode] += p.amountReceived;
       }

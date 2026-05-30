@@ -84,57 +84,76 @@ export default function TransactionLedgerTab({
   return (
     <>
       {/* Filters bar */}
-      <div className="flex flex-wrap items-center gap-3 w-full bg-slate-100/10 dark:bg-slate-900/10 p-2.5 rounded-2xl border border-slate-900/40">
-        {/* Search Input */}
-        <div className="relative flex-1 min-w-[220px]">
-          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-500 dark:text-slate-500" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search panel client or category..."
-            className="w-full rounded-xl pl-10 pr-4 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500/40"
-          />
+      <div className="w-full bg-slate-100/10 dark:bg-slate-900/10 p-3 rounded-2xl border border-slate-900/40 space-y-2.5">
+
+        {/* Row 1: Search + Reset */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search panel client or category..."
+              className="w-full rounded-xl pl-10 pr-4 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500/40"
+            />
+          </div>
+          {(startDate || endDate || transactionTypeFilter !== 'all' || typeFilter !== 'All' || modeFilter !== 'All' || categoryFilter !== 'All' || searchQuery) && (
+            <button
+              onClick={() => {
+                setStartDate('');
+                setEndDate('');
+                setTransactionTypeFilter('all');
+                setTypeFilter('All');
+                setModeFilter('All');
+                setCategoryFilter('All');
+                setSearchQuery('');
+              }}
+              className="shrink-0 text-[10px] uppercase tracking-wider text-rose-400 hover:text-rose-300 transition-all bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 px-3 py-2.5 rounded-xl whitespace-nowrap"
+            >
+              Reset
+            </button>
+          )}
         </div>
 
-        {/* Transaction Type Filter */}
-        <div className="shrink-0">
+        {/* Row 2: Dropdowns + Date Range */}
+        <div className="flex flex-wrap items-center gap-2">
+
+          {/* Transaction Type Filter */}
           <select
             value={transactionTypeFilter}
             onChange={(e) => setTransactionTypeFilter(e.target.value)}
-            className="rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-semibold"
+            className="flex-1 min-w-[130px] rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-semibold"
           >
             <option value="all" className="bg-slate-100 dark:bg-slate-900">All Transactions</option>
             <option value="bill" className="bg-slate-100 dark:bg-slate-900">Bills Only</option>
             <option value="received" className="bg-slate-100 dark:bg-slate-900">Payments Only</option>
           </select>
-        </div>
 
-        {/* Date Range Picker */}
-        <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 shrink-0">
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            onClick={(e) => e.target.showPicker()}
-            className="w-full bg-transparent text-slate-900 dark:text-white focus:outline-none cursor-pointer text-xs font-semibold"
-          />
-          <span className="text-slate-600 text-[9px] uppercase">to</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            onClick={(e) => e.target.showPicker()}
-            className="w-full bg-transparent text-slate-900 dark:text-white focus:outline-none cursor-pointer text-xs font-semibold"
-          />
-        </div>
+          {/* Date Range Picker */}
+          <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 flex-1 min-w-[200px]">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              onClick={(e) => e.target.showPicker()}
+              className="flex-1 min-w-0 bg-transparent text-slate-900 dark:text-white focus:outline-none cursor-pointer text-xs font-semibold"
+            />
+            <span className="text-slate-500 text-[9px] uppercase shrink-0">to</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              onClick={(e) => e.target.showPicker()}
+              className="flex-1 min-w-0 bg-transparent text-slate-900 dark:text-white focus:outline-none cursor-pointer text-xs font-semibold"
+            />
+          </div>
 
-        {/* Panel Category Filter */}
-        <div className="shrink-0">
+          {/* Panel Category Filter */}
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
+            className="flex-1 min-w-[120px] rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
           >
             <option value="All" className="bg-slate-100 dark:bg-slate-900">All Categories</option>
             {categories.map((cat) => (
@@ -143,28 +162,24 @@ export default function TransactionLedgerTab({
               </option>
             ))}
           </select>
-        </div>
 
-        {/* Charge Type Filter */}
-        <div className="shrink-0">
+          {/* Charge Type Filter */}
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
+            className="flex-1 min-w-[110px] rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
           >
             <option value="All" className="bg-slate-100 dark:bg-slate-900">All Charges</option>
             {(paymentTypes.length > 0 ? paymentTypes : FALLBACK_PAYMENT_TYPES.map(name => ({ _id: name, name }))).map((pt) => (
               <option key={pt._id} value={pt.name} className="bg-slate-100 dark:bg-slate-900">{pt.name}</option>
             ))}
           </select>
-        </div>
 
-        {/* Payment Mode Filter */}
-        <div className="shrink-0">
+          {/* Payment Mode Filter */}
           <select
             value={modeFilter}
             onChange={(e) => setModeFilter(e.target.value)}
-            className="rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
+            className="flex-1 min-w-[110px] rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
           >
             <option value="All" className="bg-slate-100 dark:bg-slate-900">All Modes</option>
             <option value="UPI" className="bg-slate-100 dark:bg-slate-900">UPI</option>
@@ -172,25 +187,8 @@ export default function TransactionLedgerTab({
             <option value="Bank Transfer" className="bg-slate-100 dark:bg-slate-900">Bank Transfer</option>
             <option value="Online" className="bg-slate-100 dark:bg-slate-900">Online</option>
           </select>
-        </div>
 
-        {/* Reset Filters Button */}
-        {(startDate || endDate || transactionTypeFilter !== 'all' || typeFilter !== 'All' || modeFilter !== 'All' || categoryFilter !== 'All' || searchQuery) && (
-          <button
-            onClick={() => {
-              setStartDate('');
-              setEndDate('');
-              setTransactionTypeFilter('all');
-              setTypeFilter('All');
-              setModeFilter('All');
-              setCategoryFilter('All');
-              setSearchQuery('');
-            }}
-            className="text-[10px] uppercase tracking-wider text-rose-400 hover:text-rose-300 transition-all bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 px-3 py-2 rounded-xl shrink-0"
-          >
-            Reset
-          </button>
-        )}
+        </div>
       </div>
 
       {/* Payments Table */}
@@ -263,7 +261,7 @@ export default function TransactionLedgerTab({
                         {p.paymentType}
                       </span>
                       {(p.paymentType === 'License' || p.paymentType === 'IP Charges') &&
-                        p.quantity !== undefined && p.quantity !== null && (
+                        p.quantity !== undefined && p.quantity !== null && p.quantity > 0 && (
                           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-0.5">
                             Qty: {p.quantity}
                           </span>

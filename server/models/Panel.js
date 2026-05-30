@@ -47,6 +47,10 @@ const panelSchema = new mongoose.Schema(
       type: String,
       default: 'Algo',
     },
+    creditBalance: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

@@ -19,6 +19,7 @@ import {
   Phone,
   Mail,
   User as UserIcon,
+  Info,
 } from 'lucide-react';
 
 const SkeletonRow = () => (
@@ -83,6 +84,10 @@ export default function Panels() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [panelToDelete, setPanelToDelete] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Dynamic Dues Modal State
+  const [isDuesModalOpen, setIsDuesModalOpen] = useState(false);
+  const [selectedDuesPanel, setSelectedDuesPanel] = useState(null);
 
   // Form Fields
   const [panelName, setPanelName] = useState('');
@@ -380,8 +385,9 @@ export default function Panels() {
       )}
 
       {/* Filters bar */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:max-w-md">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+        {/* Search */}
+        <div className="relative w-full lg:col-span-4">
           <Search className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
           <input
             type="text"
@@ -392,14 +398,15 @@ export default function Panels() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+        {/* Dropdowns Wrapper */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:col-span-8 w-full">
           {/* Category Filter */}
-          <div className="flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 shadow-sm shrink-0">
-            <span className="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wide">Category:</span>
+          <div className="flex items-center justify-between sm:justify-start gap-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-3.5 py-2.5 text-xs text-slate-700 dark:text-slate-300 shadow-sm">
+            <span className="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wide shrink-0">Category:</span>
             <select
               value={selectedCategoryFilter}
               onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-              className="bg-transparent border-none text-slate-900 dark:text-white focus:ring-0 font-semibold cursor-pointer outline-none"
+              className="bg-transparent border-none text-slate-900 dark:text-white focus:ring-0 font-semibold cursor-pointer outline-none w-full text-right sm:text-left"
             >
               <option value="All" className="bg-slate-100 dark:bg-slate-900">All Categories</option>
               {categories.map((cat) => (
@@ -411,26 +418,26 @@ export default function Panels() {
           </div>
 
           {/* Balance Status Filter */}
-          <div className="flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 shadow-sm shrink-0">
-            <span className="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wide">Status:</span>
+          <div className="flex items-center justify-between sm:justify-start gap-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-3.5 py-2.5 text-xs text-slate-700 dark:text-slate-300 shadow-sm">
+            <span className="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wide shrink-0">Status:</span>
             <select
               value={balanceFilter}
               onChange={(e) => setBalanceFilter(e.target.value)}
-              className="bg-transparent border-none text-slate-900 dark:text-white focus:ring-0 font-semibold cursor-pointer outline-none"
+              className="bg-transparent border-none text-slate-900 dark:text-white focus:ring-0 font-semibold cursor-pointer outline-none w-full text-right sm:text-left"
             >
               <option value="All" className="bg-slate-100 dark:bg-slate-900">All Balances</option>
-              <option value="Outstanding" className="bg-slate-100 dark:bg-slate-900">Outstanding ( ₹0)</option>
+              <option value="Outstanding" className="bg-slate-100 dark:bg-slate-900">Outstanding (&gt; ₹0)</option>
               <option value="Advance" className="bg-slate-100 dark:bg-slate-900">Nil / Advance (≤ ₹0)</option>
             </select>
           </div>
 
           {/* Sorting */}
-          <div className="flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 shadow-sm shrink-0">
-            <span className="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wide">Sort By:</span>
+          <div className="flex items-center justify-between sm:justify-start gap-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-3.5 py-2.5 text-xs text-slate-700 dark:text-slate-300 shadow-sm">
+            <span className="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wide shrink-0">Sort By:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-transparent border-none text-slate-900 dark:text-white focus:ring-0 font-semibold cursor-pointer outline-none"
+              className="bg-transparent border-none text-slate-900 dark:text-white focus:ring-0 font-semibold cursor-pointer outline-none w-full text-right sm:text-left"
             >
               <option value="latest" className="bg-slate-100 dark:bg-slate-900">Latest Registered</option>
               <option value="name-asc" className="bg-slate-100 dark:bg-slate-900">Name (A - Z)</option>
@@ -500,24 +507,41 @@ export default function Panels() {
                         </p>
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
-                      ₹{panel.licenseCharges?.toLocaleString()}
+                    <td className={`px-6 py-4 font-bold ${panel.licenseDues > 0 ? 'text-amber-500' : 'text-slate-500 dark:text-slate-400'}`}>
+                      ₹{(panel.licenseDues || 0).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
-                      ₹{panel.ipCharges?.toLocaleString()}
+                    <td className={`px-6 py-4 font-bold ${panel.ipDues > 0 ? 'text-amber-500' : 'text-slate-500 dark:text-slate-400'}`}>
+                      ₹{(panel.ipDues || 0).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 font-semibold text-slate-700 dark:text-slate-300">
-                      ₹{panel.maintenanceCharges?.toLocaleString()}
+                    <td className={`px-6 py-4 font-bold ${panel.maintenanceDues > 0 ? 'text-amber-500' : 'text-slate-500 dark:text-slate-400'}`}>
+                      ₹{(panel.maintenanceDues || 0).toLocaleString()}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span
-                          className={`font-bold text-base ${panel.outstanding > 0 ? 'text-rose-400' : 'text-emerald-400'
-                            }`}
-                        >
-                          ₹{panel.outstanding?.toLocaleString()}
-                        </span>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-500 uppercase font-medium mt-0.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span
+                            className={`font-bold text-base ${panel.outstanding > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
+                              }`}
+                          >
+                            {panel.outstanding < 0
+                              ? `₹${Math.abs(panel.outstanding).toLocaleString()} (Adv)`
+                              : `₹${(panel.outstanding || 0).toLocaleString()}`
+                            }
+                          </span>
+                          {panel.outstanding > 0 && (
+                            <button
+                              onClick={() => {
+                                setSelectedDuesPanel(panel);
+                                setIsDuesModalOpen(true);
+                              }}
+                              className="h-5 w-5 rounded-md bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white border border-rose-200 dark:border-rose-500/20 flex items-center justify-center transition-all duration-200 shadow-sm active:scale-90 shrink-0 cursor-pointer"
+                              title="View Dues Breakdown"
+                            >
+                              <Info className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-medium mt-0.5">
                           Paid: ₹{panel.totalPaid?.toLocaleString()}
                         </span>
                       </div>
@@ -815,6 +839,79 @@ export default function Panels() {
           </div>
         </div>
       )}
+
+      {/* DUES BREAKDOWN MODAL */}
+      {isDuesModalOpen && selectedDuesPanel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div onClick={() => setIsDuesModalOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+          <div className="relative w-full max-w-md rounded-2xl glass-card p-6 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setIsDuesModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            >
+              <X className="h-6 w-6" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
+              <div className="h-10 w-10 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center border border-rose-500/20 shadow-inner">
+                <DollarSign className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-snug">
+                  Dues Breakdown
+                </h3>
+                <p className="text-[10px] uppercase font-extrabold tracking-wider text-rose-500 mt-0.5">
+                  {selectedDuesPanel.panelName}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase tracking-wider pb-2 border-b border-slate-100 dark:border-slate-800">
+                <span>Charge Type</span>
+                <span className="text-right">Outstanding Dues</span>
+              </div>
+
+              <div className="divide-y divide-slate-100 dark:divide-slate-800 space-y-3">
+                {Object.entries(selectedDuesPanel.duesBreakdown || {}).length === 0 ? (
+                  <p className="text-xs text-slate-500 italic text-center py-4">
+                    No active outstanding dues recorded.
+                  </p>
+                ) : (
+                  Object.entries(selectedDuesPanel.duesBreakdown || {}).map(([type, due], idx) => (
+                    <div key={type} className="flex items-center justify-between pt-3 first:pt-0">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 capitalize">
+                        {type} Dues
+                      </span>
+                      <span className="text-sm font-extrabold text-rose-500 font-mono">
+                        ₹{(due || 0).toLocaleString()}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+                  Total Outstanding
+                </span>
+                <span className="text-base font-black text-rose-600 font-mono">
+                  ₹{(selectedDuesPanel.outstanding || 0).toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsDuesModalOpen(false)}
+              className="w-full mt-6 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 py-3 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors shadow-sm"
+            >
+              Close Breakdown
+            </button>
+          </div>
+        </div>
+      )}
+
       <ConfirmModal
         isOpen={isDeleteModalOpen}
         onClose={() => {

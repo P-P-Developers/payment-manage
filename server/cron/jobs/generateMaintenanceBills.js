@@ -82,6 +82,10 @@ module.exports = {
           timestamp: now
         });
 
+        // Automatically apply any existing credit balance to this new bill
+        const { applyCreditToUnpaidBills } = require('../../utils/creditHelper');
+        await applyCreditToUnpaidBills(panel._id);
+
         // Add a system log entry for audit trail
         await Log.create({
           userId: admin._id,

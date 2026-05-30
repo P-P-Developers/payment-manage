@@ -57,6 +57,30 @@ const paymentSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    status: {
+      type: String,
+      enum: ['Unpaid', 'Partial', 'Paid'],
+      default: function () {
+        return this.billAmount > 0 ? 'Unpaid' : null;
+      },
+    },
+    paidAmount: {
+      type: Number,
+      default: 0,
+    },
+    appliedPayments: [
+      {
+        paymentId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Payment',
+        },
+        amount: Number,
+        appliedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
     editHistory: [
       {
         editedBy: {

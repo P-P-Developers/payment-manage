@@ -259,6 +259,40 @@ export default function Payments() {
   const [panelSearchQuery, setPanelSearchQuery] = useState('');
   const [isPanelDropdownOpen, setIsPanelDropdownOpen] = useState(false);
 
+  // Unpaid bills and allocations state
+  const [unpaidBills, setUnpaidBills] = useState([]);
+  const [selectedAllocations, setSelectedAllocations] = useState({});
+
+  useEffect(() => {
+    if (selectedPanelId) {
+      const fetchUnpaidBills = async () => {
+        try {
+          const data = await apiRequest(`/payments/unpaid/${selectedPanelId}`);
+          if (data.success) {
+            setUnpaidBills(data.bills || []);
+            setSelectedAllocations({});
+          }
+        } catch (err) {
+          console.error('Failed to load unpaid bills:', err);
+        }
+      };
+      fetchUnpaidBills();
+    } else {
+      setUnpaidBills([]);
+      setSelectedAllocations({});
+    }
+  }, [selectedPanelId]);
+
+  // Auto-bump Amount Received if it's less than the sum of selected allocations
+  useEffect(() => {
+    if (modalMode === 'receive') {
+      const sum = Object.values(selectedAllocations).reduce((acc, cur) => acc + (Number(cur) || 0), 0);
+      if (sum > 0 && (!amountReceived || Number(amountReceived) < sum)) {
+        setAmountReceived(sum.toString());
+      }
+    }
+  }, [selectedAllocations, modalMode, amountReceived]);
+
   useEffect(() => {
     const user = getLoggedUser();
     if (user && user.role) {
@@ -486,6 +520,12 @@ export default function Payments() {
           setSubmitting(false);
           return;
         }
+        const selectedSum = Object.values(selectedAllocations).reduce((acc, cur) => acc + (Number(cur) || 0), 0);
+        if (finalAmountReceived < selectedSum) {
+          setError(`Amount received (₹${finalAmountReceived.toLocaleString()}) cannot be less than the total amount of selected bills (₹${selectedSum.toLocaleString()}).`);
+          setSubmitting(false);
+          return;
+        }
         if (finalPaymentMode !== 'Cash' && finalAmountReceived > 0 && !bankName) {
           setError('Please select a bank name.');
           setSubmitting(false);
@@ -556,6 +596,15 @@ export default function Payments() {
 
       const finalTimestamp = combineDateWithCurrentTime(paymentDate);
 
+      const allocations = [];
+      if (modalMode === 'receive') {
+        Object.entries(selectedAllocations).forEach(([billId, amount]) => {
+          if (amount > 0) {
+            allocations.push({ billId, amount: Number(amount) });
+          }
+        });
+      }
+
       const payload = {
         panelId: selectedPanelId,
         paymentType,
@@ -569,6 +618,7 @@ export default function Payments() {
         paymentDiscount: finalPaymentDiscount,
         remark,
         timestamp: finalTimestamp.toISOString(),
+        allocations: modalMode === 'receive' ? allocations : undefined,
       };
 
       const data = await apiRequest('/payments', {
@@ -742,70 +792,68 @@ export default function Payments() {
   return (
     <div className="space-y-6">
       {/* Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-5">
         {/* Left Section */}
-        <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white tracking-tight truncate">
               Ledger Collections (Payments)
             </h2>
-
             {loading && payments.length > 0 && (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+              <div className="shrink-0 h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
             )}
           </div>
-
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="hidden sm:block mt-1 text-sm text-gray-500 dark:text-gray-400">
             Receive client subscription payments, issue receipt entries, and export transaction records.
           </p>
         </div>
 
         {/* Right Actions */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Export */}
           <button
             onClick={handleExportCSV}
             disabled={loading}
-            className="flex items-center gap-2 rounded-lg 
-      bg-white dark:bg-gray-900 
-      border border-gray-200 dark:border-gray-700 
-      px-4 py-2.5 text-sm font-medium 
-      text-gray-700 dark:text-gray-300 
-      hover:bg-gray-50 dark:hover:bg-gray-800 
-      transition-all duration-200 
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-lg
+      bg-white dark:bg-gray-900
+      border border-gray-200 dark:border-gray-700
+      px-3 sm:px-4 py-2.5 text-sm font-medium
+      text-gray-700 dark:text-gray-300
+      hover:bg-gray-50 dark:hover:bg-gray-800
+      transition-all duration-200
       shadow-sm hover:shadow"
             title="Download CSV file for MS Excel"
           >
-            <FileSpreadsheet className="h-4 w-4 text-gray-500" />
-            Export
+            <FileSpreadsheet className="h-4 w-4 text-gray-500 shrink-0" />
+            <span>Export</span>
           </button>
 
           {/* Receive Payment (Primary CTA) */}
           <button
             onClick={handleOpenReceiveModal}
-            className="flex items-center gap-2 rounded-lg 
-      bg-blue-600 hover:bg-blue-700 
-      px-4 py-2.5 text-sm font-semibold 
-      text-white 
-      transition-all duration-200 
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-lg
+      bg-blue-600 hover:bg-blue-700
+      px-3 sm:px-4 py-2.5 text-sm font-semibold
+      text-white
+      transition-all duration-200
       shadow-md hover:shadow-lg hover:-translate-y-[1px]"
           >
-            <Plus className="h-4 w-4" />
-            Receive Payment
+            <Plus className="h-4 w-4 shrink-0" />
+            <span className="whitespace-nowrap">Receive Payment</span>
           </button>
 
           {/* Create Bill (Secondary CTA) */}
           <button
             onClick={handleOpenBillModal}
-            className="flex items-center gap-2 rounded-lg 
-      bg-gray-900 hover:bg-black 
-      px-4 py-2.5 text-sm font-semibold 
-      text-white 
-      transition-all duration-200 
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-lg
+      bg-gray-900 hover:bg-black
+      px-3 sm:px-4 py-2.5 text-sm font-semibold
+      text-white
+      transition-all duration-200
       shadow-md hover:shadow-lg hover:-translate-y-[1px]"
           >
-            <Plus className="h-4 w-4" />
-            Create Bill
+            <Plus className="h-4 w-4 shrink-0" />
+            <span className="whitespace-nowrap">Create Bill</span>
           </button>
         </div>
       </div>
@@ -826,31 +874,31 @@ export default function Payments() {
       )}
 
       {/* View Switcher Tabs */}
-      <div className="flex items-center bgw justify-between bg-slate-100/60 dark:bg-slate-900/60 p-2 rounded-2xl border border-slate-300 dark:border-slate-800">
-        <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center justify-between bg-slate-100/60 dark:bg-slate-900/60 p-2 rounded-2xl border border-slate-300 dark:border-slate-800 gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab('list')}
-            className={`px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm  transition-all flex items-center gap-2 ${activeTab === 'list'
+            className={`shrink-0 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-1.5 sm:gap-2 ${activeTab === 'list'
               ? 'bg-indigo-600 text-slate-900 dark:text-white shadow-md'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
           >
-            <Calendar className="h-4 w-4" />
-            <span>Transaction Ledger List</span>
+            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+            <span className="whitespace-nowrap">Transaction Ledger</span>
           </button>
           <button
             onClick={() => setActiveTab('consolidated')}
-            className={`px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm  transition-all flex items-center gap-2 ${activeTab === 'consolidated'
+            className={`shrink-0 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-1.5 sm:gap-2 ${activeTab === 'consolidated'
               ? 'bg-emerald-600 text-slate-900 dark:text-white shadow-md'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
           >
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <FileSpreadsheet className="h-4 w-4" />
-            <span>Consolidated Panels Ledger Sheet</span>
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+            <FileSpreadsheet className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+            <span className="whitespace-nowrap">Consolidated Ledger</span>
           </button>
         </div>
-        <div className="hidden md:block text-xs text-slate-500 dark:text-slate-500 dark:text-slate-500 font-medium">
+        <div className="hidden md:block text-xs text-slate-500 dark:text-slate-500 font-medium shrink-0">
           {activeTab === 'list'
             ? 'Showing individual collections and bill issues'
             : 'Consolidated overview across all active clients'}
@@ -904,7 +952,7 @@ export default function Payments() {
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
           <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-          <div className="relative w-full max-w-3xl rounded-2xl glass-card p-6 md:p-8 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-4xl rounded-2xl glass-card p-6 md:p-8 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[90vh]">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -1093,6 +1141,119 @@ export default function Payments() {
                         : `₹${(selectedPanelDetails?.outstanding || 0).toLocaleString()}`
                       }
                     </p>
+                    {selectedPanelDetails.creditBalance > 0 && (
+                      <p className="text-[10px] text-emerald-400 font-bold mt-1">
+                        Available User Credit: ₹{selectedPanelDetails.creditBalance.toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Selective pending charges checklist */}
+              {modalMode === 'receive' && selectedPanelId && unpaidBills.length > 0 && (
+                <div className="rounded-xl border border-slate-300 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-900/50 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                      Pending Charge Type Bills
+                    </h4>
+                    <label className="flex items-center gap-2 text-xs font-semibold text-indigo-500 hover:text-indigo-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={unpaidBills.length > 0 && unpaidBills.every(b => !!selectedAllocations[b._id])}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          const nextAlloc = {};
+                          if (checked) {
+                            const maxLimit = Number(amountReceived) || 0;
+                            let remainingLimit = maxLimit;
+                            unpaidBills.forEach(b => {
+                              if (remainingLimit <= 0) return;
+                              const remaining = (b.billAmount - (b.billDiscount || 0)) - b.paidAmount;
+                              const allocAmount = Math.min(remaining, remainingLimit);
+                              nextAlloc[b._id] = allocAmount;
+                              remainingLimit -= allocAmount;
+                            });
+                          }
+                          setSelectedAllocations(nextAlloc);
+                        }}
+                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                      />
+                      Select All
+                    </label>
+                  </div>
+
+                  <div className="divide-y divide-slate-200 dark:divide-slate-800 max-h-48 overflow-y-auto space-y-2.5 pr-1 scrollbar-thin">
+                    {unpaidBills.map((bill) => {
+                      const remaining = (bill.billAmount - (bill.billDiscount || 0)) - bill.paidAmount;
+                      const isChecked = !!selectedAllocations[bill._id];
+                      const currentAllocatedSum = Object.entries(selectedAllocations).reduce((acc, [id, amt]) => {
+                        return acc + (Number(amt) || 0);
+                      }, 0);
+                      const maxLimit = Number(amountReceived) || 0;
+                      const isLimitReached = maxLimit > 0 && currentAllocatedSum >= maxLimit;
+
+                      return (
+                        <div key={bill._id} className="flex items-center justify-between gap-4 pt-2.5 first:pt-0">
+                          <label className={`flex items-center gap-2.5 flex-1 select-none ${(!isChecked && isLimitReached) ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              disabled={!isChecked && isLimitReached}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                const nextAlloc = { ...selectedAllocations };
+                                if (checked) {
+                                  const currentSum = Object.entries(nextAlloc).reduce((acc, [id, amt]) => {
+                                    return acc + (Number(amt) || 0);
+                                  }, 0);
+                                  const remainingLimit = Math.max(0, maxLimit - currentSum);
+                                  if (remainingLimit > 0) {
+                                    nextAlloc[bill._id] = Math.min(remaining, remainingLimit);
+                                  } else {
+                                    return; // Limit reached
+                                  }
+                                } else {
+                                  delete nextAlloc[bill._id];
+                                }
+                                setSelectedAllocations(nextAlloc);
+                              }}
+                              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4.5 w-4.5 disabled:opacity-50"
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                                {bill.paymentType} Charge
+                              </span>
+                              <span className="text-[10px] text-slate-500">
+                                Due: {new Date(bill.timestamp).toLocaleDateString()} &middot; Total: ₹{(bill.billAmount - (bill.billDiscount || 0)).toLocaleString()}
+                              </span>
+                            </div>
+                          </label>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-rose-400 font-semibold">
+                              Pending: ₹{remaining.toLocaleString()}
+                            </span>
+                            {isChecked && (
+                              <input
+                                type="number"
+                                value={selectedAllocations[bill._id] || ''}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  const nextAlloc = { ...selectedAllocations };
+                                  nextAlloc[bill._id] = val === '' ? '' : Math.min(Number(val), remaining);
+                                  setSelectedAllocations(nextAlloc);
+                                }}
+                                className="w-24 rounded-lg px-2.5 py-1.5 text-xs text-right bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white"
+                                min="1"
+                                max={remaining}
+                                required
+                              />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

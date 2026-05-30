@@ -17,6 +17,55 @@ import {
 } from 'lucide-react';
 import ReceiptModal from '@/components/ReceiptModal';
 
+/* ─── Charge Type Badge ─────────────────────────────────────────────────── */
+const CHARGE_TYPE_STYLES = {
+  License: {
+    dot: 'bg-indigo-500',
+    badge: 'bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-800 border-indigo-300',
+    badgeSm: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  },
+  'IP Charges': {
+    dot: 'bg-violet-500',
+    badge: 'bg-gradient-to-br from-violet-50 to-violet-100 text-violet-800 border-violet-300',
+    badgeSm: 'bg-violet-50 text-violet-700 border-violet-200',
+  },
+  Maintenance: {
+    dot: 'bg-amber-500',
+    badge: 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-800 border-amber-300',
+    badgeSm: 'bg-amber-50 text-amber-700 border-amber-200',
+  },
+  'Setup Cost': {
+    dot: 'bg-teal-500',
+    badge: 'bg-gradient-to-br from-teal-50 to-teal-100 text-teal-800 border-teal-300',
+    badgeSm: 'bg-teal-50 text-teal-700 border-teal-200',
+  },
+};
+
+const ChargeTypeBadge = ({ type, size = 'md' }) => {
+  const style = CHARGE_TYPE_STYLES[type] || {
+    dot: 'bg-emerald-500',
+    badge: 'bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-800 border-emerald-300',
+    badgeSm: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  };
+
+  if (size === 'sm') {
+    return (
+      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] border font-bold ${style.badgeSm}`}>
+        <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${style.dot}`}></span>
+        {type}
+      </span>
+    );
+  }
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border shadow-sm ${style.badge}`}>
+      <span className={`h-2 w-2 rounded-full shrink-0 ${style.dot}`}></span>
+      {type}
+    </span>
+  );
+};
+/* ─────────────────────────────────────────────────────────────────────────── */
+
 const PanelLedgerSkeleton = () => (
   <div className="space-y-8 animate-pulse">
     {/* Top action header skeleton */}
@@ -461,68 +510,56 @@ export default function PanelLedger() {
 
         {activeTab === 'list' ? (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[640px]">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase font-semibold tracking-wider">
-                  <th className="px-4 py-4 text-center">S.No</th>
-                  <th className="px-6 py-4">Transaction Date</th>
-                  <th className="px-6 py-4">Charges Type</th>
-                  <th className="px-6 py-4">Mode</th>
-                  <th className="px-6 py-4">Billing & Payment</th>
-                  <th className="px-6 py-4">Received By</th>
-                  {/* <th className="px-6 py-4 text-center">Action</th> */}
+                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] sm:text-xs uppercase font-bold tracking-wider">
+                  <th className="px-2 sm:px-4 py-3 sm:py-4 text-center w-10 sm:w-14">S.No</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4">Transaction Date</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4">Charges Type</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4">Mode</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4">Billing & Payment</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4">Received By</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
+              <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
                 {filteredPayments.map((p, index) => (
                   <tr key={p._id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="px-4 py-4 text-center font-bold text-slate-400">
+                    <td className="px-2 sm:px-4 py-3 sm:py-4 text-center font-bold text-slate-400 text-xs">
                       {index + 1}
                     </td>
-                    <td className="px-6 py-4 text-slate-800">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-slate-450 text-slate-400 shrink-0" />
-                        <span className="font-semibold text-slate-800">{new Date(p.timestamp).toLocaleDateString()}</span>
-                        <span className="text-xs text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded">{new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-800">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400 shrink-0" />
+                        <span className="font-semibold text-slate-800 whitespace-nowrap">{new Date(p.timestamp).toLocaleDateString()}</span>
+                        <span className="hidden sm:inline text-xs text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded">{new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex px-2.5 py-0.5 rounded-lg text-xs font-bold border ${p.paymentType === 'License'
-                          ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                          : p.paymentType === 'IP Charges'
-                            ? 'bg-violet-50 text-violet-700 border-violet-200'
-                            : p.paymentType === 'Maintenance'
-                              ? 'bg-amber-50 text-amber-700 border-amber-200'
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          }`}
-                      >
-                        {p.paymentType}
-                      </span>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4">
+                      <ChargeTypeBadge type={p.paymentType} size="md" />
                     </td>
-                    <td className="px-6 py-4 text-slate-700">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-700">
                       {p.amountReceived > 0 ? (
                         <div className="flex items-center gap-1.5 font-semibold text-slate-700">
-                          <CreditCard className="h-4 w-4 text-slate-400 shrink-0" />
-                          <span>{p.paymentMode}</span>
-                          {p.bankName && <span className="text-xs text-slate-400 font-bold bg-slate-50 border border-slate-150 px-1 py-0.5 rounded">({p.bankName})</span>}
+                          <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400 shrink-0" />
+                          <span className="whitespace-nowrap">{p.paymentMode}</span>
+                          {p.bankName && <span className="hidden sm:inline text-xs text-slate-400 font-bold bg-slate-50 border border-slate-150 px-1 py-0.5 rounded">({p.bankName})</span>}
                         </div>
                       ) : (
                         <span className="text-slate-400 font-semibold font-mono">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4">
                       <div className="flex flex-col gap-1.5">
                         {p.billAmount > 0 ? (
                           <>
-                            <div className="flex items-center gap-2 text-xs">
+                            <div className="flex items-center gap-1.5 text-xs">
                               <span className="text-slate-500 font-medium">Bill:</span>
                               <span className="font-bold text-slate-800">₹{p.billAmount?.toLocaleString()}</span>
                             </div>
                             {p.amountReceived > 0 && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5">
                                 <span className="text-slate-500 font-medium text-xs">Paid:</span>
-                                <span className={`font-extrabold text-sm ${p.amountReceived < p.billAmount
+                                <span className={`font-extrabold text-xs sm:text-sm ${p.amountReceived < p.billAmount
                                   ? 'text-amber-700'
                                   : 'text-emerald-700'
                                   }`}>
@@ -531,31 +568,31 @@ export default function PanelLedger() {
                               </div>
                             )}
                             {p.amountReceived === 0 ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200 w-fit">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200 w-fit whitespace-nowrap">
                                 Outstanding / Credit Only
                               </span>
                             ) : p.amountReceived < p.billAmount ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 w-fit">
-                                Partially Paid (₹{(p.billAmount - p.amountReceived).toLocaleString()} due)
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 w-fit whitespace-nowrap">
+                                Partial (₹{(p.billAmount - p.amountReceived).toLocaleString()} due)
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 w-fit">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 w-fit">
                                 Fully Paid
                               </span>
                             )}
                           </>
                         ) : (
                           <>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5">
                               <span className="text-slate-500 font-medium text-xs">Paid:</span>
-                              <span className="font-extrabold text-slate-850 text-slate-800 text-sm">₹{p.amountReceived?.toLocaleString()}</span>
+                              <span className="font-extrabold text-slate-800 text-xs sm:text-sm">₹{p.amountReceived?.toLocaleString()}</span>
                             </div>
                             {p.amountReceived > 0 ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 w-fit">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 w-fit">
                                 Direct Payment
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-650 border border-slate-200 w-fit">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200 w-fit">
                                 No Amount
                               </span>
                             )}
@@ -563,27 +600,17 @@ export default function PanelLedger() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-slate-700 font-semibold">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-700 font-semibold">
                       <div className="flex items-center gap-1.5">
-                        <ShieldCheck className="h-4 w-4 text-slate-400 shrink-0" />
-                        <span>{p.addedBy?.name || 'Staff User'}</span>
+                        <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400 shrink-0" />
+                        <span className="text-xs sm:text-sm">{p.addedBy?.name || 'Staff User'}</span>
                       </div>
                     </td>
-                    {/* <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => setSelectedReceiptPayment({ ...p, panelId: { panelName: panel?.panelName, ownerName: panel?.ownerName } })}
-                        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-indigo-50 hover:bg-[#0A2540] text-indigo-700 hover:text-white border border-indigo-200 hover:border-transparent text-xs font-bold transition-all shadow-sm hover:shadow active:scale-95 duration-200"
-                        title="Generate Receipt"
-                      >
-                        <Printer className="h-3.5 w-3.5 shrink-0" />
-                        <span>Receipt</span>
-                      </button>
-                    </td> */}
                   </tr>
                 ))}
                 {filteredPayments.length === 0 && (
                   <tr>
-                    <td colSpan="7" className="text-center py-8 text-slate-400 font-medium">
+                    <td colSpan="6" className="text-center py-8 text-slate-400 font-medium">
                       No transactions found matching your filter criteria.
                     </td>
                   </tr>
@@ -601,62 +628,42 @@ export default function PanelLedger() {
               <span className="text-slate-500">Formula Bar: <span className="text-indigo-600 font-bold">f(x)</span> = Outstanding = SUM(E - F) - SUM(G + H)</span>
             </div>
 
-            <table className="w-full text-left border border-slate-200 font-mono text-xs md:text-[13px] border-collapse bg-white">
+            <table className="w-full text-left border border-slate-200 font-mono text-[11px] md:text-[13px] border-collapse bg-white min-w-[760px]">
               <thead>
-                {/* <tr className="bg-slate-100 border-b border-slate-200 text-slate-500 text-center text-[10px]">
-                  <th className="border-r border-slate-200 py-1 w-10"></th>
-                  <th className="border-r border-slate-200 py-1 w-24">A</th>
-                  <th className="border-r border-slate-200 py-1 w-24">B</th>
-                  <th className="border-r border-slate-200 py-1 w-16">C</th>
-                  <th className="border-r border-slate-200 py-1 w-20">D</th>
-                  <th className="border-r border-slate-200 py-1 w-28">E</th>
-                  <th className="border-r border-slate-200 py-1 w-28">F</th>
-                  <th className="border-r border-slate-200 py-1 w-24">G</th>
-                  <th className="border-r border-slate-200 py-1 w-24">H</th>
-                  <th className="border-r border-slate-200 py-1 w-24">I</th>
-                  <th className="py-1">J</th>
-                </tr> */}
-                <tr className="bg-slate-50 text-slate-700 border-b border-slate-200 text-xs md:text-[13px] font-bold uppercase tracking-wider">
-                  <th className="border-r border-slate-200 text-center text-slate-500 bg-slate-100 py-2 w-10">#</th>
-                  <th className="border-r border-slate-200 px-3 py-2 w-24">Date</th>
-                  <th className="border-r border-slate-200 px-3 py-2 w-24">Type</th>
-                  <th className="border-r border-slate-200 px-3 py-2 text-center w-16">Qty</th>
-                  <th className="border-r border-slate-200 px-3 py-2 text-right w-20">Rate</th>
-                  <th className="border-r border-slate-200 px-3 py-2 text-right w-28">Bill Amount</th>
-                  <th className="border-r border-slate-200 px-3 py-2 text-right w-24">Bill Discount</th>
-                  <th className="border-r border-slate-200 px-3 py-2 text-right w-24">Amt Paid</th>
-                  <th className="border-r border-slate-200 px-3 py-2 text-right w-24">Pay Discount</th>
-                  <th className="border-r border-slate-200 px-3 py-2 text-right w-24">Net Due</th>
-                  <th className="px-3 py-2">Remarks / Note</th>
+                <tr className="text-white border-b-2 border-slate-300 text-[10px] md:text-xs font-bold uppercase tracking-wider" style={{background: 'linear-gradient(135deg, #0A2540 0%, #1a3a5c 100%)'}}>
+                  <th className="border-r border-slate-600/30 text-center bg-[#071e33] py-2.5 w-10">#</th>
+                  <th className="border-r border-slate-600/30 px-3 py-2.5 w-24">Date</th>
+                  <th className="border-r border-slate-600/30 px-3 py-2.5 w-28">Type</th>
+                  <th className="border-r border-slate-600/30 px-3 py-2.5 text-center w-14">Qty</th>
+                  <th className="border-r border-slate-600/30 px-3 py-2.5 text-right w-20">Rate</th>
+                  <th className="border-r border-slate-600/30 px-3 py-2.5 text-right w-28">Bill Amount</th>
+                  <th className="border-r border-slate-600/30 px-3 py-2.5 text-right w-24">Bill Disc.</th>
+                  <th className="border-r border-slate-600/30 px-3 py-2.5 text-right w-24">Amt Paid</th>
+                  <th className="border-r border-slate-600/30 px-3 py-2.5 text-right w-24">Pay Disc.</th>
+                  <th className="border-r border-slate-600/30 px-3 py-2.5 text-right w-24">Net Due</th>
+                  <th className="px-3 py-2.5">Remarks / Note</th>
                 </tr>
               </thead>
               <tbody>
                 {getLast30DaysData().map((row, idx) => (
                   <tr
                     key={row.id}
-                    className={`border-b border-slate-200 hover:bg-slate-50/80 transition-colors ${row.hasData
-                      ? 'bg-indigo-50/30 font-semibold text-slate-900'
+                    className={`border-b border-slate-200 hover:bg-blue-50/30 transition-colors ${row.hasData
+                      ? 'bg-indigo-50/40 font-semibold text-slate-900'
                       : idx % 2 === 0
-                        ? 'bg-slate-50/40'
+                        ? 'bg-slate-50/50'
                         : 'bg-white'
                       }`}
                   >
-                    <td className="border-r border-slate-200 text-center text-slate-400 bg-slate-50 py-1.5 font-bold w-10">
+                    <td className="border-r border-slate-200 text-center text-slate-400 bg-slate-100 py-2 font-bold w-10">
                       {idx + 2}
                     </td>
-                    <td className="border-r border-slate-200 px-3 py-1.5 text-slate-650 text-slate-700 w-24 font-medium">
+                    <td className="border-r border-slate-200 px-3 py-2 text-slate-700 w-24 font-medium whitespace-nowrap">
                       {row.displayDate}
                     </td>
-                    <td className="border-r border-slate-200 px-3 py-1.5 w-24">
+                    <td className="border-r border-slate-200 px-2 py-2 w-28">
                       {row.paymentType !== '-' ? (
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] border font-bold ${row.paymentType === 'License'
-                          ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                          : row.paymentType === 'IP Charges'
-                            ? 'bg-violet-50 text-violet-700 border-violet-200'
-                            : 'bg-amber-50 text-amber-700 border-amber-200'
-                          }`}>
-                          {row.paymentType}
-                        </span>
+                        <ChargeTypeBadge type={row.paymentType} size="sm" />
                       ) : '-'}
                     </td>
                     <td className="border-r border-slate-200 px-3 py-1.5 text-center w-16 text-slate-600 font-medium">
