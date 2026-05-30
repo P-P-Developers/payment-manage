@@ -16,7 +16,10 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
       Payment.aggregate([
         {
           $match: {
-            bankName: { $ne: 'System Credit' }
+            $and: [
+              { bankName: { $nin: ['System Credit', 'system credit'] } },
+              { remark: { $not: /system credit/i } }
+            ]
           }
         },
         {
@@ -118,7 +121,12 @@ router.get('/:id', protect, hasPermission('view_panels'), async (req, res) => {
       .populate('editHistory.editedBy', 'name email')
       .sort({ timestamp: -1 })
       .lean();
-    const totalPaid = payments.reduce((sum, p) => p.bankName === 'System Credit' ? sum : sum + (p.amountReceived || 0), 0);
+    const isSystemCredit = (p) => 
+      p.bankName === 'System Credit' || 
+      (p.bankName && p.bankName.toLowerCase().trim() === 'system credit') ||
+      (p.remark && p.remark.toLowerCase().includes('system credit'));
+
+    const totalPaid = payments.reduce((sum, p) => isSystemCredit(p) ? sum : sum + (p.amountReceived || 0), 0);
     const totalBill = payments.reduce((sum, p) => sum + (p.billAmount || 0), 0);
     const totalBillDiscount = payments.reduce((sum, p) => sum + (p.billDiscount || 0), 0);
     const totalPaymentDiscount = payments.reduce((sum, p) => sum + (p.paymentDiscount || 0), 0);

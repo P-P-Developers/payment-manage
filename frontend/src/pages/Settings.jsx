@@ -887,7 +887,7 @@ export default function Settings() {
                                 setEditCatId(null);
                                 setEditCatName('');
                               }}
-                              className="p-2 bg-slate-850 hover:bg-slate-750 text-slate-600 dark:text-slate-400 rounded-lg transition-all"
+                              className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg transition-all"
                             >
                               <X className="h-4 w-4" />
                             </button>
@@ -1017,7 +1017,7 @@ export default function Settings() {
                                 setEditBankId(null);
                                 setEditBankName('');
                               }}
-                              className="p-2 bg-slate-850 hover:bg-slate-750 text-slate-600 dark:text-slate-400 rounded-lg transition-all"
+                              className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg transition-all"
                             >
                               <X className="h-4 w-4" />
                             </button>

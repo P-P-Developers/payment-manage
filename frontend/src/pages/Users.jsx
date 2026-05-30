@@ -530,7 +530,7 @@ export default function Users() {
                   </button>
                   <button
                     onClick={() => handleDeleteUser(user)}
-                    className="h-8 w-8 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-rose-600/20 text-rose-450 flex items-center justify-center border border-slate-300 dark:border-slate-700 hover:border-rose-500/30 transition-colors"
+                    className="h-8 w-8 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-rose-600/20 text-rose-500 dark:text-rose-400 flex items-center justify-center border border-slate-300 dark:border-slate-700 hover:border-rose-500/30 transition-colors"
                     title="Delete"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -548,7 +548,7 @@ export default function Users() {
 
       {/* CREATE / EDIT USER MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 !mt-0">
           <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
 
           <div className="relative w-full max-w-lg rounded-2xl glass-card p-6 md:p-8 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200">
@@ -704,7 +704,7 @@ export default function Users() {
       )}
       {/* USER ACTIVITY LOGS MODAL */}
       {selectedLogUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-6 !mt-0">
           <div onClick={() => setSelectedLogUser(null)} className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
 
           <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh] overflow-hidden bg-white dark:bg-slate-900">

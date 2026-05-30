@@ -21,6 +21,7 @@ import {
   User as UserIcon,
   Info,
 } from 'lucide-react';
+import AnimatedBackground from '@/components/AnimatedBackground';
 
 const SkeletonRow = () => (
   <tr className="animate-pulse">
@@ -336,6 +337,7 @@ export default function Panels() {
 
   return (
     <div className="space-y-6">
+      <AnimatedBackground />
       {/* Action Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
 
@@ -606,7 +608,7 @@ export default function Panels() {
 
       {/* CREATE / EDIT PANEL MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 overflow-y-auto !mt-0">
           <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
 
           <div className="relative w-full max-w-2xl rounded-2xl glass-card p-6 md:p-8 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[85vh] md:max-h-[90vh]">
@@ -842,7 +844,7 @@ export default function Panels() {
 
       {/* DUES BREAKDOWN MODAL */}
       {isDuesModalOpen && selectedDuesPanel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 overflow-y-auto !mt-0">
           <div onClick={() => setIsDuesModalOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
 
           <div className="relative w-full max-w-md rounded-2xl glass-card p-6 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200">

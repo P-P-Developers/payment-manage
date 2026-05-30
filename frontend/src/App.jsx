@@ -10,6 +10,7 @@ import Users from './pages/Users';
 import Logs from './pages/Logs';
 import SmtpSettings from './pages/SmtpSettings';
 import Settings from './pages/Settings';
+import Statement from './pages/Statement';
 
 export default function App() {
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="logs" element={<Logs />} />
           <Route path="smtp" element={<SmtpSettings />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="statement" element={<Statement />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

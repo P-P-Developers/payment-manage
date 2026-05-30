@@ -227,6 +227,9 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
 
         // Entry 2: If there is excess, create a separate receipt with paymentType 'Advance'
         if (excess > 0) {
+          const baseDate = timestamp ? new Date(timestamp) : new Date();
+          const advanceTimestamp = new Date(baseDate.getTime() + 1000);
+
           const creditPayment = await Payment.create({
             panelId,
             paymentType: 'Advance', // Changed from 'Other' to 'Advance'
@@ -240,7 +243,7 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
             paymentDiscount: 0,
             remark: remark ? `${remark} (Advance Credit Deposit)` : 'Advance Credit Deposit',
             addedBy: req.user._id,
-            timestamp: timestamp ? new Date(timestamp) : undefined,
+            timestamp: advanceTimestamp,
           });
 
           // Set this as returned payment if not set
@@ -252,28 +255,96 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
           await panel.save();
         }
       } else {
-        // No allocations: create single payment receipt for the full amount and save to credit with type 'Advance'
-        payment = await Payment.create({
+        // No allocations: automatically apply incoming payment to oldest unpaid bills first
+        const unpaidBills = await Payment.find({
           panelId,
-          paymentType: 'Advance', // Changed from 'Other' to 'Advance'
-          amountReceived: Number(amountReceived),
-          paymentMode,
-          bankName: bankName || '',
-          quantity: (quantity !== undefined && quantity !== null && quantity !== '') ? Number(quantity) : 0,
-          unitPrice: Number(unitPrice) || 0,
-          billAmount: 0,
-          billDiscount: 0,
-          paymentDiscount: Number(paymentDiscount) || 0,
-          remark: remark || 'Advance Credit Deposit',
-          addedBy: req.user._id,
-          timestamp: timestamp ? new Date(timestamp) : undefined,
-        });
+          billAmount: { $gt: 0 },
+          $or: [
+            { status: { $in: ['Unpaid', 'Partial'] } },
+            { status: { $exists: false } },
+            { status: null }
+          ]
+        }).sort({ timestamp: 1 });
 
-        panel.creditBalance += Number(amountReceived);
-        await panel.save();
+        let remainingAmount = Number(amountReceived);
 
-        // Automatically apply available credit to oldest unpaid bills
-        await applyCreditToUnpaidBills(panelId);
+        for (const bill of unpaidBills) {
+          if (remainingAmount <= 0) break;
+
+          const remainingToPay = (bill.billAmount - (bill.billDiscount || 0)) - bill.paidAmount;
+          if (remainingToPay <= 0) {
+            bill.status = 'Paid';
+            await bill.save();
+            continue;
+          }
+
+          const payAmount = Math.min(remainingAmount, remainingToPay);
+          if (payAmount > 0) {
+            // Create a real payment receipt directly paying this bill
+            const allocPayment = await Payment.create({
+              panelId,
+              paymentType: bill.paymentType,
+              amountReceived: payAmount,
+              paymentMode,
+              bankName: bankName || '',
+              quantity: (quantity !== undefined && quantity !== null && quantity !== '') ? Number(quantity) : 0,
+              unitPrice: Number(unitPrice) || 0,
+              billAmount: 0,
+              billDiscount: 0,
+              paymentDiscount: 0,
+              remark: remark ? `${remark} (Auto-applied to ${bill.paymentType} bill)` : `Auto-applied to ${bill.paymentType} bill`,
+              addedBy: req.user._id,
+              timestamp: timestamp ? new Date(timestamp) : undefined,
+            });
+
+            if (!payment) {
+              payment = allocPayment;
+            }
+
+            bill.paidAmount += payAmount;
+            if (bill.paidAmount >= (bill.billAmount - (bill.billDiscount || 0))) {
+              bill.status = 'Paid';
+            } else {
+              bill.status = 'Partial';
+            }
+            bill.appliedPayments.push({
+              paymentId: allocPayment._id,
+              amount: payAmount
+            });
+            await bill.save();
+
+            remainingAmount -= payAmount;
+          }
+        }
+
+        // If excess remains, create an Advance payment receipt and add to panel credit balance
+        if (remainingAmount > 0) {
+          const baseDate = timestamp ? new Date(timestamp) : new Date();
+          const advanceTimestamp = new Date(baseDate.getTime() + 1000);
+
+          const creditPayment = await Payment.create({
+            panelId,
+            paymentType: 'Advance',
+            amountReceived: remainingAmount,
+            paymentMode,
+            bankName: bankName || '',
+            quantity: 0,
+            unitPrice: 0,
+            billAmount: 0,
+            billDiscount: 0,
+            paymentDiscount: Number(paymentDiscount) || 0,
+            remark: remark ? `${remark} (Advance Credit Deposit)` : 'Advance Credit Deposit',
+            addedBy: req.user._id,
+            timestamp: advanceTimestamp,
+          });
+
+          if (!payment) {
+            payment = creditPayment;
+          }
+
+          panel.creditBalance += remainingAmount;
+          await panel.save();
+        }
       }
     } else if (isBill) {
       payment = await Payment.create({

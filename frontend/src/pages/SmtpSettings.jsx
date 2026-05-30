@@ -133,7 +133,7 @@ export default function SmtpSettings() {
           <Server className="h-8 w-8 text-indigo-400" />
           <span>SMTP Configuration</span>
         </h2>
-        <p className="text-black text-sm mt-1.5 max-w-2xl leading-relaxed">
+        <p className="text-slate-600 dark:text-slate-300 text-sm mt-1.5 max-w-2xl leading-relaxed">
           Configure outgoing SMTP mail server credentials. The system will use these parameters to automatically deliver transaction receipts, bill reminders, and notifications to your clients.
         </p>
       </div>
@@ -142,13 +142,13 @@ export default function SmtpSettings() {
         <div className="min-h-[300px] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
-            <p className="text-black font-medium">Loading server configuration...</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Loading server configuration...</p>
           </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Settings Form Card */}
-          <div className="lg:col-span-2 rounded-2xl bg-slate-50/60 dark:bg-slate-950/60 border border-slate-300/80 dark:border-slate-800/80 p-6 md:p-8 shadow-2xl backdrop-blur-md relative overflow-hidden">
+          <div className="lg:col-span-2 rounded-2xl bg-slate-50/60 dark:bg-slate-900/60 border border-slate-300/80 dark:border-slate-800/80 p-6 md:p-8 shadow-2xl backdrop-blur-md relative overflow-hidden">
             {error && (
               <div className="mb-6 rounded-xl bg-rose-500/10 border border-rose-500/20 p-4 flex items-start gap-3 text-rose-400 text-xs font-semibold">
                 <AlertCircle className="h-4.5 w-4.5 shrink-0 mt-0.5" />
@@ -167,7 +167,7 @@ export default function SmtpSettings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* SMTP Host */}
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-black  mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
                     SMTP Host / Server
                   </label>
                   <input
@@ -182,7 +182,7 @@ export default function SmtpSettings() {
 
                 {/* SMTP Port */}
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-black mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
                     SMTP Port
                   </label>
                   <input
@@ -190,14 +190,14 @@ export default function SmtpSettings() {
                     value={port}
                     onChange={(e) => setPort(e.target.value)}
                     placeholder="e.g. 587 or 465"
-                    className="w-full rounded-xl px-4 py-3 text-sm glass-input font-bold font-mono text-indigo-300"
+                    className="w-full rounded-xl px-4 py-3 text-sm glass-input font-bold font-mono text-indigo-600 dark:text-indigo-400"
                     required
                   />
                 </div>
 
                 {/* SMTP Username */}
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-black mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
                     SMTP User / Account Address
                   </label>
                   <input
@@ -212,7 +212,7 @@ export default function SmtpSettings() {
 
                 {/* SMTP Password */}
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-black mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
                     SMTP Password / App Secret
                   </label>
                   <div className="relative">
@@ -227,7 +227,7 @@ export default function SmtpSettings() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-black hover:text-slate-900 dark:hover:text-white transition-colors"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors"
                     >
                       {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
                     </button>
@@ -236,7 +236,7 @@ export default function SmtpSettings() {
 
                 {/* Sender Name */}
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-black mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
                     Mail Sender Name
                   </label>
                   <input
@@ -252,7 +252,7 @@ export default function SmtpSettings() {
 
                 {/* CC Email */}
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-black mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
                     Automatic CC Email (Optional)
                   </label>
                   <input
@@ -266,7 +266,7 @@ export default function SmtpSettings() {
 
                 {/* Encryption Selector */}
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-black mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
                     Encryption Protocol / Security
                   </label>
                   <div className="grid grid-cols-3 gap-3">
@@ -277,7 +277,7 @@ export default function SmtpSettings() {
                         onClick={() => setEncryption(enc)}
                         className={`py-3 rounded-xl border text-xs font-bold transition-all ${encryption === enc
                           ? 'bg-indigo-600/10 border-indigo-500 text-indigo-400'
-                          : 'bg-slate-100/40 dark:bg-slate-900/40 border-slate-300 dark:border-slate-800 text-black hover:border-slate-300 dark:hover:border-slate-700'
+                          : 'bg-slate-100/40 dark:bg-slate-900/40 border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700'
                           }`}
                       >
                         {enc}
@@ -288,11 +288,11 @@ export default function SmtpSettings() {
               </div>
 
               {/* Save Trigger */}
-              <div className="pt-4 border-t border-slate-900 flex justify-end">
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex items-center gap-2 text-white bg-blue-600 rounded-xl px-6 py-3"
+                  className="flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 rounded-xl px-6 py-3 font-semibold transition-colors duration-200"
                 >
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   <span>Save Mail Settings</span>
@@ -304,15 +304,15 @@ export default function SmtpSettings() {
           {/* Quick Info & Test Side panel */}
           <div className="space-y-6">
             {/* Quick Testing Card */}
-            <div className="rounded-2xl bg-slate-50/60 dark:bg-slate-950/60 border border-slate-300/80 dark:border-slate-800/80 p-6 shadow-2xl backdrop-blur-md">
-              <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-slate-900">
+            <div className="rounded-2xl bg-slate-50/60 dark:bg-slate-900/60 border border-slate-300/80 dark:border-slate-800/80 p-6 shadow-2xl backdrop-blur-md">
+              <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-slate-200 dark:border-slate-800">
                 <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
                   <Send className="h-4 w-4" />
                 </div>
                 <h4 className="font-bold text-slate-900 dark:text-white text-sm">Test SMTP Gateway</h4>
               </div>
 
-              <p className="text-black text-xs leading-relaxed mb-5">
+              <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-5">
                 Verify your SMTP credentials by dispatching a real connection test email to any inbox instantly.
               </p>
 
@@ -362,9 +362,9 @@ export default function SmtpSettings() {
                 <Shield className="h-4.5 w-4.5" />
                 <span>Security Guidelines</span>
               </div>
-              <ul className="space-y-2.5 text-[11px] text-black leading-relaxed list-disc list-inside">
-                <li>For <strong>Gmail</strong>, use a secure 16-digit App Password, not your account master password.</li>
-                <li>Ensure Port <strong>587</strong> is configured for STARTTLS or Port <strong>465</strong> for SSL/TLS encryption.</li>
+              <ul className="space-y-2.5 text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed list-disc list-inside font-medium">
+                <li>For <strong className="text-slate-900 dark:text-white font-bold">Gmail</strong>, use a secure 16-digit App Password, not your account master password.</li>
+                <li>Ensure Port <strong className="text-slate-900 dark:text-white font-bold">587</strong> is configured for STARTTLS or Port <strong className="text-slate-900 dark:text-white font-bold">465</strong> for SSL/TLS encryption.</li>
                 <li>Check your server firewall policies to permit outgoing mail delivery on these ports.</li>
               </ul>
             </div>

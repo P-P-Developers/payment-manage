@@ -72,6 +72,8 @@ export default function TransactionLedgerTab({
   setModeFilter,
   // pagination
   setCurrentPage,
+  pageSize,
+  setPageSize,
   // actions
   setViewingPayment,
   handleDeletePaymentClick,
@@ -218,7 +220,7 @@ export default function TransactionLedgerTab({
 
                   {/* S.No */}
                   <td className="py-4 px-4 text-center font-mono text-xs font-semibold text-slate-400 dark:text-slate-500">
-                    {(currentPage - 1) * 10 + index + 1}
+                    {pageSize === 'all' ? index + 1 : (currentPage - 1) * pageSize + index + 1}
                   </td>
 
                   {/* Date & Time */}
@@ -278,7 +280,7 @@ export default function TransactionLedgerTab({
                             Unpaid
                           </span>
                         ) : p.amountReceived < (p.billAmount - p.billDiscount) ? (
-                          <span className="inline-flex px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-amber-500/10 text-amber-650 dark:text-amber-450 border border-amber-500/25">
+                          <span className="inline-flex px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25">
                             Partial (₹{(p.billAmount - p.billDiscount - p.amountReceived).toLocaleString()} due)
                           </span>
                         ) : p.billAmount > 0 ? (
@@ -349,7 +351,7 @@ export default function TransactionLedgerTab({
                     <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => setViewingPayment(p)}
-                        className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-[#0A2540] dark:bg-slate-850 dark:hover:bg-[#0A2540] text-slate-650 hover:text-white dark:text-slate-400 dark:hover:text-white flex items-center justify-center border border-slate-200 dark:border-slate-700/60 transition-all duration-200 shadow-sm active:scale-95"
+                        className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-[#0A2540] dark:bg-slate-800 dark:hover:bg-[#0A2540] text-slate-600 hover:text-white dark:text-slate-400 dark:hover:text-white flex items-center justify-center border border-slate-200 dark:border-slate-700/60 transition-all duration-200 shadow-sm active:scale-95"
                         title="View Full Details"
                       >
                         <Eye className="h-4 w-4" />
@@ -381,29 +383,53 @@ export default function TransactionLedgerTab({
 
         {/* Pagination Controls */}
         <div className="p-4 bg-slate-100/40 dark:bg-slate-900/40 border-t border-slate-300 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-          <p className="text-slate-600 dark:text-slate-400 font-medium">
-            Showing <span className="text-indigo-400">{filteredPayments.length}</span> of{' '}
-            <span className="text-slate-900 dark:text-white">{totalPaymentsCount}</span> ledger entries
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1 || loading}
-              className="rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-30 text-slate-800 dark:text-slate-200 px-3.5 py-2 font-semibold transition-colors border border-slate-300 dark:border-slate-700"
-            >
-              Previous
-            </button>
-            <span className="text-slate-600 dark:text-slate-400 px-3">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages || loading}
-              className="rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-30 text-slate-800 dark:text-slate-200 px-3.5 py-2 font-semibold transition-colors border border-slate-300 dark:border-slate-700"
-            >
-              Next
-            </button>
+          <div className="flex flex-wrap items-center gap-4">
+            <p className="text-slate-600 dark:text-slate-400 font-medium">
+              Showing <span className="text-indigo-400">{filteredPayments.length}</span> of{' '}
+              <span className="text-slate-900 dark:text-white">{totalPaymentsCount}</span> ledger entries
+            </p>
+            
+            {/* Page Size Select */}
+            <div className="flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-2.5 py-1.5 text-slate-700 dark:text-slate-300 shadow-sm">
+              <span className="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wide shrink-0 text-[10px]">Show:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setPageSize(val === 'all' ? 'all' : Number(val));
+                }}
+                className="bg-transparent border-none text-slate-900 dark:text-white focus:ring-0 font-semibold cursor-pointer outline-none text-xs p-0"
+              >
+                <option value={10} className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">10 rows</option>
+                <option value={25} className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">25 rows</option>
+                <option value={50} className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">50 rows</option>
+                <option value={100} className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">100 rows</option>
+                <option value="all" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">All Pages</option>
+              </select>
+            </div>
           </div>
+          
+          {pageSize !== 'all' && totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1 || loading}
+                className="rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-30 text-slate-800 dark:text-slate-200 px-3.5 py-2 font-semibold transition-colors border border-slate-300 dark:border-slate-700"
+              >
+                Previous
+              </button>
+              <span className="text-slate-600 dark:text-slate-400 px-3">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages || loading}
+                className="rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-30 text-slate-800 dark:text-slate-200 px-3.5 py-2 font-semibold transition-colors border border-slate-300 dark:border-slate-700"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>

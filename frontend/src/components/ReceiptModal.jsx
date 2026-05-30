@@ -368,7 +368,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
                   )}
 
                   {payment.billDiscount > 0 && (
-                    <div className="flex justify-between text-orange-650 font-semibold">
+                    <div className="flex justify-between text-orange-600 font-semibold">
                       <span>Bill Discount:</span>
                       <span className="font-bold text-orange-600">-₹{payment.billDiscount.toLocaleString()}</span>
                     </div>
@@ -380,7 +380,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
                   </div>
 
                   {payment.paymentDiscount > 0 && (
-                    <div className="flex justify-between text-rose-650 font-semibold">
+                    <div className="flex justify-between text-rose-600 font-semibold">
                       <span>Payment Discount:</span>
                       <span className="font-bold text-rose-600">-₹{payment.paymentDiscount.toLocaleString()}</span>
                     </div>

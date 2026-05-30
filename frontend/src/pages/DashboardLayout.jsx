@@ -15,7 +15,11 @@ import {
   Lock,
   Mail,
   Settings,
+  BookOpen,
+  Sun,
+  Moon,
 } from 'lucide-react';
+import InteractiveBackground from '../components/InteractiveBackground';
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
@@ -26,6 +30,22 @@ export default function DashboardLayout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const [isDark, setIsDark] = useState(() => {
+    const savedTheme = localStorage.getItem('app_theme');
+    if (savedTheme) return savedTheme === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('app_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('app_theme', 'light');
+    }
+  }, [isDark]);
   const [logo, setLogo] = useState('');
   const [orgName, setOrgName] = useState('DEEP MIND');
 
@@ -172,6 +192,12 @@ export default function DashboardLayout() {
       permission: 'add_payments',
     },
     {
+      name: 'Statement Passbook',
+      href: '/dashboard/statement',
+      icon: BookOpen,
+      permission: 'view_panels',
+    },
+    {
       name: 'Activity Logs',
       href: '/dashboard/logs',
       icon: ClipboardList,
@@ -186,22 +212,24 @@ export default function DashboardLayout() {
   });
 
   return (
-    <div className="flex h-screen w-screen bg-slate-50 text-slate-800 overflow-hidden">
+    <div className="flex h-screen w-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 overflow-hidden relative transition-colors duration-300">
+      <InteractiveBackground isDark={isDark} />
+
       {/* SIDEBAR FOR DESKTOP */}
-      <aside className={`hidden md:flex flex-col h-full bg-white border-r border-slate-200 shrink-0 transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'w-20' : 'w-64'
+      <aside className={`hidden md:flex flex-col h-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-r border-slate-200 dark:border-slate-800 shrink-0 transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'w-20' : 'w-64'
         }`}>
-        <div className={`h-16 flex items-center border-b border-slate-200 transition-all duration-300 ${isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-6'
+        <div className={`h-16 shrink-0 flex items-center border-b border-slate-200 dark:border-slate-800 transition-all duration-300 ${isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-6'
           }`}>
           <div className="flex items-center gap-2">
             {logo ? (
               <img src={logo} alt="Logo" className={`object-contain shrink-0 ${isSidebarCollapsed ? 'h-8 w-8' : 'h-10 max-w-full'}`} />
             ) : (
               <>
-                <div className="h-8 w-8 rounded-lg bg-[#0A2540] flex items-center justify-center text-white font-bold shadow-md shrink-0">
+                <div className="h-8 w-8 rounded-lg bg-[#0A2540] dark:bg-indigo-600 flex items-center justify-center text-white font-bold shadow-md shrink-0">
                   {orgName ? orgName.substring(0, 1).toUpperCase() : 'D'}
                 </div>
                 {!isSidebarCollapsed && (
-                  <span className="font-extrabold text-lg tracking-wider text-[#0A2540] animate-fadeIn truncate max-w-[140px]" title={orgName}>
+                  <span className="font-extrabold text-lg tracking-wider text-[#0A2540] dark:text-indigo-400 animate-fadeIn truncate max-w-[140px]" title={orgName}>
                     {orgName || 'DEEP MIND'}
                   </span>
                 )}
@@ -211,7 +239,7 @@ export default function DashboardLayout() {
           {!isSidebarCollapsed && (
             <button
               onClick={() => setIsSidebarCollapsed(true)}
-              className="flex items-center justify-center h-8 w-8 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-all duration-200"
+              className="flex items-center justify-center h-8 w-8 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all duration-200"
               title="Collapse Sidebar"
             >
               <Menu className="h-4 w-4" />
@@ -220,10 +248,10 @@ export default function DashboardLayout() {
         </div>
 
         {isSidebarCollapsed && (
-          <div className="flex justify-center py-3 border-b border-slate-100">
+          <div className="flex justify-center py-3 border-b border-slate-100 dark:border-slate-800">
             <button
               onClick={() => setIsSidebarCollapsed(false)}
-              className="flex items-center justify-center h-10 w-10 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-all duration-200 shadow-sm"
+              className="flex items-center justify-center h-10 w-10 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all duration-200 shadow-sm"
               title="Expand Sidebar"
             >
               <Menu className="h-5 w-5" />
@@ -240,10 +268,10 @@ export default function DashboardLayout() {
                 key={item.href}
                 to={item.href}
                 title={isSidebarCollapsed ? item.name : ""}
-                className={`flex items-center gap-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isSidebarCollapsed ? 'justify-center px-0 h-11 w-11 mx-auto' : 'px-4'
+                className={`flex items-center gap-3 py-3 rounded-xl text-sm font-semibold transition-premium ${isSidebarCollapsed ? 'justify-center px-0 h-11 w-11 mx-auto hover:scale-105' : 'px-4 hover:translate-x-1.5'
                   } ${isActive
-                    ? 'bg-[#0A2540] text-white shadow-md shadow-[#0a2540]/15'
-                    : 'text-[#4E5E7A] hover:bg-slate-50 hover:text-slate-900 border border-transparent'
+                    ? 'bg-[#0A2540] dark:bg-indigo-600 text-white shadow-md shadow-[#0a2540]/15 dark:shadow-indigo-500/10 hover:shadow-lg'
+                    : 'text-[#4E5E7A] dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-slate-100 border border-transparent'
                   }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />
@@ -258,19 +286,31 @@ export default function DashboardLayout() {
       {/* MAIN SECTION */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
         {/* HEADER */}
-        <header className="h-16 flex items-center justify-between px-6 bg-white border-b border-slate-200 sticky top-0 z-40">
+        <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 transition-all duration-300">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden text-slate-500 hover:text-slate-900 transition-colors"
+            className="md:hidden text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors animate-in fade-in"
           >
             <Menu className="h-6 w-6" />
           </button>
 
-          <h1 className="hidden md:block font-bold text-xl text-slate-900 font-display">
+          <h1 className="hidden md:block font-bold text-xl text-slate-900 dark:text-slate-50 font-display transition-colors">
             {navItems.find((item) => pathname === item.href)?.name || 'Panel Accounting'}
           </h1>
 
           <div className="flex items-center gap-4 relative">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={() => setIsDark(!isDark)}
+              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all duration-300 shadow-sm active:scale-95 flex items-center justify-center"
+              title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {isDark ? (
+                <Sun className="h-4.5 w-4.5 text-amber-500 animate-in spin duration-500" />
+              ) : (
+                <Moon className="h-4.5 w-4.5 text-indigo-500" />
+              )}
+            </button>
 
             {/* User Profile Dropdown Button */}
             <div className="relative">
@@ -278,12 +318,11 @@ export default function DashboardLayout() {
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center gap-2.5 p-1.5 transition-all shadow-sm"
               >
-                <div className="h-8 w-8 rounded-full bg-slate-200 text-slate-900 flex items-center justify-center font-bold text-xs shadow-inner uppercase shrink-0">
+                <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100 flex items-center justify-center font-bold text-xs shadow-inner uppercase shrink-0">
                   {user?.name?.substring(0, 2)}
                 </div>
                 <div className="hidden md:block text-left pr-1.5 max-w-[120px]">
-                  <p className="text-xs font-semibold truncate text-slate-900 leading-tight">{user?.name}</p>
-                  {/* <p className="text-[10px] text-indigo-650 font-bold uppercase leading-tight mt-0.5">{user?.role}</p> */}
+                  <p className="text-xs font-semibold truncate text-slate-900 dark:text-slate-100 leading-tight">{user?.name}</p>
                 </div>
               </button>
 
@@ -294,11 +333,11 @@ export default function DashboardLayout() {
                     onClick={() => setIsProfileOpen(false)}
                     className="fixed inset-0 z-40 cursor-default"
                   ></div>
-                  <div className="absolute right-0 mt-2.5 w-56 rounded-2xl bg-white border border-slate-200 p-2.5 shadow-2xl z-50 animate-in fade-in slide-in-from-top-3 duration-200">
+                  <div className="absolute right-0 mt-2.5 w-56 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 shadow-2xl z-50 animate-in fade-in slide-in-from-top-3 duration-200">
                     {/* User info header inside dropdown */}
-                    <div className="px-3.5 py-3 border-b border-slate-100 mb-1.5 md:hidden">
-                      <p className="text-sm font-semibold truncate text-slate-900">{user?.name}</p>
-                      <p className="text-xs text-indigo-650 font-bold uppercase mt-0.5">{user?.role}</p>
+                    <div className="px-3.5 py-3 border-b border-slate-100 dark:border-slate-800 mb-1.5 md:hidden">
+                      <p className="text-sm font-semibold truncate text-slate-900 dark:text-slate-100">{user?.name}</p>
+                      <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase mt-0.5">{user?.role}</p>
                     </div>
 
                     <button
@@ -306,7 +345,7 @@ export default function DashboardLayout() {
                         setIsProfileOpen(false);
                         setIsChangePasswordOpen(true);
                       }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-[#0A2540] hover:bg-[#0A2540]/5 border border-transparent hover:border-[#0A2540]/10 transition-all"
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#0A2540] dark:hover:text-indigo-400 hover:bg-[#0A2540]/5 dark:hover:bg-indigo-500/10 border border-transparent hover:border-[#0A2540]/10 dark:hover:border-indigo-500/20 transition-all"
                     >
                       <Key className="h-4 w-4 text-slate-400" />
                       <span>Change Password</span>
@@ -317,7 +356,7 @@ export default function DashboardLayout() {
                         <Link
                           to="/dashboard/settings"
                           onClick={() => setIsProfileOpen(false)}
-                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-[#0A2540] hover:bg-[#0A2540]/5 border border-transparent hover:border-[#0A2540]/10 transition-all mt-1"
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#0A2540] dark:hover:text-indigo-400 hover:bg-[#0A2540]/5 dark:hover:bg-indigo-500/10 border border-transparent hover:border-[#0A2540]/10 dark:hover:border-indigo-500/20 transition-all mt-1"
                         >
                           <Settings className="h-4 w-4 text-slate-400" />
                           <span>System Settings</span>
@@ -325,7 +364,7 @@ export default function DashboardLayout() {
                         <Link
                           to="/dashboard/smtp"
                           onClick={() => setIsProfileOpen(false)}
-                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-[#0A2540] hover:bg-[#0A2540]/5 border border-transparent hover:border-[#0A2540]/10 transition-all mt-1"
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#0A2540] dark:hover:text-indigo-400 hover:bg-[#0A2540]/5 dark:hover:bg-indigo-500/10 border border-transparent hover:border-[#0A2540]/10 dark:hover:border-indigo-500/20 transition-all mt-1"
                         >
                           <Mail className="h-4 w-4 text-slate-400" />
                           <span>SMTP Settings</span>
@@ -338,7 +377,7 @@ export default function DashboardLayout() {
                         setIsProfileOpen(false);
                         handleLogout();
                       }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all mt-1"
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 border border-transparent hover:border-rose-100 dark:hover:border-rose-900/20 transition-all mt-1"
                     >
                       <LogOut className="h-4 w-4" />
                       <span>Sign Out</span>
@@ -364,10 +403,10 @@ export default function DashboardLayout() {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
           ></div>
 
-          <aside className="relative flex flex-col w-64 max-w-xs bg-white border-r border-slate-200 p-6 z-50">
+          <aside className="relative flex flex-col w-64 max-w-xs bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 z-50">
             <button
               onClick={() => setIsMobileMenuOpen(false)}
-              className="absolute top-4 right-4 text-slate-500 hover:text-slate-900"
+              className="absolute top-4 right-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
             >
               <X className="h-6 w-6" />
             </button>
@@ -377,10 +416,10 @@ export default function DashboardLayout() {
                 <img src={logo} alt="Logo" className="h-12 max-w-full object-contain shrink-0" />
               ) : (
                 <>
-                  <div className="h-8 w-8 rounded-lg bg-[#0A2540] flex items-center justify-center text-white font-bold shrink-0">
+                  <div className="h-8 w-8 rounded-lg bg-[#0A2540] dark:bg-indigo-600 flex items-center justify-center text-white font-bold shrink-0">
                     {orgName ? orgName.substring(0, 1).toUpperCase() : 'P'}
                   </div>
-                  <span className="font-bold text-lg tracking-wider text-slate-900 truncate" title={orgName}>
+                  <span className="font-bold text-lg tracking-wider text-slate-900 dark:text-slate-100 truncate" title={orgName}>
                     {orgName || 'PANEL ACCT'}
                   </span>
                 </>
@@ -396,9 +435,9 @@ export default function DashboardLayout() {
                     key={item.href}
                     to={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive
-                      ? 'bg-[#0A2540] text-white shadow-md shadow-[#0a2540]/15'
-                      : 'text-[#4E5E7A] hover:bg-slate-50 hover:text-slate-900'
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${isActive
+                      ? 'bg-[#0A2540] dark:bg-indigo-600 text-white shadow-md shadow-[#0a2540]/15 dark:shadow-indigo-500/10'
+                      : 'text-[#4E5E7A] dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-slate-100'
                       }`}
                   >
                     <Icon className="h-5 w-5" />
@@ -408,13 +447,13 @@ export default function DashboardLayout() {
               })}
             </nav>
 
-            <div className="mt-auto border-t border-slate-100 pt-6">
+            <div className="mt-auto border-t border-slate-100 dark:border-slate-800 pt-6">
               <button
                 onClick={() => {
                   setIsMobileMenuOpen(false);
                   setIsChangePasswordOpen(true);
                 }}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700 transition-all shadow-sm mb-2"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-all shadow-sm mb-2"
               >
                 <Key className="h-4 w-4" />
                 <span>Change Password</span>
@@ -434,9 +473,9 @@ export default function DashboardLayout() {
       {/* Change Password Modal Overlay */}
       {isChangePasswordOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fadeIn">
-          <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-2xl p-8 overflow-hidden">
+          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-8 overflow-hidden">
             {/* Background glowing orb */}
-            <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-[#0A2540]/5 blur-2xl"></div>
+            <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-[#0A2540]/5 dark:bg-indigo-500/5 blur-2xl"></div>
 
             <button
               onClick={() => {
@@ -444,18 +483,18 @@ export default function DashboardLayout() {
                 setChangeError('');
                 setChangeSuccess('');
               }}
-              className="absolute top-4 right-4 text-slate-500 hover:text-slate-900 transition-colors"
+              className="absolute top-4 right-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
 
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-              <div className="h-10 w-10 rounded-xl bg-[#0A2540]/5 border border-[#0A2540]/10 text-[#0A2540] flex items-center justify-center">
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div className="h-10 w-10 rounded-xl bg-[#0A2540]/5 dark:bg-indigo-500/5 border border-[#0A2540]/10 dark:border-indigo-500/10 text-[#0A2540] dark:text-indigo-400 flex items-center justify-center">
                 <Lock className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-900 font-display text-base">Change Secure Password</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Protect your account with a secure password</p>
+                <h3 className="font-bold text-slate-900 dark:text-slate-50 font-display text-base">Change Secure Password</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Protect your account with a secure password</p>
               </div>
             </div>
 
@@ -475,7 +514,7 @@ export default function DashboardLayout() {
 
             <form onSubmit={handlePasswordChangeSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">Current Password</label>
+                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">Current Password</label>
                 <input
                   type="password"
                   value={currentPassword}
@@ -486,7 +525,7 @@ export default function DashboardLayout() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">New Password</label>
+                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">New Password</label>
                 <input
                   type="password"
                   value={newPassword}
@@ -497,7 +536,7 @@ export default function DashboardLayout() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">Confirm New Password</label>
+                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">Confirm New Password</label>
                 <input
                   type="password"
                   value={confirmPassword}

@@ -416,13 +416,13 @@ export default function ConsolidatedLedgerTab({
                                   ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.billDiscount, 0).toLocaleString()}
                                 </td>
                                 <td className="border-r border-slate-300 dark:border-slate-800 px-3 py-2.5 text-right text-emerald-400 bg-emerald-500/5">
-                                  ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.amountReceived, 0).toLocaleString()}
+                                  ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => r.originalPayment?.bankName === 'System Credit' ? sum : sum + r.amountReceived, 0).toLocaleString()}
                                 </td>
                                 <td className="border-r border-slate-300 dark:border-slate-800 px-3 py-2.5 text-right text-rose-400 bg-rose-500/5">
                                   ₹{getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + r.paymentDiscount, 0).toLocaleString()}
                                 </td>
                                 {(() => {
-                                  const netVal = getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + (r.billAmount - r.billDiscount) - (r.amountReceived + r.paymentDiscount), 0);
+                                  const netVal = getLast30DaysData(expandedPanelPayments).reduce((sum, r) => sum + (r.billAmount - r.billDiscount) - (r.originalPayment?.bankName === 'System Credit' ? 0 : r.amountReceived) - r.paymentDiscount, 0);
                                   return (
                                     <td className={`border-r border-slate-300 dark:border-slate-800 px-3 py-2.5 text-right transition-all ${netVal > 0 ? 'text-rose-400 bg-rose-500/5' : netVal < 0 ? 'text-emerald-400 bg-emerald-500/5' : 'text-slate-500 bg-slate-200/10 dark:bg-slate-800/10'}`}>
                                       {netVal < 0 ? `₹${Math.abs(netVal).toLocaleString()}` : `₹${netVal.toLocaleString()}`}

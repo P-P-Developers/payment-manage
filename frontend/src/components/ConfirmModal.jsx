@@ -1,13 +1,14 @@
 import { X, AlertTriangle } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 export default function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confirmText = 'Delete', cancelText = 'Cancel' }) {
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[150] flex items-center justify-center !mt-0">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-50/60 dark:bg-slate-950/60 backdrop-blur-md transition-opacity duration-300 animate-fade-in"
+        className="absolute inset-0 backdrop-blur-sm transition-opacity duration-300 animate-fade-in"
         onClick={onClose}
       />
 
@@ -52,6 +53,7 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

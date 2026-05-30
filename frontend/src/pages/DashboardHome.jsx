@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { apiRequest } from '@/utils/api';
 import {
   TrendingUp,
@@ -17,7 +18,7 @@ import {
   Info,
   X,
 } from 'lucide-react';
-
+import AnimatedBackground from '@/components/AnimatedBackground';
 const DashboardSkeleton = () => (
   <div className="space-y-8 animate-pulse">
     {/* Welcome Banner Skeleton */}
@@ -173,34 +174,30 @@ export default function DashboardHome() {
     totalBillsCount,
     cashCollections,
     onlineCollections,
-    licensePayments,
-    licenseQtyTotal,
-    maintenancePayments,
     panelStatsArray,
     recoveryRate,
     outstandingBalance,
     billDiscountTotal,
     paymentDiscountTotal,
-    // New Category aggregates
-    maintBilled,
-    maintPaid,
-    maintOutstanding,
-    licBilled,
-    licPaid,
-    licOutstanding,
-    ipBilled,
-    ipPaid,
-    ipOutstanding,
-    otherPaid,
-    otherBilled,
-    otherOutstanding,
     openingBalSum,
+    salesBreakdown,
+    revenueBreakdown,
+    outstandingBreakdown,
   } = useMemo(() => {
     const rawPanels = stats?.panels || [];
     const rawPayments = stats?.payments || [];
+    const openingBalSum = rawPanels.reduce((sum, p) => sum + (p.openingBalance || 0), 0);
 
     // Filter payments based on selection
     const filtered = rawPayments.filter((p) => {
+      // Exclude auto-applied credit adjustments from all collection metrics/charts on dashboard
+      const isSystemCredit = p.bankName === 'System Credit' ||
+        (p.bankName && p.bankName.toLowerCase().trim() === 'system credit') ||
+        (p.remark && p.remark.toLowerCase().includes('system credit'));
+      if (isSystemCredit) {
+        return false;
+      }
+
       if (!p.timestamp) return false;
       const date = new Date(p.timestamp);
       const y = date.getFullYear();
@@ -246,28 +243,12 @@ export default function DashboardHome() {
     let billDiscountSum = 0;
     let paymentDiscountSum = 0;
 
-    let maintBilled = 0;
-    let maintPaid = 0;
-    let maintBillDiscount = 0;
-    let maintPayDiscount = 0;
-
-    let licBilled = 0;
-    let licPaid = 0;
-    let licBillDiscount = 0;
-    let licPayDiscount = 0;
-    let licQty = 0;
-
-    let ipBilled = 0;
-    let ipPaid = 0;
-    let ipBillDiscount = 0;
-    let ipPayDiscount = 0;
-
-    let otherBilled = 0;
-    let otherPaid = 0;
-    let otherBillDiscount = 0;
-    let otherPayDiscount = 0;
+    const typeStats = {};
 
     filtered.forEach((p) => {
+      if (p.bankName === 'System Credit') {
+        return; // Exclude auto-applied credit adjustments from collection metrics
+      }
       const pId = p.panelId?._id || p.panelId;
       totalPaid += p.amountReceived || 0;
       totalBilled += p.billAmount || 0;
@@ -282,28 +263,21 @@ export default function DashboardHome() {
         online += p.amountReceived || 0;
       }
 
-      if (p.paymentType === 'License') {
-        licPaid += p.amountReceived || 0;
-        licQty += p.quantity || 0;
-        licBilled += p.billAmount || 0;
-        licBillDiscount += p.billDiscount || 0;
-        licPayDiscount += p.paymentDiscount || 0;
-      } else if (p.paymentType === 'Maintenance') {
-        maintPaid += p.amountReceived || 0;
-        maintBilled += p.billAmount || 0;
-        maintBillDiscount += p.billDiscount || 0;
-        maintPayDiscount += p.paymentDiscount || 0;
-      } else if (p.paymentType === 'IP Charges') {
-        ipPaid += p.amountReceived || 0;
-        ipBilled += p.billAmount || 0;
-        ipBillDiscount += p.billDiscount || 0;
-        ipPayDiscount += p.paymentDiscount || 0;
-      } else {
-        otherPaid += p.amountReceived || 0;
-        otherBilled += p.billAmount || 0;
-        otherBillDiscount += p.billDiscount || 0;
-        otherPayDiscount += p.paymentDiscount || 0;
+      const type = p.paymentType || 'Other';
+      if (!typeStats[type]) {
+        typeStats[type] = {
+          billed: 0,
+          paid: 0,
+          billDiscount: 0,
+          paymentDiscount: 0,
+          qty: 0,
+        };
       }
+      typeStats[type].billed += p.billAmount || 0;
+      typeStats[type].paid += p.amountReceived || 0;
+      typeStats[type].billDiscount += p.billDiscount || 0;
+      typeStats[type].paymentDiscount += p.paymentDiscount || 0;
+      typeStats[type].qty += p.quantity || 0;
 
       if (pId) {
         if (!map[pId]) {
@@ -343,6 +317,129 @@ export default function DashboardHome() {
       }
     });
 
+    const standardTypes = ['Maintenance', 'License', 'IP Charges'];
+    standardTypes.forEach((type) => {
+      if (!typeStats[type]) {
+        typeStats[type] = {
+          billed: 0,
+          paid: 0,
+          billDiscount: 0,
+          paymentDiscount: 0,
+          qty: 0,
+        };
+      }
+    });
+
+    const getDotColor = (type) => {
+      const colors = {
+        'License': 'bg-cyan-500',
+        'Maintenance': 'bg-amber-500',
+        'IP Charges': 'bg-purple-500',
+      };
+      if (colors[type]) return colors[type];
+
+      const hashes = [...type].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const colorOptions = [
+        'bg-indigo-500',
+        'bg-emerald-500',
+        'bg-pink-500',
+        'bg-rose-500',
+        'bg-blue-500',
+        'bg-orange-500',
+        'bg-teal-500',
+      ];
+      return colorOptions[hashes % colorOptions.length];
+    };
+
+    const salesBreakdown = [];
+    Object.entries(typeStats).forEach(([type, stats]) => {
+      if (stats.billed > 0 || standardTypes.includes(type)) {
+        salesBreakdown.push({
+          label: `${type} Bills`,
+          value: `₹${stats.billed.toLocaleString()}`,
+          dotColor: getDotColor(type),
+          link: `/dashboard/payments?transactionType=bill&type=${encodeURIComponent(type)}`
+        });
+      }
+    });
+    const typeOrder = { 'Maintenance': 1, 'License': 2, 'IP Charges': 3 };
+    salesBreakdown.sort((a, b) => {
+      const aType = a.label.replace(' Bills', '');
+      const bType = b.label.replace(' Bills', '');
+      const aOrd = typeOrder[aType] || 99;
+      const bOrd = typeOrder[bType] || 99;
+      return aOrd - bOrd;
+    });
+    salesBreakdown.push({
+      label: 'Bill Discounts Given',
+      value: `-₹${billDiscountSum.toLocaleString()}`,
+      dotColor: 'bg-orange-500',
+      link: '/dashboard/payments?transactionType=bill',
+      textColor: 'text-orange-600'
+    });
+
+    const revenueBreakdown = [];
+    Object.entries(typeStats).forEach(([type, stats]) => {
+      if (stats.paid > 0 || standardTypes.includes(type)) {
+        revenueBreakdown.push({
+          label: `${type} Collections`,
+          value: `₹${stats.paid.toLocaleString()}`,
+          dotColor: getDotColor(type),
+          link: `/dashboard/payments?transactionType=received&type=${encodeURIComponent(type)}`
+        });
+      }
+    });
+    revenueBreakdown.sort((a, b) => {
+      const aType = a.label.replace(' Collections', '');
+      const bType = b.label.replace(' Collections', '');
+      const aOrd = typeOrder[aType] || 99;
+      const bOrd = typeOrder[bType] || 99;
+      return aOrd - bOrd;
+    });
+    revenueBreakdown.push({
+      label: 'Payment Discounts Given',
+      value: `-₹${paymentDiscountSum.toLocaleString()}`,
+      dotColor: 'bg-red-500',
+      link: '/dashboard/payments?transactionType=received',
+      textColor: 'text-rose-600 dark:text-rose-400 font-semibold'
+    });
+
+    const outstandingBreakdown = [];
+    outstandingBreakdown.push({
+      label: 'Opening Balance Dues',
+      value: `₹${openingBalSum.toLocaleString()}`,
+      dotColor: 'bg-slate-500',
+      link: '/dashboard/panels?balance=Outstanding',
+      textColor: 'text-slate-800'
+    });
+    Object.entries(typeStats).forEach(([type, stats]) => {
+      const outstandingVal = stats.billed - stats.billDiscount - (stats.paid + stats.paymentDiscount);
+      if (outstandingVal !== 0 || standardTypes.includes(type)) {
+        outstandingBreakdown.push({
+          label: outstandingVal < 0 ? `${type} Credit (Jama)` : `${type} Dues`,
+          value: outstandingVal < 0
+            ? `₹${Math.abs(outstandingVal).toLocaleString()}`
+            : `₹${outstandingVal.toLocaleString()}`,
+          dotColor: getDotColor(type),
+          link: '/dashboard/panels?balance=Outstanding',
+          textColor: outstandingVal > 0
+            ? 'text-rose-600 dark:text-rose-400 font-semibold'
+            : outstandingVal < 0
+              ? 'text-emerald-600 font-semibold'
+              : 'text-slate-800'
+        });
+      }
+    });
+    outstandingBreakdown.sort((a, b) => {
+      if (a.label === 'Opening Balance Dues') return -1;
+      if (b.label === 'Opening Balance Dues') return 1;
+      const aType = a.label.replace(' Dues', '').replace(' Credit (Jama)', '');
+      const bType = b.label.replace(' Dues', '').replace(' Credit (Jama)', '');
+      const aOrd = typeOrder[aType] || 99;
+      const bOrd = typeOrder[bType] || 99;
+      return aOrd - bOrd;
+    });
+
     const panelStats = Object.values(map).map((panel) => {
       const netBilled = panel.totalBilled - (panel.billDiscount || 0);
       const netPaid = panel.totalPaid + (panel.paymentDiscount || 0);
@@ -371,11 +468,9 @@ export default function DashboardHome() {
     const recRate = (totalBilled - billDiscountSum) > 0 ? Math.round((totalPaid / (totalBilled - billDiscountSum)) * 100) : 0;
     const netBal = (totalBilled - billDiscountSum) - (totalPaid + paymentDiscountSum);
 
-    // Cumulative outstanding helper
-    const openingBalSum = rawPanels.reduce((sum, p) => sum + (p.openingBalance || 0), 0);
     const cumulativeOutstanding = filterType === 'all'
       ? openingBalSum + (totalBilled - billDiscountSum) - (totalPaid + paymentDiscountSum)
-      : netBal; // Show net period balance for monthly/quarterly filters
+      : netBal;
 
     return {
       filteredPayments: filtered,
@@ -384,28 +479,15 @@ export default function DashboardHome() {
       totalBillsCount: billsCount,
       cashCollections: cash,
       onlineCollections: online,
-      licensePayments: licPaid,
-      licenseQtyTotal: licQty,
-      maintenancePayments: maintPaid,
       panelStatsArray: panelStats,
       recoveryRate: recRate,
       outstandingBalance: cumulativeOutstanding,
       billDiscountTotal: billDiscountSum,
       paymentDiscountTotal: paymentDiscountSum,
-      // Category variables
-      maintBilled,
-      maintPaid,
-      maintOutstanding: maintBilled - maintBillDiscount - (maintPaid + maintPayDiscount),
-      licBilled,
-      licPaid,
-      licOutstanding: licBilled - licBillDiscount - (licPaid + licPayDiscount),
-      ipBilled,
-      ipPaid,
-      ipOutstanding: ipBilled - ipBillDiscount - (ipPaid + ipPayDiscount),
-      otherPaid,
-      otherBilled,
-      otherOutstanding: otherBilled - otherBillDiscount - (otherPaid + otherPayDiscount),
       openingBalSum,
+      salesBreakdown,
+      revenueBreakdown,
+      outstandingBreakdown,
     };
   }, [stats, filterType, selectedMonth, selectedQuarter]);
 
@@ -591,80 +673,46 @@ export default function DashboardHome() {
       value: `₹${totalBilledAmount.toLocaleString()}`,
       desc: `${totalBillsCount} Invoices generated`,
       icon: FileSpreadsheet,
-      iconBg: 'from-indigo-500/20 to-blue-500/10 text-indigo-500',
-      iconBorder: 'border-indigo-500/20',
+      iconBg: 'from-indigo-500/20 to-blue-500/10 text-indigo-500 dark:text-indigo-400',
+      iconBorder: 'border-indigo-500/20 dark:border-indigo-500/30',
       link: '/dashboard/payments?transactionType=bill',
-      color: 'from-indigo-50/60 via-white to-white border-indigo-100/80 shadow-indigo-100/10',
+      color: 'from-indigo-50/60 dark:from-indigo-950/20 via-white dark:via-slate-900 to-white dark:to-slate-900 border-indigo-100/80 dark:border-indigo-950/30 shadow-indigo-100/10 dark:shadow-none',
       topBorderColor: 'from-indigo-500 to-violet-500',
-      formula: 'Total Billed = Maintenance + License + IP + Other',
-      breakdown: [
-        { label: 'Maintenance Bills', value: `₹${maintBilled.toLocaleString()}`, dotColor: 'bg-amber-500', link: '/dashboard/payments?transactionType=bill&type=Maintenance' },
-        { label: 'License Bills', value: `₹${licBilled.toLocaleString()}`, dotColor: 'bg-cyan-500', link: '/dashboard/payments?type=License' },
-        { label: 'IP Charges Bills', value: `₹${ipBilled.toLocaleString()}`, dotColor: 'bg-purple-500', link: '/dashboard/payments?type=IP%20Charges' },
-        { label: 'Bill Discounts Given', value: `-₹${billDiscountTotal.toLocaleString()}`, dotColor: 'bg-orange-500', link: '/dashboard/payments?transactionType=bill', textColor: 'text-orange-600' },
-      ],
-      modalBreakdown: [
-        { label: 'Maintenance Bills', value: `₹${maintBilled.toLocaleString()}`, color: 'text-amber-650' },
-        { label: 'License Bills', value: `₹${licBilled.toLocaleString()}`, color: 'text-cyan-600' },
-        { label: 'IP Charges Bills', value: `₹${ipBilled.toLocaleString()}`, color: 'text-purple-650' },
-        { label: 'Other/Misc Bills', value: `₹${otherBilled.toLocaleString()}`, color: 'text-slate-600' },
-        { label: 'Overall Combined Billed', value: `₹${totalBilledAmount.toLocaleString()}`, color: 'text-slate-900 font-black' },
-      ]
+      formula: 'Total Billed = Sum of Billed Charges - Bill Discounts',
+      breakdown: salesBreakdown,
     },
     {
       title: 'Revenue & Collections',
       value: `₹${totalPaymentsReceived.toLocaleString()}`,
       desc: `Recovery Rate: ${recoveryRate}%`,
       icon: CircleDollarSign,
-      iconBg: 'from-emerald-500/20 to-teal-500/10 text-emerald-600',
-      iconBorder: 'border-emerald-500/20',
+      iconBg: 'from-emerald-500/20 to-teal-500/10 text-emerald-600 dark:text-emerald-400',
+      iconBorder: 'border-emerald-500/20 dark:border-emerald-500/30',
       link: '/dashboard/payments?transactionType=received',
-      color: 'from-emerald-50/60 via-white to-white border-emerald-100/80 shadow-emerald-100/10',
+      color: 'from-emerald-50/60 dark:from-emerald-950/20 via-white dark:via-slate-900 to-white dark:to-slate-900 border-emerald-100/80 dark:border-emerald-950/30 shadow-emerald-100/10 dark:shadow-none',
       topBorderColor: 'from-emerald-500 to-teal-500',
-      formula: 'Total Received = Maintenance + License + IP + Other',
-      breakdown: [
-        { label: 'Maintenance Collections', value: `₹${maintPaid.toLocaleString()}`, dotColor: 'bg-amber-500', link: '/dashboard/payments?transactionType=received&type=Maintenance' },
-        { label: 'License Collections', value: `₹${licPaid.toLocaleString()}`, dotColor: 'bg-cyan-500', link: '/dashboard/payments?transactionType=received&type=License' },
-        { label: 'IP Charges Collections', value: `₹${ipPaid.toLocaleString()}`, dotColor: 'bg-purple-500', link: '/dashboard/payments?transactionType=received&type=IP%20Charges' },
-        { label: 'Payment Discounts Given', value: `-₹${paymentDiscountTotal.toLocaleString()}`, dotColor: 'bg-red-500', link: '/dashboard/payments?transactionType=received', textColor: 'text-red-650' },
-      ],
-      modalBreakdown: [
-        { label: 'Maintenance Collections', value: `₹${maintPaid.toLocaleString()}`, color: 'text-amber-650' },
-        { label: 'License Collections', value: `₹${licPaid.toLocaleString()}`, color: 'text-cyan-600' },
-        { label: 'IP Charges Collections', value: `₹${ipPaid.toLocaleString()}`, color: 'text-purple-650' },
-        { label: 'Other/Misc Collections', value: `₹${otherPaid.toLocaleString()}`, color: 'text-slate-600' },
-        { label: 'Combined Cash Collections', value: `₹${cashCollections.toLocaleString()}`, color: 'text-emerald-600' },
-        { label: 'Combined Online Collections', value: `₹${onlineCollections.toLocaleString()}`, color: 'text-indigo-600' },
-        { label: 'Total Received Revenue', value: `₹${totalPaymentsReceived.toLocaleString()}`, color: 'text-emerald-600 font-black' },
-      ]
+      formula: 'Total Received = Sum of Payments Paid - Payment Discounts',
+      breakdown: revenueBreakdown,
     },
     {
-      title: 'Outstanding Dues (Lena Baki)',
-      value: `₹${outstandingBalance.toLocaleString()}`,
-      desc: 'Cumulative ledger balance',
+      title: outstandingBalance > 0 ? 'Outstanding Dues (Lena Baki)' : 'Advance Balance (Jama)',
+      value: outstandingBalance > 0
+        ? `₹${outstandingBalance.toLocaleString()}`
+        : `₹${Math.abs(outstandingBalance).toLocaleString()}`,
+      valueColor: outstandingBalance > 0
+        ? 'text-rose-600 dark:text-rose-500'
+        : 'text-emerald-600 dark:text-emerald-400',
+      desc: outstandingBalance > 0 ? 'Cumulative ledger balance (Dues)' : 'Cumulative ledger balance (Credit)',
       icon: Landmark,
-      iconBg: outstandingBalance > 0 ? 'from-red-500/20 to-red-700/10 text-red-600' : 'from-emerald-500/20 to-teal-500/10 text-emerald-500',
-      iconBorder: outstandingBalance > 0 ? 'border-red-500/20' : 'border-emerald-500/20',
+      iconBg: outstandingBalance > 0 ? 'from-red-50/20 to-red-700/10 text-red-600 dark:text-red-400' : 'from-emerald-50/20 to-teal-500/10 text-emerald-500 dark:text-emerald-400',
+      iconBorder: outstandingBalance > 0 ? 'border-red-500/20 dark:border-red-500/30' : 'border-emerald-500/20 dark:border-emerald-500/30',
       link: '/dashboard/panels?balance=Outstanding',
       color: outstandingBalance > 0
-        ? 'from-red-50/40 via-white to-white border-red-100/80 shadow-red-100/10'
-        : 'from-emerald-50/60 via-white to-white border-emerald-100/80 shadow-emerald-100/10',
+        ? 'from-red-50/40 dark:from-red-950/20 via-white dark:via-slate-900 to-white dark:to-slate-900 border-red-100/80 dark:border-red-950/30 shadow-red-100/10 dark:shadow-none'
+        : 'from-emerald-50/60 dark:from-emerald-950/20 via-white dark:via-slate-900 to-white dark:to-slate-900 border-emerald-100/80 dark:border-emerald-950/30 shadow-emerald-100/10 dark:shadow-none',
       topBorderColor: outstandingBalance > 0 ? 'from-red-500 to-red-700' : 'from-emerald-500 to-teal-500',
       formula: 'Outstanding = Opening Balance + Net Period Billed - Net Period Collected',
-      breakdown: [
-        { label: 'Opening Balance Dues', value: `₹${openingBalSum.toLocaleString()}`, dotColor: 'bg-slate-500', link: '/dashboard/panels?balance=Outstanding', textColor: 'text-slate-800' },
-        { label: 'Maintenance Dues', value: `₹${maintOutstanding.toLocaleString()}`, dotColor: 'bg-amber-500', link: '/dashboard/panels?balance=Outstanding', textColor: maintOutstanding > 0 ? 'text-red-600' : 'text-slate-800' },
-        { label: 'License Dues', value: `₹${licOutstanding.toLocaleString()}`, dotColor: 'bg-cyan-500', link: '/dashboard/panels?balance=Outstanding', textColor: licOutstanding > 0 ? 'text-red-600' : 'text-slate-800' },
-        { label: 'IP Charges Dues', value: `₹${ipOutstanding.toLocaleString()}`, dotColor: 'bg-purple-500', link: '/dashboard/panels?balance=Outstanding', textColor: ipOutstanding > 0 ? 'text-red-600' : 'text-slate-800' },
-      ],
-      modalBreakdown: [
-        { label: 'Opening Balance (Prior Ledger Dues)', value: `+ ₹${openingBalSum.toLocaleString()}`, color: 'text-slate-700' },
-        { label: 'Total Invoices Billed', value: `+ ₹${totalBilledAmount.toLocaleString()}`, color: 'text-indigo-650' },
-        { label: 'Invoice Discounts Applied', value: `- ₹${billDiscountTotal.toLocaleString()}`, color: 'text-orange-600' },
-        { label: 'Actual Payments Collected', value: `- ₹${totalPaymentsReceived.toLocaleString()}`, color: 'text-emerald-600' },
-        { label: 'Receipt Discounts Applied', value: `- ₹${paymentDiscountTotal.toLocaleString()}`, color: 'text-red-600' },
-        { label: 'Net Client Dues (Lena Baki)', value: `₹${outstandingBalance.toLocaleString()}`, color: 'text-red-600 font-black' },
-      ]
+      breakdown: outstandingBreakdown,
     },
   ];
 
@@ -672,844 +720,873 @@ export default function DashboardHome() {
   const maxTrendVal = Math.max(...trendData.map(d => Math.max(d.paid, d.billed)), 1);
 
   return (
-    <div className="space-y-8 animate-pulse-subtle">
-      {/* Welcome Banner */}
+    <>
+      <div className="space-y-8 animate-pulse-subtle">
+        {/* Welcome Banner */}
+        <AnimatedBackground />
 
+        {/* Filter Toolbar Card */}
+        <div className="rounded-3xl analytics-card bg-gradient-to-b from-slate-50/40 dark:from-slate-950/20 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-slate-200 dark:border-slate-800/85 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-0.5 hover:shadow-xl">
+          {/* Top Accent Gradient Border */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-violet-500"></div>
 
-      {/* Filter Toolbar Card */}
-      <div className="rounded-2xl  glass-card border border-slate-300 dark:border-slate-800 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-            <Filter className="h-5 w-5" />
+          <div className="flex items-center gap-3 pt-1">
+            <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+              <Filter className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-slate-800 dark:text-slate-50 font-display">Period Filtering</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400">View stats for a custom month, quarter, or overall</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-base text-slate-800 font-display">Period Filtering</h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400">View stats for a custom month, quarter, or overall</p>
-          </div>
-        </div>
 
 
-        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
 
-          {/* Toggle Tabs */}
-          <div className="flex items-center p-1 rounded-2xl bg-slate-100/70 dark:bg-slate-900/70 border border-slate-300/60 dark:border-slate-800/60 backdrop-blur-md shadow-sm">
+            {/* Toggle Tabs */}
+            <div className="flex items-center p-1 rounded-2xl bg-slate-100/70 dark:bg-slate-900/70 border border-slate-300/60 dark:border-slate-800/60 backdrop-blur-md shadow-sm">
 
-            {[
-              { id: "all", label: "All Time" },
-              { id: "monthly", label: "Monthly" },
-              { id: "quarterly", label: "Quarterly" },
-            ].map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setFilterType(t.id)}
-                className={`relative px-4 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300
+              {[
+                { id: "all", label: "All Time" },
+                { id: "monthly", label: "Monthly" },
+                { id: "quarterly", label: "Quarterly" },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setFilterType(t.id)}
+                  className={`relative px-4 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300
         ${filterType === t.id
-                    ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-sm"
-                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                  }`}
-              >
-                {filterType === t.id && (
-                  <span className="absolute inset-0 rounded-xl bg-indigo-500/10 blur-sm"></span>
-                )}
-                <span className="relative z-10">{t.label}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Monthly Dropdown */}
-          {filterType === "monthly" && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300/60 dark:border-slate-800/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
-
-              <Calendar className="h-4 w-4 text-indigo-500" />
-
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
-              >
-                {availableMonths.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
+                      ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-sm"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                >
+                  {filterType === t.id && (
+                    <span className="absolute inset-0 rounded-xl bg-indigo-500/10 blur-sm"></span>
+                  )}
+                  <span className="relative z-10">{t.label}</span>
+                </button>
+              ))}
             </div>
-          )}
 
-          {/* Quarterly Dropdown */}
-          {filterType === "quarterly" && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300/60 dark:border-slate-800/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
+            {/* Monthly Dropdown */}
+            {filterType === "monthly" && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300/60 dark:border-slate-800/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
 
-              <Calendar className="h-4 w-4 text-indigo-500" />
+                <Calendar className="h-4 w-4 text-indigo-500" />
 
-              <select
-                value={selectedQuarter}
-                onChange={(e) => setSelectedQuarter(e.target.value)}
-                className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
-              >
-                {availableQuarters.map((q) => (
-                  <option key={q.value} value={q.value}>
-                    {q.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-        </div>
-      </div>
-
-      {/* Sleek, Unified 3-Card Dashboard Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in duration-300">
-        {premiumCards.map((card, i) => {
-          const Icon = card.icon;
-          const hoverClass = i === 0
-            ? 'hover:bg-indigo-50/45 hover:border-indigo-100/60'
-            : i === 1
-              ? 'hover:bg-emerald-50/45 hover:border-emerald-100/60'
-              : 'hover:bg-red-50/45 hover:border-red-100/60';
-          return (
-            <div
-              key={i}
-              className={`rounded-3xl analytics-card bg-gradient-to-b ${card.color} border p-6 flex flex-col justify-between shadow-lg relative overflow-hidden backdrop-blur-md transition-all duration-300 hover:-translate-y-1`}
-            >
-              {/* Top Accent Gradient Border */}
-              <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${card.topBorderColor}`}></div>
-
-              {/* Card Header */}
-              <div className="flex justify-between items-start mb-5 pt-1.5">
-                <div>
-                  <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 font-display">{card.title}</h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5 font-medium">{card.desc}</p>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setModalInfo(card);
-                    }}
-                    className="h-7 w-7 rounded-xl bg-white hover:bg-slate-50 text-slate-450 hover:text-slate-700 flex items-center justify-center border border-slate-200 transition-all hover:scale-105 active:scale-95 shadow-sm"
-                    title="Audit Step-by-Step Math"
-                  >
-                    <Info className="h-3.5 w-3.5" />
-                  </button>
-                  <Link
-                    to={card.link}
-                    className="h-7 w-7 rounded-xl bg-white hover:bg-slate-50 text-slate-450 hover:text-slate-700 flex items-center justify-center border border-slate-200 transition-all hover:scale-105 active:scale-95 shadow-sm shrink-0"
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Card Value */}
-              <div className="mb-5 pb-4 border-b border-slate-100 flex items-baseline">
-                <span className="text-3xl font-black text-slate-800 font-display tracking-tight leading-none">{card.value}</span>
-              </div>
-
-              {/* Sub-breakdown Items (The Magic Section) */}
-              <div className="space-y-3.5">
-                <span className="text-[9px] text-slate-450 font-bold uppercase tracking-widest block font-display">Itemized Breakdown</span>
-                <div className="space-y-2">
-                  {card.breakdown.map((item, idx) => (
-                    <Link
-                      key={idx}
-                      to={item.link}
-                      className={`flex justify-between items-center text-xs px-3 py-2 rounded-xl bg-slate-50/50 border border-slate-100/50 transition-all group/row ${hoverClass}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className={`h-1.5 w-1.5 rounded-full ${item.dotColor || 'bg-slate-500'} group-hover/row:scale-125 transition-transform`}></span>
-                        <span className="text-slate-600 group-hover/row:text-slate-800 font-semibold transition-colors">{item.label}</span>
-                      </div>
-                      <span className={`font-mono font-bold transition-colors ${item.textColor || 'text-slate-800'}`}>
-                        {item.value}
-                      </span>
-                    </Link>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
+                >
+                  {availableMonths.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            )}
 
-      {/* Analytics Chart & Breakdown Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Payment & Billing Trend Chart */}
-        <div className="lg:col-span-2 rounded-2xl glass-card border border-slate-300 dark:border-slate-800 p-6 md:p-8 shadow-xl relative flex flex-col justify-between min-h-[350px]">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="font-bold text-lg text-slate-800 font-display">Billing & Collections Trend</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                  Comparison of sales generated (billed) against revenue collected (paid)
-                </p>
+            {/* Quarterly Dropdown */}
+            {filterType === "quarterly" && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300/60 dark:border-slate-800/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
+
+                <Calendar className="h-4 w-4 text-indigo-500" />
+
+                <select
+                  value={selectedQuarter}
+                  onChange={(e) => setSelectedQuarter(e.target.value)}
+                  className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
+                >
+                  {availableQuarters.map((q) => (
+                    <option key={q.value} value={q.value}>
+                      {q.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="flex items-center gap-4 text-xs font-semibold">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full bg-indigo-500"></span>
-                  <span className="text-slate-700 dark:text-slate-300">Billed Sales</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full bg-emerald-500"></span>
-                  <span className="text-slate-700 dark:text-slate-300">Paid Revenue</span>
-                </div>
-              </div>
-            </div>
+            )}
+
           </div>
+        </div>
 
-          <div className="relative flex-1 flex items-center justify-center py-4">
-            {maxTrendVal <= 1 ? (
-              <div className="flex flex-col items-center justify-center text-center space-y-2 opacity-60">
-                <AlertCircle className="h-8 w-8 text-slate-500 dark:text-slate-500" />
-                <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">No transactions recorded in this period</span>
-              </div>
-            ) : (
-              <svg viewBox="0 0 540 210" className="w-full h-auto overflow-visible">
-                <defs>
-                  <linearGradient id="barBilled" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity="1" />
-                    <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.4" />
-                  </linearGradient>
-                  <linearGradient id="barPaid" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity="1" />
-                    <stop offset="100%" stopColor="#059669" stopOpacity="0.4" />
-                  </linearGradient>
-                </defs>
+        {/* Sleek, Unified 3-Card Dashboard Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in duration-300">
+          {premiumCards.map((card, i) => {
+            const Icon = card.icon;
+            const hoverClass = i === 0
+              ? 'hover:bg-indigo-50/45 hover:border-indigo-100/60 dark:hover:bg-indigo-950/10'
+              : i === 1
+                ? 'hover:bg-emerald-50/45 hover:border-emerald-100/60 dark:hover:bg-emerald-950/10'
+                : 'hover:bg-red-50/45 hover:border-red-100/60 dark:hover:bg-red-950/10';
+            return (
+              <div
+                key={i}
+                className={`rounded-3xl analytics-card bg-gradient-to-b ${card.color} border p-6 flex flex-col justify-between shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-2xl`}
+              >
+                {/* Top Accent Gradient Border */}
+                <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${card.topBorderColor}`}></div>
 
-                {/* Y Grid Lines */}
-                {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => {
-                  const yVal = 20 + 160 * (1 - ratio);
-                  const gridAmount = maxTrendVal * ratio;
-                  return (
-                    <g key={index} className="opacity-45">
-                      <line
-                        x1="50"
-                        y1={yVal}
-                        x2="530"
-                        y2={yVal}
-                        stroke="#334155"
-                        strokeWidth="1"
-                        strokeDasharray="4 4"
-                      />
-                      <text
-                        x="42"
-                        y={yVal + 3}
-                        fill="#94a3b8"
-                        fontSize="9"
-                        fontWeight="bold"
-                        textAnchor="end"
+                {/* Card Header */}
+                <div className="flex justify-between items-start mb-5 pt-1.5">
+                  <div>
+                    <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-display">{card.title}</h3>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">{card.desc}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setModalInfo(card);
+                      }}
+                      className="h-7 w-7 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center border border-slate-200 dark:border-slate-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                      title="Audit Step-by-Step Math"
+                    >
+                      <Info className="h-3.5 w-3.5" />
+                    </button>
+                    <Link
+                      to={card.link}
+                      className="h-7 w-7 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center border border-slate-200 dark:border-slate-700 transition-all hover:scale-105 active:scale-95 shadow-sm shrink-0"
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Card Value */}
+                <div className="mb-5 pb-4 border-b border-slate-100 dark:border-slate-800 flex items-baseline">
+                  <span className={`text-3xl font-black ${card.valueColor || 'text-slate-800 dark:text-slate-100'} font-display tracking-tight leading-none`}>{card.value}</span>
+                </div>
+
+                {/* Sub-breakdown Items (The Magic Section) */}
+                <div className="space-y-3.5">
+                  <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest block font-display">Itemized Breakdown</span>
+                  <div className="space-y-2">
+                    {card.breakdown.map((item, idx) => (
+                      <Link
+                        key={idx}
+                        to={item.link}
+                        className={`flex justify-between items-center text-xs px-3 py-2 rounded-xl bg-slate-50/50 dark:bg-slate-950/30 border border-slate-100/50 dark:border-slate-800/40 transition-all group/row ${hoverClass}`}
                       >
-                        ₹{gridAmount >= 100000 ? `${(gridAmount / 100000).toFixed(1)}L` : gridAmount >= 1000 ? `${(gridAmount / 1000).toFixed(0)}K` : gridAmount.toFixed(0)}
-                      </text>
-                    </g>
-                  );
-                })}
-
-                {/* Bars */}
-                {trendData.map((d, i) => {
-                  const segWidth = 480 / trendData.length;
-                  const barW = Math.min(segWidth * 0.28, 20);
-
-                  const xBilled = 50 + i * segWidth + (segWidth - barW * 2 - 4) / 2;
-                  const hBilled = maxTrendVal > 0 ? (d.billed / maxTrendVal) * 160 : 0;
-                  const yBilled = 20 + 160 - hBilled;
-
-                  const xPaid = xBilled + barW + 4;
-                  const hPaid = maxTrendVal > 0 ? (d.paid / maxTrendVal) * 160 : 0;
-                  const yPaid = 20 + 160 - hPaid;
-
-                  return (
-                    <g key={i} className="group">
-                      {/* Billed Bar */}
-                      {hBilled > 0 && (
-                        <rect
-                          x={xBilled}
-                          y={yBilled}
-                          width={barW}
-                          height={hBilled}
-                          rx="4"
-                          fill="url(#barBilled)"
-                          className="transition-all duration-500 hover:brightness-125 cursor-pointer"
-                        >
-                          <title>{`Sales Billed: ₹${d.billed.toLocaleString()}`}</title>
-                        </rect>
-                      )}
-
-                      {/* Paid Bar */}
-                      {hPaid > 0 && (
-                        <rect
-                          x={xPaid}
-                          y={yPaid}
-                          width={barW}
-                          height={hPaid}
-                          rx="4"
-                          fill="url(#barPaid)"
-                          className="transition-all duration-500 hover:brightness-125 cursor-pointer"
-                        >
-                          <title>{`Received Paid: ₹${d.paid.toLocaleString()}`}</title>
-                        </rect>
-                      )}
-
-                      {/* Labels */}
-                      <text
-                        x={50 + i * segWidth + segWidth / 2}
-                        y="198"
-                        fill="#94a3b8"
-                        fontSize="10"
-                        fontWeight="semibold"
-                        textAnchor="middle"
-                      >
-                        {d.label}
-                      </text>
-                    </g>
-                  );
-                })}
-
-                {/* X Line */}
-                <line x1="50" y1="180" x2="530" y2="180" stroke="#334155" strokeWidth="1" />
-              </svg>
-            )}
-          </div>
-        </div>
-
-        {/* Ledger Registry Overview */}
-        <div className="lg:col-span-1 rounded-2xl glass-card border border-slate-300 dark:border-slate-800 p-6 md:p-8 shadow-xl flex flex-col justify-center gap-6">
-          <div>
-            <h3 className="font-bold text-lg text-slate-800 font-display mb-2">Ledger Registry Overview</h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">General breakdown of system clients and generated receipts in this period.</p>
-          </div>
-
-          <div className="space-y-4">
-            <Link to="/dashboard/panels" className="flex items-center gap-4 bg-slate-100/50 border border-slate-200/80 p-4 rounded-xl hover:border-slate-300 transition-colors cursor-pointer shadow-sm">
-              <div className="h-10 w-10 rounded-full bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
-                <Layers className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Total Registered Panels</p>
-                <p className="text-lg font-bold text-slate-800 font-display mt-0.5">{stats?.counts?.totalPanels || 0} Clients</p>
-              </div>
-            </Link>
-
-            <Link to="/dashboard/payments" className="flex items-center gap-4 bg-slate-100/50 border border-slate-200/80 p-4 rounded-xl hover:border-slate-300 transition-colors cursor-pointer shadow-sm">
-              <div className="h-10 w-10 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-                <FileSpreadsheet className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Active Transactions</p>
-                <p className="text-lg font-bold text-slate-800 font-display mt-0.5">{filteredPayments.length} Actions</p>
-              </div>
-            </Link>
-
-            <div className="pt-4 border-t border-slate-200 space-y-3">
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider font-display">Payments Mode Distribution</p>
-              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                {['Cash', 'UPI', 'Bank Transfer', 'Online'].map((mode) => {
-                  const modeAmt = filteredPayments
-                    .filter((p) => p.paymentMode === mode)
-                    .reduce((sum, p) => sum + (p.amountReceived || 0), 0);
-                  const colors = {
-                    Cash: 'text-amber-700 hover:border-amber-500/20 bg-amber-50/50 border-amber-100',
-                    UPI: 'text-emerald-700 hover:border-emerald-500/20 bg-emerald-50/50 border-emerald-100',
-                    'Bank Transfer': 'text-indigo-700 hover:border-indigo-500/20 bg-indigo-50/50 border-indigo-100',
-                    Online: 'text-violet-700 hover:border-violet-500/20 bg-violet-50/50 border-violet-100',
-                  };
-                  return (
-                    <div key={mode} className={`p-2.5 rounded-xl border hover:scale-[1.02] transition-all duration-300 shadow-sm ${colors[mode]}`}>
-                      <span className="text-slate-500 block mb-0.5 text-[9px] uppercase font-bold">{mode}</span>
-                      <span className="font-bold text-sm">₹{modeAmt.toLocaleString()}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Leaderboard Rankings Title */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4 border-t border-slate-300/60 dark:border-slate-800/60">
-        <div>
-          <h3 className="font-bold text-xl text-slate-900 dark:text-white flex items-center gap-2">
-            <Award className="h-6 w-6 text-indigo-700" />
-            Client Rankings & Performance Leaderboards
-          </h3>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-            Top performing clients by invoiced sales, revenue collected, licenses issued, and SLAs
-          </p>
-        </div>
-
-        {inactivePanels.length > 0 && (
-          <button
-            onClick={() => setShowInactive(!showInactive)}
-            className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 hover:border-red-500/40 text-red-700 transition-all duration-200"
-          >
-            <AlertCircle className="h-4 w-4" />
-            <span>{showInactive ? 'Hide' : 'Show'} Inactive Clients ({inactivePanels.length})</span>
-          </button>
-        )}
-      </div>
-
-      {/* Inactive Panels Expandable drawer */}
-      {showInactive && (
-        <div className="rounded-2xl bg-red-500/5 border border-red-500/20 p-6 animate-pulse-subtle">
-          <h4 className="font-bold text-sm text-red-700 mb-2 uppercase tracking-wide">Inactive Clients (No Bills/Payments in Period)</h4>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">The following client panels recorded zero invoiced sales and zero payments collected during this selected period:</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {inactivePanels.map((p) => (
-              <div key={p._id} className="bg-slate-50/40 dark:bg-slate-950/40 border border-slate-900/60 rounded-xl p-3.5 flex items-start justify-between">
-                <div>
-                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{p.panelName}</p>
-                  <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-0.5">Owner: {p.ownerName}</p>
+                        <div className="flex items-center gap-2">
+                          <span className={`h-1.5 w-1.5 rounded-full ${item.dotColor || 'bg-slate-500'} group-hover/row:scale-125 transition-transform`}></span>
+                          <span className="text-slate-600 dark:text-slate-350 group-hover/row:text-slate-800 dark:group-hover/row:text-slate-100 font-semibold transition-colors">{item.label}</span>
+                        </div>
+                        <span className={`font-mono font-bold transition-colors ${item.textColor || 'text-slate-800 dark:text-slate-100'}`}>
+                          {item.value}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-                <span className="text-[10px] font-semibold text-red-700 px-2 py-0.5 rounded bg-red-500/5 border border-red-500/10">No Activity</span>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Leaderboard Rankings Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* 1. Revenue Leaders */}
-        <div className="rounded-2xl glass-card border border-slate-300 dark:border-slate-800 p-5 md:p-6 shadow-xl flex flex-col h-full hover:border-slate-300/80 dark:hover:border-slate-700/80 transition-all duration-300">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-              <CircleDollarSign className="h-5 w-5" />
-            </div>
-            <div>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-white">Revenue Leaders</h4>
-              <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">Top Payments Paid</p>
-            </div>
-          </div>
-
-          <div className="flex-1 space-y-4">
-            {topPayingPanels.length === 0 ? (
-              <div className="h-44 flex flex-col items-center justify-center text-xs text-slate-500 dark:text-slate-500 font-semibold text-center space-y-1">
-                <span>No Payments Registered</span>
-              </div>
-            ) : (
-              topPayingPanels.map((item, idx) => {
-                const pct = totalPaymentsReceived > 0 ? (item.totalPaid / totalPaymentsReceived) * 100 : 0;
-                return (
-                  <div key={item._id} className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-semibold">
-                      <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-700 dark:text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[120px] cursor-pointer">
-                        {idx + 1}. {item.panelName}
-                      </Link>
-                      <span className="text-emerald-700 font-bold">₹{item.totalPaid.toLocaleString()}</span>
-                    </div>
-                    <div className="w-full bg-slate-100/60 dark:bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-300 dark:border-slate-800">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
-                        style={{ width: `${Math.max(pct, 2)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+            );
+          })}
         </div>
 
-        {/* 2. Billing Leaders */}
-        <div className="rounded-2xl glass-card border border-slate-300 dark:border-slate-800 p-5 md:p-6 shadow-xl flex flex-col h-full hover:border-slate-300/80 dark:hover:border-slate-700/80 transition-all duration-300">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="h-9 w-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-              <FileSpreadsheet className="h-5 w-5" />
-            </div>
-            <div>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-white">Sales Invoiced</h4>
-              <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">Top Sales Billed</p>
-            </div>
-          </div>
+        {/* Analytics Chart & Breakdown Panel */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Payment & Billing Trend Chart */}
+          <div className="lg:col-span-2 rounded-3xl analytics-card bg-gradient-to-b from-indigo-50/20 dark:from-slate-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-slate-200 dark:border-slate-850 p-6 md:p-8 shadow-lg relative flex flex-col justify-between min-h-[350px] overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl">
+            {/* Top Accent Gradient Border */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500"></div>
 
-          <div className="flex-1 space-y-4">
-            {topBilledPanels.length === 0 ? (
-              <div className="h-44 flex flex-col items-center justify-center text-xs text-slate-500 dark:text-slate-500 font-semibold text-center space-y-1">
-                <span>No Sales Billed</span>
-              </div>
-            ) : (
-              topBilledPanels.map((item, idx) => {
-                const pct = totalBilledAmount > 0 ? (item.totalBilled / totalBilledAmount) * 100 : 0;
-                return (
-                  <div key={item._id} className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-semibold">
-                      <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-700 dark:text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[120px] cursor-pointer">
-                        {idx + 1}. {item.panelName}
-                      </Link>
-                      <span className="text-indigo-700 font-bold">₹{item.totalBilled.toLocaleString()}</span>
-                    </div>
-                    <div className="w-full bg-slate-100/60 dark:bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-300 dark:border-slate-800">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 transition-all duration-500"
-                        style={{ width: `${Math.max(pct, 2)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* 3. License Leaders */}
-        <div className="rounded-2xl glass-card border border-slate-300 dark:border-slate-800 p-5 md:p-6 shadow-xl flex flex-col h-full hover:border-slate-300/80 dark:hover:border-slate-700/80 transition-all duration-300">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="h-9 w-9 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-500/20">
-              <Layers className="h-5 w-5" />
-            </div>
-            <div>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-white">License Intake</h4>
-              <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">Most Licenses Taken</p>
-            </div>
-          </div>
-
-          <div className="flex-1 space-y-4">
-            {topLicensePanels.length === 0 ? (
-              <div className="h-44 flex flex-col items-center justify-center text-xs text-slate-500 dark:text-slate-500 font-semibold text-center space-y-1">
-                <span>No Licenses Issued</span>
-              </div>
-            ) : (
-              topLicensePanels.map((item, idx) => {
-                const maxLic = Math.max(...topLicensePanels.map(x => x.licenseQty), 1);
-                const pct = (item.licenseQty / maxLic) * 100;
-                return (
-                  <div key={item._id} className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-semibold col-span-2">
-                      <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-700 dark:text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[110px] cursor-pointer">
-                        {idx + 1}. {item.panelName}
-                      </Link>
-                      <span className="text-cyan-700 font-bold">{item.licenseQty} Qty <span className="text-[10px] text-slate-600 dark:text-slate-400 font-normal">(₹{(item.licenseBilled || item.licensePaid).toLocaleString()})</span></span>
-                    </div>
-                    <div className="w-full bg-slate-100/60 dark:bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-300 dark:border-slate-800">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
-                        style={{ width: `${Math.max(pct, 2)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* 4. Maintenance SLA Tracker */}
-        <div className="rounded-2xl glass-card border border-slate-300 dark:border-slate-800 p-5 md:p-6 shadow-xl flex flex-col h-full hover:border-slate-300/80 dark:hover:border-slate-700/80 transition-all duration-300">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
-              <Wrench className="h-5 w-5" />
-            </div>
-            <div>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-white">Maintenance Dues</h4>
-              <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">SLA Support Payments</p>
-            </div>
-          </div>
-
-          <div className="flex-1 space-y-4">
-            {topMaintenancePanels.length === 0 ? (
-              <div className="h-44 flex flex-col items-center justify-center text-xs text-slate-500 dark:text-slate-500 font-semibold text-center space-y-1">
-                <span>No SLA Payments</span>
-              </div>
-            ) : (
-              topMaintenancePanels.map((item, idx) => {
-                const maxMaint = Math.max(...topMaintenancePanels.map(x => x.maintenanceBilled || x.maintenancePaid), 1);
-                const pct = ((item.maintenanceBilled || item.maintenancePaid) / maxMaint) * 100;
-                return (
-                  <div key={item._id} className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-semibold">
-                      <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-700 dark:text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[120px] cursor-pointer">
-                        {idx + 1}. {item.panelName}
-                      </Link>
-                      <span className="text-amber-700 font-bold">₹{(item.maintenanceBilled || item.maintenancePaid).toLocaleString()}</span>
-                    </div>
-                    <div className="w-full bg-slate-100/60 dark:bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-300 dark:border-slate-800">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500"
-                        style={{ width: `${Math.max(pct, 2)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Stacked Full-Width Section for Performance Alerts & Client Performance Grid Table */}
-      <div className="space-y-8 pt-4 border-t border-slate-300/60 dark:border-slate-800/60">
-
-        {/* Row 1: Worst Performing Clients Alerts */}
-        {worstPerforming.length > 0 && (
-          <div className="rounded-2xl bg-red-500/5 border border-red-500/10 p-6 shadow-xl space-y-4">
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-red-500/10 pb-3">
-
-              <div className="flex items-center gap-3">
-
-                <div className="h-9 w-9 rounded-xl bg-red-500/10 text-red-700 flex items-center justify-center border border-red-500/20">
-                  <AlertCircle className="h-5 w-5" />
-                </div>
-
+            <div className="pt-1.5">
+              <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h4 className="font-bold text-base text-slate-900 dark:text-white">
-                    Performance Alerts
-                  </h4>
-                  <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">
-                    Clients with lowest recovery rates or critical dues in this period
+                  <h3 className="font-bold text-lg text-slate-800 dark:text-slate-50 font-display">Billing & Collections Trend</h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                    Comparison of sales generated (billed) against revenue collected (paid)
                   </p>
                 </div>
-              </div>
-
-              <div className="text-[10px] font-bold px-3 py-1 rounded uppercase bg-red-800/10 border border-red-500/20 text-red-700 tracking-wider text-center sm:text-right shrink-0">
-                ⚠️ Critically Inactive: {inactivePanels.length} Panels
+                <div className="flex items-center gap-4 text-xs font-semibold select-none">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-indigo-500"></span>
+                    <span className="text-slate-600 dark:text-slate-300">Billed Sales</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-emerald-500"></span>
+                    <span className="text-slate-600 dark:text-slate-300">Paid Revenue</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {worstPerforming.map((item, idx) => (
+            <div className="relative flex-1 flex items-center justify-center py-4">
+              {maxTrendVal <= 1 ? (
+                <div className="flex flex-col items-center justify-center text-center space-y-2 opacity-60">
+                  <AlertCircle className="h-8 w-8 text-slate-500 dark:text-slate-500" />
+                  <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">No transactions recorded in this period</span>
+                </div>
+              ) : (
+                <svg viewBox="0 0 540 210" className="w-full h-auto overflow-visible">
+                  <defs>
+                    <linearGradient id="barBilled" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity="1" />
+                      <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.4" />
+                    </linearGradient>
+                    <linearGradient id="barPaid" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="1" />
+                      <stop offset="100%" stopColor="#059669" stopOpacity="0.4" />
+                    </linearGradient>
+                  </defs>
 
-                <div
-                  key={item._id}
-                  className="bg-slate-50/60 dark:bg-slate-950/60 border border-slate-900/80 p-5 md:p-6 rounded-xl hover:border-slate-800 transition-all duration-300 relative overflow-hidden group hover:-translate-y-0.5"
-                >
+                  {/* Y Grid Lines */}
+                  {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => {
+                    const yVal = 20 + 160 * (1 - ratio);
+                    const gridAmount = maxTrendVal * ratio;
+                    return (
+                      <g key={index} className="text-slate-200 dark:text-slate-800 opacity-60">
+                        <line
+                          x1="50"
+                          y1={yVal}
+                          x2="530"
+                          y2={yVal}
+                          stroke="currentColor"
+                          strokeWidth="1"
+                          strokeDasharray="4 4"
+                        />
+                        <text
+                          x="42"
+                          y={yVal + 3}
+                          fill="#94a3b8"
+                          fontSize="9"
+                          fontWeight="bold"
+                          textAnchor="end"
+                        >
+                          ₹{gridAmount >= 100000 ? `${(gridAmount / 100000).toFixed(1)}L` : gridAmount >= 1000 ? `${(gridAmount / 1000).toFixed(0)}K` : gridAmount.toFixed(0)}
+                        </text>
+                      </g>
+                    );
+                  })}
 
-                  <div className="flex justify-between items-start gap-2">
+                  {/* Bars */}
+                  {trendData.map((d, i) => {
+                    const segWidth = 480 / trendData.length;
+                    const barW = Math.min(segWidth * 0.28, 20);
 
-                    <div>
-                      <Link
-                        to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`}
-                        className="text-slate-800 dark:text-slate-200 hover:text-indigo-400 font-bold text-sm block truncate max-w-[190px]"
-                      >
-                        {idx + 1}. {item.panelName}
-                      </Link>
+                    const xBilled = 50 + i * segWidth + (segWidth - barW * 2 - 4) / 2;
+                    const hBilled = maxTrendVal > 0 ? (d.billed / maxTrendVal) * 160 : 0;
+                    const yBilled = 20 + 160 - hBilled;
 
-                      <Link
-                        to={`/dashboard/panels?category=${encodeURIComponent(item.category || 'Algo')}`}
-                        className="text-[10px] text-slate-500 dark:text-slate-500 hover:text-indigo-400 mt-0.5 block font-semibold uppercase"
-                      >
-                        {item.category || 'Algo'} Category
-                      </Link>
-                    </div>
+                    const xPaid = xBilled + barW + 4;
+                    const hPaid = maxTrendVal > 0 ? (d.paid / maxTrendVal) * 160 : 0;
+                    const yPaid = 20 + 160 - hPaid;
 
-                    <span className="text-[9px] font-bold px-2 py-0.5 rounded uppercase bg-red-500/10 border border-red-500/20 text-red-700 shrink-0">
-                      {item.totalBilled > 0
-                        ? `Recovery: ${item.recoveryRate}%`
-                        : "Outstanding"}
-                    </span>
+                    return (
+                      <g key={i} className="group">
+                        {/* Billed Bar */}
+                        {hBilled > 0 && (
+                          <rect
+                            x={xBilled}
+                            y={yBilled}
+                            width={barW}
+                            height={hBilled}
+                            rx="4"
+                            fill="url(#barBilled)"
+                            className="transition-all duration-500 hover:brightness-125 cursor-pointer"
+                          >
+                            <title>{`Sales Billed: ₹${d.billed.toLocaleString()}`}</title>
+                          </rect>
+                        )}
+
+                        {/* Paid Bar */}
+                        {hPaid > 0 && (
+                          <rect
+                            x={xPaid}
+                            y={yPaid}
+                            width={barW}
+                            height={hPaid}
+                            rx="4"
+                            fill="url(#barPaid)"
+                            className="transition-all duration-500 hover:brightness-125 cursor-pointer"
+                          >
+                            <title>{`Received Paid: ₹${d.paid.toLocaleString()}`}</title>
+                          </rect>
+                        )}
+
+                        {/* Labels */}
+                        <text
+                          x={50 + i * segWidth + segWidth / 2}
+                          y="198"
+                          fill="#94a3b8"
+                          fontSize="10"
+                          fontWeight="semibold"
+                          textAnchor="middle"
+                        >
+                          {d.label}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  {/* X Line */}
+                  <line x1="50" y1="180" x2="530" y2="180" stroke="#334155" strokeWidth="1" />
+                </svg>
+              )}
+            </div>
+          </div>
+
+          {/* Ledger Registry Overview */}
+          <div className="lg:col-span-1 rounded-3xl analytics-card bg-gradient-to-b from-violet-50/40 dark:from-violet-950/15 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-slate-200 dark:border-slate-800/80 p-6 md:p-8 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.01] hover:shadow-2xl flex flex-col justify-center gap-6">
+            {/* Top Accent Gradient Border */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-violet-500 to-purple-500"></div>
+
+            <div className="pt-1.5">
+              <h3 className="font-bold text-lg text-slate-800 dark:text-slate-50 font-display mb-2">Ledger Registry Overview</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">General breakdown of system clients and generated receipts in this period.</p>
+            </div>
+
+            <div className="space-y-4">
+              <Link to="/dashboard/panels" className="flex items-center gap-4 bg-slate-100/50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 p-4 rounded-2xl hover:bg-indigo-50/45 hover:border-indigo-200/60 dark:hover:bg-indigo-950/15 transition-premium cursor-pointer shadow-sm">
+                <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+                  <Layers className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Total Registered Panels</p>
+                  <p className="text-lg font-bold text-slate-800 dark:text-slate-100 font-display mt-0.5">{stats?.counts?.totalPanels || 0} Clients</p>
+                </div>
+              </Link>
+
+              <Link to="/dashboard/payments" className="flex items-center gap-4 bg-slate-100/50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 p-4 rounded-2xl hover:bg-emerald-50/45 hover:border-emerald-200/60 dark:hover:bg-emerald-950/15 transition-premium cursor-pointer shadow-sm">
+                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                  <FileSpreadsheet className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Active Transactions</p>
+                  <p className="text-lg font-bold text-slate-800 dark:text-slate-100 font-display mt-0.5">{filteredPayments.length} Actions</p>
+                </div>
+              </Link>
+
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider font-display">Payments Mode Distribution</p>
+                <div className="grid grid-cols-2 gap-2.5 text-xs font-mono">
+                  {['Cash', 'UPI', 'Bank Transfer', 'Online'].map((mode) => {
+                    const modeAmt = filteredPayments
+                      .filter((p) => p.paymentMode === mode)
+                      .reduce((sum, p) => sum + (p.amountReceived || 0), 0);
+                    const colors = {
+                      Cash: 'text-amber-700 dark:text-amber-400 hover:bg-amber-100/20 dark:hover:bg-amber-950/30 hover:border-amber-300/40 bg-amber-50/50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30',
+                      UPI: 'text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100/20 dark:hover:bg-emerald-950/30 hover:border-emerald-300/40 bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30',
+                      'Bank Transfer': 'text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100/20 dark:hover:bg-indigo-950/30 hover:border-indigo-300/40 bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/30',
+                      Online: 'text-violet-700 dark:text-violet-400 hover:bg-violet-100/20 dark:hover:bg-violet-950/30 hover:border-violet-300/40 bg-violet-50/50 dark:bg-violet-950/20 border-violet-100 dark:border-violet-900/30',
+                    };
+                    return (
+                      <div key={mode} className={`p-2.5 rounded-xl border hover:scale-[1.03] transition-all duration-300 shadow-sm cursor-pointer ${colors[mode]}`}>
+                        <span className="text-slate-500 dark:text-slate-400 block mb-0.5 text-[9px] uppercase font-bold">{mode}</span>
+                        <span className="font-bold text-sm">₹{modeAmt.toLocaleString()}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Leaderboard Rankings Title */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4 border-t border-slate-300/60 dark:border-slate-800/60">
+          <div>
+            <h3 className="font-bold text-xl text-slate-900 dark:text-white flex items-center gap-2">
+              <Award className="h-6 w-6 text-indigo-700" />
+              Client Rankings & Performance Leaderboards
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              Top performing clients by invoiced sales, revenue collected, licenses issued, and SLAs
+            </p>
+          </div>
+
+          {inactivePanels.length > 0 && (
+            <button
+              onClick={() => setShowInactive(!showInactive)}
+              className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 hover:border-red-500/40 text-red-700 transition-all duration-200"
+            >
+              <AlertCircle className="h-4 w-4" />
+              <span>{showInactive ? 'Hide' : 'Show'} Inactive Clients ({inactivePanels.length})</span>
+            </button>
+          )}
+        </div>
+
+        {/* Inactive Panels Expandable drawer */}
+        {showInactive && (
+          <div className="rounded-2xl bg-red-500/5 border border-red-500/20 p-6 animate-pulse-subtle">
+            <h4 className="font-bold text-sm text-red-700 mb-2 uppercase tracking-wide">Inactive Clients (No Bills/Payments in Period)</h4>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">The following client panels recorded zero invoiced sales and zero payments collected during this selected period:</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {inactivePanels.map((p) => (
+                <div key={p._id} className="bg-slate-50/40 dark:bg-slate-950/40 border border-slate-900/60 rounded-xl p-3.5 flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{p.panelName}</p>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-0.5">Owner: {p.ownerName}</p>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-3 mt-4 pt-3.5 border-t border-slate-900/60 text-xs font-mono">
-
-                    <div>
-                      <span className="text-slate-500 dark:text-slate-500 block text-[9px] uppercase font-bold">
-                        Billed
-                      </span>
-                      <span className="text-slate-700 dark:text-slate-300 font-bold">
-                        ₹{item.totalBilled.toLocaleString()}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-500 dark:text-slate-500 block text-[9px] uppercase font-bold">
-                        Dues Pending
-                      </span>
-                      <span className="text-red-700 font-bold">
-                        ₹{item.outstanding.toLocaleString()}
-                      </span>
-                    </div>
-
-                  </div>
+                  <span className="text-[10px] font-semibold text-red-700 px-2 py-0.5 rounded bg-red-500/5 border border-red-500/10">No Activity</span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Row 2: Client Performance Ledger Grid Table (Full Width) */}
-        <div className="rounded-2xl glass-card border border-slate-300 dark:border-slate-800 p-6 md:p-8 shadow-xl flex flex-col justify-between">
-          {/* Table Header with Filters */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-            <div>
-              <h3 className="font-bold text-lg text-slate-900 dark:text-white">Client Performance Ledger Grid</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Click column headers to toggle ascending/descending sorting</p>
+        {/* Leaderboard Rankings Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* 1. Revenue Leaders */}
+          <div className="rounded-3xl analytics-card bg-gradient-to-b from-emerald-50/30 dark:from-emerald-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-emerald-100/70 dark:border-emerald-950/20 p-5 md:p-6 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-2xl flex flex-col h-full">
+            {/* Top Accent Gradient Border */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+
+            <div className="flex items-center gap-3 mb-5 pt-1.5">
+              <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                <CircleDollarSign className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-slate-900 dark:text-white font-display">Revenue Leaders</h4>
+                <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">Top Payments Paid</p>
+              </div>
             </div>
 
-            {/* Grid Filters */}
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Category Filter */}
-              <div className="flex items-center gap-2 rounded-xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-xs text-slate-600 dark:text-slate-400">
-                <span className="font-semibold uppercase tracking-wider text-[10px]">Category:</span>
-                <select
-                  value={selectedCatFilter}
-                  onChange={(e) => setSelectedCatFilter(e.target.value)}
-                  className="bg-transparent border-none text-slate-900 dark:text-white font-bold cursor-pointer outline-none text-xs"
-                >
-                  <option value="All" className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">All Categories</option>
-                  {uniqueCategories.map((c) => (
-                    <option key={c} value={c} className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">{c}</option>
-                  ))}
-                </select>
+            <div className="flex-1 space-y-4">
+              {topPayingPanels.length === 0 ? (
+                <div className="h-44 flex flex-col items-center justify-center text-xs text-slate-500 dark:text-slate-500 font-semibold text-center space-y-1">
+                  <span>No Payments Registered</span>
+                </div>
+              ) : (
+                topPayingPanels.map((item, idx) => {
+                  const pct = totalPaymentsReceived > 0 ? (item.totalPaid / totalPaymentsReceived) * 100 : 0;
+                  return (
+                    <div key={item._id} className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-semibold">
+                        <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-700 dark:text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[120px] cursor-pointer">
+                          {idx + 1}. {item.panelName}
+                        </Link>
+                        <span className="text-emerald-700 font-bold">₹{item.totalPaid.toLocaleString()}</span>
+                      </div>
+                      <div className="w-full bg-slate-100/60 dark:bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-300 dark:border-slate-800">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
+                          style={{ width: `${Math.max(pct, 2)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* 2. Billing Leaders */}
+          <div className="rounded-3xl analytics-card bg-gradient-to-b from-indigo-50/30 dark:from-indigo-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-indigo-100/70 dark:border-indigo-950/20 p-5 md:p-6 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-2xl flex flex-col h-full">
+            {/* Top Accent Gradient Border */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 to-blue-500"></div>
+
+            <div className="flex items-center gap-3 mb-5 pt-1.5">
+              <div className="h-9 w-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+                <FileSpreadsheet className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-slate-900 dark:text-white font-display">Sales Invoiced</h4>
+                <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">Top Sales Billed</p>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-4">
+              {topBilledPanels.length === 0 ? (
+                <div className="h-44 flex flex-col items-center justify-center text-xs text-slate-500 dark:text-slate-500 font-semibold text-center space-y-1">
+                  <span>No Sales Billed</span>
+                </div>
+              ) : (
+                topBilledPanels.map((item, idx) => {
+                  const pct = totalBilledAmount > 0 ? (item.totalBilled / totalBilledAmount) * 100 : 0;
+                  return (
+                    <div key={item._id} className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-semibold">
+                        <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-700 dark:text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[120px] cursor-pointer">
+                          {idx + 1}. {item.panelName}
+                        </Link>
+                        <span className="text-indigo-700 font-bold">₹{item.totalBilled.toLocaleString()}</span>
+                      </div>
+                      <div className="w-full bg-slate-100/60 dark:bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-300 dark:border-slate-800">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 transition-all duration-500"
+                          style={{ width: `${Math.max(pct, 2)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* 3. License Leaders */}
+          <div className="rounded-3xl analytics-card bg-gradient-to-b from-cyan-50/30 dark:from-cyan-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-cyan-100/70 dark:border-cyan-950/20 p-5 md:p-6 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-2xl flex flex-col h-full">
+            {/* Top Accent Gradient Border */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-500 to-blue-500"></div>
+
+            <div className="flex items-center gap-3 mb-5 pt-1.5">
+              <div className="h-9 w-9 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-500/20">
+                <Layers className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-slate-900 dark:text-white font-display">License Intake</h4>
+                <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">Most Licenses Taken</p>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-4">
+              {topLicensePanels.length === 0 ? (
+                <div className="h-44 flex flex-col items-center justify-center text-xs text-slate-500 dark:text-slate-500 font-semibold text-center space-y-1">
+                  <span>No Licenses Issued</span>
+                </div>
+              ) : (
+                topLicensePanels.map((item, idx) => {
+                  const maxLic = Math.max(...topLicensePanels.map(x => x.licenseQty), 1);
+                  const pct = (item.licenseQty / maxLic) * 100;
+                  return (
+                    <div key={item._id} className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-semibold col-span-2">
+                        <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-700 dark:text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[110px] cursor-pointer">
+                          {idx + 1}. {item.panelName}
+                        </Link>
+                        <span className="text-cyan-700 font-bold">{item.licenseQty} Qty <span className="text-[10px] text-slate-600 dark:text-slate-400 font-normal">(₹{(item.licenseBilled || item.licensePaid).toLocaleString()})</span></span>
+                      </div>
+                      <div className="w-full bg-slate-100/60 dark:bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-300 dark:border-slate-800">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
+                          style={{ width: `${Math.max(pct, 2)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* 4. Maintenance SLA Tracker */}
+          <div className="rounded-3xl analytics-card bg-gradient-to-b from-amber-50/30 dark:from-amber-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-amber-100/70 dark:border-amber-950/20 p-5 md:p-6 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-2xl flex flex-col h-full">
+            {/* Top Accent Gradient Border */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+
+            <div className="flex items-center gap-3 mb-5 pt-1.5">
+              <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+                <Wrench className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-slate-900 dark:text-white font-display">Maintenance Dues</h4>
+                <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">SLA Support Payments</p>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-4">
+              {topMaintenancePanels.length === 0 ? (
+                <div className="h-44 flex flex-col items-center justify-center text-xs text-slate-500 dark:text-slate-500 font-semibold text-center space-y-1">
+                  <span>No SLA Payments</span>
+                </div>
+              ) : (
+                topMaintenancePanels.map((item, idx) => {
+                  const maxMaint = Math.max(...topMaintenancePanels.map(x => x.maintenanceBilled || x.maintenancePaid), 1);
+                  const pct = ((item.maintenanceBilled || item.maintenancePaid) / maxMaint) * 100;
+                  return (
+                    <div key={item._id} className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-semibold">
+                        <Link to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`} className="text-slate-700 dark:text-slate-300 hover:text-indigo-400 transition-colors truncate max-w-[120px] cursor-pointer">
+                          {idx + 1}. {item.panelName}
+                        </Link>
+                        <span className="text-amber-700 font-bold">₹{(item.maintenanceBilled || item.maintenancePaid).toLocaleString()}</span>
+                      </div>
+                      <div className="w-full bg-slate-100/60 dark:bg-slate-900/60 rounded-full h-2 p-[1px] border border-slate-300 dark:border-slate-800">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500"
+                          style={{ width: `${Math.max(pct, 2)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Stacked Full-Width Section for Performance Alerts & Client Performance Grid Table */}
+        <div className="space-y-8 pt-4 border-t border-slate-300/60 dark:border-slate-800/60">
+
+          {/* Row 1: Worst Performing Clients Alerts */}
+          {worstPerforming.length > 0 && (
+            <div className="rounded-3xl analytics-card bg-gradient-to-b from-red-50/20 dark:from-red-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-red-100/50 dark:border-red-950/20 p-6 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-0.5 hover:shadow-2xl space-y-4">
+              {/* Top Accent Gradient Border */}
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-500 to-rose-600"></div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-red-500/10 pb-3 pt-1.5">
+
+                <div className="flex items-center gap-3">
+
+                  <div className="h-9 w-9 rounded-xl bg-red-500/10 text-red-700 flex items-center justify-center border border-red-500/20">
+                    <AlertCircle className="h-5 w-5" />
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-base text-slate-900 dark:text-white font-display">
+                      Performance Alerts
+                    </h4>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">
+                      Clients with lowest recovery rates or critical dues in this period
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-[10px] font-bold px-3 py-1 rounded uppercase bg-red-800/10 border border-red-500/20 text-red-700 tracking-wider text-center sm:text-right shrink-0">
+                  ⚠️ Critically Inactive: {inactivePanels.length} Panels
+                </div>
               </div>
 
-              {/* Status Filter */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {worstPerforming.map((item, idx) => (
 
-              {/* Status Filter */}
-              <div className="flex items-center gap-2 rounded-xl 
+                  <div
+                    key={item._id}
+                    className="rounded-2xl bg-gradient-to-b from-red-50/40 dark:from-red-950/15 to-white dark:to-slate-900/50 border border-red-100/60 dark:border-red-950/20 p-5 md:p-6 relative overflow-hidden group transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-xl shadow-sm flex flex-col justify-between"
+                  >
+                    {/* Card Accent line */}
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-400 to-rose-500"></div>
+
+                    <div className="flex justify-between items-start gap-2 pt-1">
+
+                      <div>
+                        <Link
+                          to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`}
+                          className="text-slate-800 dark:text-slate-200 hover:text-indigo-400 font-bold text-sm block truncate max-w-[190px]"
+                        >
+                          {idx + 1}. {item.panelName}
+                        </Link>
+
+                        <Link
+                          to={`/dashboard/panels?category=${encodeURIComponent(item.category || 'Algo')}`}
+                          className="text-[10px] text-slate-500 dark:text-slate-500 hover:text-indigo-400 mt-0.5 block font-semibold uppercase"
+                        >
+                          {item.category || 'Algo'} Category
+                        </Link>
+                      </div>
+
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded uppercase bg-red-500/10 border border-red-500/20 text-red-700 shrink-0">
+                        {item.totalBilled > 0
+                          ? `Recovery: ${item.recoveryRate}%`
+                          : "Outstanding"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mt-4 pt-3.5 border-t border-red-100 dark:border-red-950/30 text-xs font-mono">
+
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-500 block text-[9px] uppercase font-bold">
+                          Billed
+                        </span>
+                        <span className="text-slate-700 dark:text-slate-300 font-bold">
+                          ₹{item.totalBilled.toLocaleString()}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-500 block text-[9px] uppercase font-bold">
+                          Dues Pending
+                        </span>
+                        <span className="text-red-700 font-bold">
+                          ₹{item.outstanding.toLocaleString()}
+                        </span>
+                      </div>
+
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Row 2: Client Performance Ledger Grid Table (Full Width) */}
+          <div className="rounded-3xl analytics-card bg-gradient-to-b from-slate-50/30 dark:from-slate-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-0.5 hover:shadow-2xl flex flex-col justify-between">
+            {/* Top Accent Gradient Border */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-slate-400 to-slate-600"></div>
+            {/* Table Header with Filters */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+              <div>
+                <h3 className="font-bold text-lg text-slate-900 dark:text-white">Client Performance Ledger Grid</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Click column headers to toggle ascending/descending sorting</p>
+              </div>
+
+              {/* Grid Filters */}
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Category Filter */}
+                <div className="flex items-center gap-2 rounded-xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-xs text-slate-600 dark:text-slate-400">
+                  <span className="font-semibold uppercase tracking-wider text-[10px]">Category:</span>
+                  <select
+                    value={selectedCatFilter}
+                    onChange={(e) => setSelectedCatFilter(e.target.value)}
+                    className="bg-transparent border-none text-slate-900 dark:text-white font-bold cursor-pointer outline-none text-xs"
+                  >
+                    <option value="All" className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">All Categories</option>
+                    {uniqueCategories.map((c) => (
+                      <option key={c} value={c} className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status Filter */}
+
+                {/* Status Filter */}
+                <div className="flex items-center gap-2 rounded-xl 
   bg-slate-200/60 dark:bg-slate-900 
   border border-slate-300 dark:border-slate-700 
   px-3.5 py-2 text-xs text-slate-700 dark:text-slate-300">
 
-                <span className="font-semibold uppercase tracking-wider text-[10px] text-slate-600 dark:text-slate-400">
-                  Status:
-                </span>
+                  <span className="font-semibold uppercase tracking-wider text-[10px] text-slate-600 dark:text-slate-400">
+                    Status:
+                  </span>
 
-                <select
-                  value={selectedStatusFilter}
-                  onChange={(e) => setSelectedStatusFilter(e.target.value)}
-                  className="bg-transparent text-slate-900 dark:text-white font-semibold cursor-pointer outline-none text-xs"
-                >
-                  <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white" value="All">
-                    All Statuses
-                  </option>
+                  <select
+                    value={selectedStatusFilter}
+                    onChange={(e) => setSelectedStatusFilter(e.target.value)}
+                    className="bg-transparent text-slate-900 dark:text-white font-semibold cursor-pointer outline-none text-xs"
+                  >
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white" value="All">
+                      All Statuses
+                    </option>
 
-                  <option className="bg-white dark:bg-slate-900 text-emerald-700 font-bold" value="Excellent">
-                    Excellent (≥90%)
-                  </option>
+                    <option className="bg-white dark:bg-slate-900 text-emerald-700 font-bold" value="Excellent">
+                      Excellent (≥90%)
+                    </option>
 
-                  <option className="bg-white dark:bg-slate-900 text-indigo-700 font-bold" value="Healthy">
-                    Healthy (50-89%)
-                  </option>
+                    <option className="bg-white dark:bg-slate-900 text-indigo-700 font-bold" value="Healthy">
+                      Healthy (50-89%)
+                    </option>
 
-                  <option className="bg-white dark:bg-slate-900 text-amber-700 font-bold" value="Needs Attention">
-                    Needs Attention (&lt;50%)
-                  </option>
+                    <option className="bg-white dark:bg-slate-900 text-amber-700 font-bold" value="Needs Attention">
+                      Needs Attention (&lt;50%)
+                    </option>
 
-                  <option className="bg-white dark:bg-slate-900 text-red-700 font-bold" value="Critically Inactive">
-                    Inactive (₹0)
-                  </option>
-                </select>
+                    <option className="bg-white dark:bg-slate-900 text-red-700 font-bold" value="Critically Inactive">
+                      Inactive (₹0)
+                    </option>
+                  </select>
+                </div>
+
               </div>
-
             </div>
-          </div>
 
-          {/* Interactive Table Container */}
-          <div className="overflow-x-auto rounded-xl border border-slate-300/80 dark:border-slate-800/80 bg-slate-50/20 dark:bg-slate-950/20 max-h-[550px] overflow-y-auto">
-            <table className="w-full text-left border-collapse text-xs min-w-[850px]">
-              <thead>
-                <tr className="bg-slate-100/95 dark:bg-slate-900/95 border-b border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 uppercase font-bold tracking-wider select-none sticky top-0 z-10 backdrop-blur-md">
-                  <th className="px-4 py-3.5 text-center w-14">S.No.</th>
-                  <th onClick={() => handleSort('panelName')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
-                    <div className="flex items-center gap-1.5">
-                      <span>Client Panel</span>
-                      {perfSortField === 'panelName' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
-                    </div>
-                  </th>
-                  <th className="px-5 py-3.5">Category</th>
-                  <th onClick={() => handleSort('totalBilled')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <span>Sales Billed</span>
-                      {perfSortField === 'totalBilled' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
-                    </div>
-                  </th>
-                  <th onClick={() => handleSort('totalPaid')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <span>Payments Paid</span>
-                      {perfSortField === 'totalPaid' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
-                    </div>
-                  </th>
-                  <th onClick={() => handleSort('outstanding')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <span>Outstanding</span>
-                      {perfSortField === 'outstanding' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
-                    </div>
-                  </th>
-                  <th onClick={() => handleSort('recoveryRate')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-center">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <span>Recovery</span>
-                      {perfSortField === 'recoveryRate' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
-                    </div>
-                  </th>
-                  <th className="px-5 py-3.5 text-center">Performance</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-850">
-                {processedPerfPanels.length === 0 ? (
-                  <tr>
-                    <td colSpan="8" className="text-center py-12 text-slate-500 dark:text-slate-500 font-semibold uppercase">
-                      No client records match the criteria
-                    </td>
+            {/* Interactive Table Container */}
+            <div className="overflow-x-auto rounded-xl border border-slate-300/80 dark:border-slate-800/80 bg-slate-50/20 dark:bg-slate-950/20 max-h-[550px] overflow-y-auto">
+              <table className="w-full text-left border-collapse text-xs min-w-[850px]">
+                <thead>
+                  <tr className="bg-slate-100/95 dark:bg-slate-900/95 border-b border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 uppercase font-bold tracking-wider select-none sticky top-0 z-10 backdrop-blur-md">
+                    <th className="px-4 py-3.5 text-center w-14">S.No.</th>
+                    <th onClick={() => handleSort('panelName')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
+                      <div className="flex items-center gap-1.5">
+                        <span>Client Panel</span>
+                        {perfSortField === 'panelName' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
+                      </div>
+                    </th>
+                    <th className="px-5 py-3.5">Category</th>
+                    <th onClick={() => handleSort('totalBilled')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <span>Sales Billed</span>
+                        {perfSortField === 'totalBilled' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
+                      </div>
+                    </th>
+                    <th onClick={() => handleSort('totalPaid')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <span>Payments Paid</span>
+                        {perfSortField === 'totalPaid' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
+                      </div>
+                    </th>
+                    <th onClick={() => handleSort('outstanding')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <span>Outstanding</span>
+                        {perfSortField === 'outstanding' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
+                      </div>
+                    </th>
+                    <th onClick={() => handleSort('recoveryRate')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <span>Recovery</span>
+                        {perfSortField === 'recoveryRate' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
+                      </div>
+                    </th>
+                    <th className="px-5 py-3.5 text-center">Performance</th>
                   </tr>
-                ) : (
-                  processedPerfPanels.map((p, idx) => {
-                    const statusColors = {
-                      Excellent:
-                        "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                  {processedPerfPanels.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" className="text-center py-12 text-slate-500 dark:text-slate-500 font-semibold uppercase">
+                        No client records match the criteria
+                      </td>
+                    </tr>
+                  ) : (
+                    processedPerfPanels.map((p, idx) => {
+                      const statusColors = {
+                        Excellent:
+                          "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
 
-                      Healthy:
-                        "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30",
+                        Healthy:
+                          "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30",
 
-                      "Needs Attention":
-                        "bg-amber-500/15 text-amber-400 border border-amber-500/30",
+                        "Needs Attention":
+                          "bg-amber-500/15 text-amber-400 border border-amber-500/30",
 
-                      "Critically Inactive":
-                        "bg-red-500/15 text-red-400 border border-red-500/30",
-                    };
-                    const categoryColors = {
-                      Algo: 'bg-indigo-500/10 text-indigo-700 border border-indigo-500/20',
-                      Sop: 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20',
-                      crypto: 'bg-amber-500/10 text-amber-700 border border-amber-500/20',
-                    };
+                        "Critically Inactive":
+                          "bg-red-500/15 text-red-400 border border-red-500/30",
+                      };
+                      const categoryColors = {
+                        Algo: 'bg-indigo-500/10 text-indigo-700 border border-indigo-500/20',
+                        Sop: 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20',
+                        crypto: 'bg-amber-500/10 text-amber-700 border border-amber-500/20',
+                      };
 
-                    return (
-                      <tr key={p._id} className="hover:bg-slate-100/20 dark:hover:bg-slate-900/20 transition-colors">
-                        <td className="px-4 py-3.5 text-center font-bold text-slate-500 dark:text-slate-500 w-14">{idx + 1}</td>
-                        <td className="px-5 py-3.5 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                          <Link to={`/dashboard/panels?search=${encodeURIComponent(p.panelName)}`} className="hover:text-indigo-400 transition-colors cursor-pointer">
-                            {p.panelName}
-                          </Link>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <Link to={`/dashboard/panels?category=${encodeURIComponent(p.category || 'Algo')}`} className="cursor-pointer">
-                            <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${categoryColors[p.category || 'Algo'] || 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'}`}>
-                              {p.category || 'Algo'}
+                      return (
+                        <tr key={p._id} className="hover:bg-slate-100/20 dark:hover:bg-slate-900/20 transition-colors">
+                          <td className="px-4 py-3.5 text-center font-bold text-slate-500 dark:text-slate-500 w-14">{idx + 1}</td>
+                          <td className="px-5 py-3.5 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                            <Link to={`/dashboard/panels?search=${encodeURIComponent(p.panelName)}`} className="hover:text-indigo-400 transition-colors cursor-pointer">
+                              {p.panelName}
+                            </Link>
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <Link to={`/dashboard/panels?category=${encodeURIComponent(p.category || 'Algo')}`} className="cursor-pointer">
+                              <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${categoryColors[p.category || 'Algo'] || 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'}`}>
+                                {p.category || 'Algo'}
+                              </span>
+                            </Link>
+                          </td>
+                          <td className="px-5 py-3.5 font-semibold text-right text-slate-700 dark:text-slate-300 whitespace-nowrap">₹{p.totalBilled.toLocaleString()}</td>
+                          <td className="px-5 py-3.5 font-bold text-right text-emerald-400 whitespace-nowrap">₹{p.totalPaid.toLocaleString()}</td>
+                          <td className="px-5 py-3.5 font-bold text-right text-red-600 whitespace-nowrap">₹{p.outstanding.toLocaleString()}</td>
+                          <td className="px-5 py-3.5 font-bold text-center text-slate-700 dark:text-slate-300">{p.recoveryRate}%</td>
+                          <td className="px-5 py-3.5 text-center">
+                            <span
+                              className={`
+                              text-[12px] px-3 py-1 rounded-lg
+                              font-bold uppercase tracking-wide
+                              inline-block min-w-[100px] text-center
+                              border border-md
+                              ${statusColors[p.status]}
+                            `}
+                            >
+                              {p.status}
                             </span>
-                          </Link>
-                        </td>
-                        <td className="px-5 py-3.5 font-semibold text-right text-slate-700 dark:text-slate-300 whitespace-nowrap">₹{p.totalBilled.toLocaleString()}</td>
-                        <td className="px-5 py-3.5 font-bold text-right text-emerald-400 whitespace-nowrap">₹{p.totalPaid.toLocaleString()}</td>
-                        <td className="px-5 py-3.5 font-bold text-right text-red-600 whitespace-nowrap">₹{p.outstanding.toLocaleString()}</td>
-                        <td className="px-5 py-3.5 font-bold text-center text-slate-700 dark:text-slate-300">{p.recoveryRate}%</td>
-                        <td className="px-5 py-3.5 text-center">
-                          <span
-                            className={`
-      text-[12px] px-3 py-1 rounded-lg
-      font-bold uppercase tracking-wide
-      inline-block min-w-[100px] text-center
-      border border-md
-      ${statusColors[p.status]}
-    `}
-                          >
-                            {p.status}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Transparency & Mathematical Breakdown Modal */}
-      {modalInfo && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+      {modalInfo && createPortal(
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200 !mt-0">
           {/* Backdrop */}
           <div
             onClick={() => setModalInfo(null)}
@@ -1517,7 +1594,7 @@ export default function DashboardHome() {
           ></div>
 
           {/* Modal Container */}
-          <div className="relative w-full max-w-md rounded-3xl glass-card border border-slate-300 dark:border-slate-800 p-6 md:p-8 shadow-2xl z-10 animate-in zoom-in-95 duration-200 flex flex-col space-y-6">
+          <div className="relative w-full max-w-md rounded-3xl glass-card border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-2xl z-10 animate-in zoom-in-95 duration-200 flex flex-col space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -1526,12 +1603,12 @@ export default function DashboardHome() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight leading-none">{modalInfo.title}</h3>
-                  <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-1.5 uppercase font-extrabold tracking-wider">Calculation Breakdown</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 uppercase font-extrabold tracking-wider">Calculation Breakdown</p>
                 </div>
               </div>
               <button
                 onClick={() => setModalInfo(null)}
-                className="h-8 w-8 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-850 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+                className="h-8 w-8 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-800 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1540,7 +1617,7 @@ export default function DashboardHome() {
             {/* Formula Block */}
             <div className="rounded-2xl bg-slate-50/90 dark:bg-slate-950/90 border border-slate-300/80 dark:border-slate-800/80 p-4 font-mono text-[10px] text-slate-700 dark:text-slate-300 space-y-2.5 shadow-inner">
               <span className="text-[9px] text-slate-500 dark:text-slate-500 font-extrabold uppercase tracking-wider block">Formula Model</span>
-              <div className="text-emerald-400 font-bold text-xs select-all whitespace-pre-wrap leading-relaxed">
+              <div className="text-emerald-500 dark:text-emerald-400 font-bold text-xs select-all whitespace-pre-wrap leading-relaxed">
                 {modalInfo.formula || 'Value = Sum of Category Invoices'}
               </div>
             </div>
@@ -1550,7 +1627,7 @@ export default function DashboardHome() {
               <span className="text-[9px] text-slate-500 dark:text-slate-500 font-extrabold uppercase tracking-wider block">Itemized Values</span>
               <div className="space-y-3">
                 {modalInfo.breakdown?.map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-xs border-b border-slate-850 pb-2.5">
+                  <div key={idx} className="flex justify-between items-center text-xs border-b border-slate-200 dark:border-slate-800 pb-2.5">
                     <span className="text-slate-600 dark:text-slate-400 font-medium">{item.label}</span>
                     <span className={`font-mono font-bold ${item.color || 'text-slate-900 dark:text-white'}`}>
                       {item.value}
@@ -1564,14 +1641,15 @@ export default function DashboardHome() {
             <div className="pt-2">
               <button
                 onClick={() => setModalInfo(null)}
-                className="w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-slate-900 dark:text-white font-bold text-xs py-3.5 transition-all shadow-lg hover:shadow-indigo-500/20 active:scale-[0.98]"
+                className="w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold text-xs py-3.5 transition-all shadow-lg hover:shadow-indigo-500/20 active:scale-[0.98]"
               >
                 Close Breakdown
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   );
 }
