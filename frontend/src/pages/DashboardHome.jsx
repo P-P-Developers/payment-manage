@@ -810,7 +810,7 @@ export default function DashboardHome() {
         </div>
 
         {/* Sleek, Unified 3-Card Dashboard Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in duration-300">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 animate-in fade-in duration-300">
           {premiumCards.map((card, i) => {
             const Icon = card.icon;
             const hoverClass = i === 0
@@ -821,7 +821,7 @@ export default function DashboardHome() {
             return (
               <div
                 key={i}
-                className={`rounded-3xl analytics-card bg-gradient-to-b ${card.color} border p-6 flex flex-col justify-between shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-2xl`}
+                className={`rounded-3xl analytics-card bg-gradient-to-b ${card.color} border p-4 sm:p-6 flex flex-col justify-between shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-2xl`}
               >
                 {/* Top Accent Gradient Border */}
                 <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${card.topBorderColor}`}></div>
@@ -855,7 +855,7 @@ export default function DashboardHome() {
 
                 {/* Card Value */}
                 <div className="mb-5 pb-4 border-b border-slate-100 dark:border-slate-800 flex items-baseline">
-                  <span className={`text-3xl font-black ${card.valueColor || 'text-slate-800 dark:text-slate-100'} font-display tracking-tight leading-none`}>{card.value}</span>
+                  <span className={`text-2xl sm:text-3xl font-black ${card.valueColor || 'text-slate-800 dark:text-slate-100'} font-display tracking-tight leading-none`}>{card.value}</span>
                 </div>
 
                 {/* Sub-breakdown Items (The Magic Section) */}
@@ -866,13 +866,13 @@ export default function DashboardHome() {
                       <Link
                         key={idx}
                         to={item.link}
-                        className={`flex justify-between items-center text-xs px-3 py-2 rounded-xl bg-slate-50/50 dark:bg-slate-950/30 border border-slate-100/50 dark:border-slate-800/40 transition-all group/row ${hoverClass}`}
+                        className={`flex justify-between items-center text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-slate-50/50 dark:bg-slate-950/30 border border-slate-100/50 dark:border-slate-800/40 transition-all group/row ${hoverClass}`}
                       >
-                        <div className="flex items-center gap-2">
-                          <span className={`h-1.5 w-1.5 rounded-full ${item.dotColor || 'bg-slate-500'} group-hover/row:scale-125 transition-transform`}></span>
-                          <span className="text-slate-600 dark:text-slate-350 group-hover/row:text-slate-800 dark:group-hover/row:text-slate-100 font-semibold transition-colors">{item.label}</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 mr-2">
+                          <span className={`h-1.5 w-1.5 rounded-full ${item.dotColor || 'bg-slate-500'} group-hover/row:scale-125 transition-transform shrink-0`}></span>
+                          <span className="text-slate-600 dark:text-slate-300 group-hover/row:text-slate-800 dark:group-hover/row:text-slate-100 font-semibold transition-colors truncate">{item.label}</span>
                         </div>
-                        <span className={`font-mono font-bold transition-colors ${item.textColor || 'text-slate-800 dark:text-slate-100'}`}>
+                        <span className={`font-mono font-bold transition-colors shrink-0 ${item.textColor || 'text-slate-800 dark:text-slate-100'}`}>
                           {item.value}
                         </span>
                       </Link>

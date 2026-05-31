@@ -1023,10 +1023,10 @@ export default function Payments() {
 
       {/* RECEIVE PAYMENT / GENERATE BILL FORM MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[150] overflow-y-auto p-4 flex justify-center items-start md:items-center">
           <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-          <div className="relative w-full max-w-4xl rounded-2xl glass-card p-6 md:p-8 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[90vh]">
+          <div className="relative w-full max-w-4xl rounded-2xl glass-card p-6 md:p-8 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 my-8">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"

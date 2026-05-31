@@ -390,7 +390,7 @@ export default function DashboardLayout() {
         </header>
 
         {/* WORKSPACE AREA */}
-        <main className="p-6 md:p-8 w-full flex-1">
+        <main className="p-4 sm:p-6 md:p-8 w-full flex-1">
           <Outlet />
         </main>
       </div>

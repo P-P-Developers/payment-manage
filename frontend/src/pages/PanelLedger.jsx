@@ -307,9 +307,9 @@ export default function PanelLedger() {
       </div>
 
       {/* Top Balances & Client Info Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {/* Card 1: Client Info */}
-        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-slate-400 p-5 shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300">
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-slate-400 p-4 sm:p-5 shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300">
           <div className="absolute top-0 right-0 h-20 w-20 rounded-full bg-indigo-500/5 blur-xl"></div>
           <div className="space-y-3">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -326,11 +326,11 @@ export default function PanelLedger() {
                 <UserIcon className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                 <span className="truncate font-semibold">{panel?.ownerName}</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-350">
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                 <Mail className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                 <span className="truncate font-medium text-slate-600 dark:text-slate-400" title={panel?.ownerEmail}>{panel?.ownerEmail}</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-350">
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                 <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                 <span className="font-medium text-slate-600 dark:text-slate-400">{panel?.phoneNumber}</span>
               </div>
@@ -345,31 +345,31 @@ export default function PanelLedger() {
         </div>
 
         {/* Card 2: Total Generated Bills */}
-        <div className="rounded-2xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 border-l-4 border-l-indigo-500 p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300">
+        <div className="rounded-2xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 border-l-4 border-l-indigo-500 p-4 sm:p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300">
           <div className="absolute top-0 right-0 h-20 w-20 rounded-full bg-indigo-500/5 blur-xl"></div>
           <div>
             <span className="text-xs uppercase tracking-wider font-extrabold text-indigo-700 dark:text-indigo-400">Total Bill Amount</span>
             <p className="text-[10px] text-indigo-500/80 dark:text-indigo-400/80 mt-0.5 font-medium leading-normal">Sum of all bills generated for this client</p>
           </div>
-          <div className="mt-5">
+          <div className="mt-4 sm:mt-5">
             <span className="text-2xl sm:text-3xl font-extrabold text-indigo-700 dark:text-indigo-400 font-display tracking-tight">₹{calculatedTotalBill?.toLocaleString()}</span>
           </div>
         </div>
 
         {/* Card 3: Total Received */}
-        <div className="rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 border-l-4 border-l-emerald-500 p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300">
+        <div className="rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 border-l-4 border-l-emerald-500 p-4 sm:p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300">
           <div className="absolute top-0 right-0 h-20 w-20 rounded-full bg-emerald-500/5 blur-xl"></div>
           <div>
             <span className="text-xs uppercase tracking-wider font-extrabold text-emerald-700 dark:text-emerald-400">Total Amount Received</span>
             <p className="text-[10px] text-emerald-500/80 dark:text-emerald-400/80 mt-0.5 font-medium leading-normal">Total payments successfully collected</p>
           </div>
-          <div className="mt-5">
+          <div className="mt-4 sm:mt-5">
             <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 dark:text-emerald-400 font-display tracking-tight">₹{panel?.totalPaid?.toLocaleString()}</span>
           </div>
         </div>
 
         {/* Card 4: Remaining Balance */}
-        <div className={`rounded-2xl border p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300 ${(panel?.outstanding || 0) > 0
+        <div className={`rounded-2xl border p-4 sm:p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300 ${(panel?.outstanding || 0) > 0
           ? 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/50 border-l-4 border-l-rose-500'
           : (panel?.outstanding || 0) < 0
             ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/50 border-l-4 border-l-emerald-500'
@@ -394,7 +394,7 @@ export default function PanelLedger() {
               {(panel?.outstanding || 0) < 0 ? 'Extra amount paid by client in advance' : 'Remaining outstanding dues pending collection'}
             </p>
           </div>
-          <div className="mt-5">
+          <div className="mt-4 sm:mt-5">
             <span className={`text-2xl sm:text-3xl font-extrabold font-display tracking-tight ${(panel?.outstanding || 0) > 0
               ? 'text-rose-600 dark:text-rose-400'
               : (panel?.outstanding || 0) < 0
