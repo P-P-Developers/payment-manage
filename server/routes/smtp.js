@@ -311,7 +311,9 @@ router.post('/send-bill', protect, async (req, res) => {
     `;
 
     // Generate dynamic PDF Receipt
-    const pdfBuffer = await generateReceiptPDF(payment, settings || { orgName: config.senderName });
+    const SystemSettings = require('../models/SystemSettings');
+    const settingsFromDb = await SystemSettings.findOne({});
+    const pdfBuffer = await generateReceiptPDF(payment, settingsFromDb || settings || { orgName: config.senderName });
 
     // Send using NodeMailer helper with attached PDF
     await sendNodemailerEmail({

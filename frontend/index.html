@@ -7,14 +7,123 @@
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22 width=%22100%22 height=%22100%22><text y=%220.9em%22 font-size=%2290%22>⚡</text></svg>" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Payment Manage</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-    rel="stylesheet" />
 </head>
 
 <body class="bg-slate-50 text-slate-900">
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
+
+  <script>
+
+    // Right click disable
+    // if open and run on local host then return 
+    if (window.location.hostname === "localhost") {
+      return;
+    }
+
+    document.addEventListener("contextmenu", function (e) {
+
+      e.preventDefault();
+
+    });
+
+    // Keyboard shortcut disable
+
+    document.addEventListener("keydown", function (e) {
+
+      if (e.key === "F12") e.preventDefault();
+
+      if (e.ctrlKey && e.shiftKey && e.key === "I") e.preventDefault();
+
+      if (e.ctrlKey && e.shiftKey && e.key === "J") e.preventDefault();
+
+      if (e.ctrlKey && e.key.toLowerCase() === "u") e.preventDefault();
+
+    });
+
+    // DevTools detection — Brev compatible
+
+    function blockPage() {
+
+      document.body.innerHTML = `
+
+<div style="
+
+height:100vh;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+background:black;
+
+color:white;
+
+font-size:30px;
+
+">
+
+Inspect Blocked
+
+</div>
+
+`;
+
+    }
+
+    // Method 1: debugger timing trick
+
+    setInterval(() => {
+
+      const start = performance.now();
+
+      debugger;
+
+      const end = performance.now();
+
+      if (end - start > 100) {
+
+        blockPage();
+
+      }
+
+    }, 1000);
+
+    // Method 2: toString override trick
+
+    let devtoolsOpen = false;
+
+    const element = new Image();
+
+    Object.defineProperty(element, "id", {
+
+      get: function () {
+
+        devtoolsOpen = true;
+
+      },
+
+    });
+
+    setInterval(() => {
+
+      devtoolsOpen = false;
+
+      console.log(element);
+
+      console.clear();
+
+      if (devtoolsOpen) {
+
+        blockPage();
+
+      }
+
+    }, 1000);
+
+  </script>
 </body>
 
 </html>

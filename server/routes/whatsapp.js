@@ -238,7 +238,9 @@ router.post('/send-bill', protect, async (req, res) => {
     }
 
     // Generate dynamic PDF Receipt
-    const pdfBuffer = await generateReceiptPDF(payment, settings || { orgName: 'Deepmind Infotech' });
+    const SystemSettings = require('../models/SystemSettings');
+    const settingsFromDb = await SystemSettings.findOne({});
+    const pdfBuffer = await generateReceiptPDF(payment, settingsFromDb || settings || { orgName: 'Deepmind Infotech' });
 
     // Upload PDF media to Meta media endpoint
     const uploadUrl = `https://graph.facebook.com/v19.0/${config.phoneNumberId}/media`;

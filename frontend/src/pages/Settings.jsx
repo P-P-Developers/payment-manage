@@ -339,26 +339,48 @@ export default function Settings() {
     }
   };
 
-  // Load from localStorage on mount
+  // Load from database on mount (with localStorage as fallback/cache)
   useEffect(() => {
-    try {
-      const savedSettings = localStorage.getItem('app_system_settings');
-      if (savedSettings) {
-        const parsed = JSON.parse(savedSettings);
-        if (parsed.orgName) setOrgName(parsed.orgName);
-        if (parsed.contactEmail) setContactEmail(parsed.contactEmail);
-        if (parsed.supportPhone) setSupportPhone(parsed.supportPhone);
-        if (parsed.currency) setCurrency(parsed.currency);
-        if (parsed.invoicePrefix) setInvoicePrefix(parsed.invoicePrefix);
-        if (parsed.defaultLicense) setDefaultLicense(parsed.defaultLicense);
-        if (parsed.defaultIp) setDefaultIp(parsed.defaultIp);
-        if (parsed.defaultMaint) setDefaultMaint(parsed.defaultMaint);
-        if (parsed.logo) setLogo(parsed.logo);
-        if (parsed.stamp) setStamp(parsed.stamp);
+    const loadSettings = async () => {
+      try {
+        const data = await apiRequest('/settings');
+        if (data.success && data.settings) {
+          const s = data.settings;
+          if (s.orgName) setOrgName(s.orgName);
+          if (s.contactEmail) setContactEmail(s.contactEmail);
+          if (s.supportPhone !== undefined) setSupportPhone(s.supportPhone);
+          if (s.currency) setCurrency(s.currency);
+          if (s.invoicePrefix) setInvoicePrefix(s.invoicePrefix);
+          if (s.defaultLicense !== undefined) setDefaultLicense(s.defaultLicense);
+          if (s.defaultIp !== undefined) setDefaultIp(s.defaultIp);
+          if (s.defaultMaint !== undefined) setDefaultMaint(s.defaultMaint);
+          if (s.logo !== undefined) setLogo(s.logo);
+          if (s.stamp !== undefined) setStamp(s.stamp);
+
+          // Sync local storage so other components load fast
+          localStorage.setItem('app_system_settings', JSON.stringify(s));
+          window.dispatchEvent(new Event('settingsUpdated'));
+        }
+      } catch (err) {
+        console.error('Failed to load system settings from server:', err);
+        // Fallback to localStorage if offline
+        const savedSettings = localStorage.getItem('app_system_settings');
+        if (savedSettings) {
+          const parsed = JSON.parse(savedSettings);
+          if (parsed.orgName) setOrgName(parsed.orgName);
+          if (parsed.contactEmail) setContactEmail(parsed.contactEmail);
+          if (parsed.supportPhone) setSupportPhone(parsed.supportPhone);
+          if (parsed.currency) setCurrency(parsed.currency);
+          if (parsed.invoicePrefix) setInvoicePrefix(parsed.invoicePrefix);
+          if (parsed.defaultLicense) setDefaultLicense(parsed.defaultLicense);
+          if (parsed.defaultIp) setDefaultIp(parsed.defaultIp);
+          if (parsed.defaultMaint) setDefaultMaint(parsed.defaultMaint);
+          if (parsed.logo) setLogo(parsed.logo);
+          if (parsed.stamp) setStamp(parsed.stamp);
+        }
       }
-    } catch (e) {
-      console.error('Failed to parse saved settings', e);
-    }
+    };
+    loadSettings();
   }, []);
 
   const fetchCategories = async () => {
@@ -596,7 +618,7 @@ export default function Settings() {
     }
   };
 
-  const handleSaveSettings = (e) => {
+  const handleSaveSettings = async (e) => {
     e.preventDefault();
     setSuccess('');
     setError('');
@@ -613,31 +635,40 @@ export default function Settings() {
         supportPhone,
         currency,
         invoicePrefix,
-        defaultLicense,
-        defaultIp,
-        defaultMaint,
+        defaultLicense: Number(defaultLicense),
+        defaultIp: Number(defaultIp),
+        defaultMaint: Number(defaultMaint),
         logo,
         stamp,
       };
 
-      localStorage.setItem('app_system_settings', JSON.stringify(settingsPayload));
+      const data = await apiRequest('/settings', {
+        method: 'PUT',
+        body: JSON.stringify(settingsPayload),
+      });
 
-      if (logo) {
-        let link = document.querySelector("link[rel~='icon']");
-        if (!link) {
-          link = document.createElement('link');
-          link.rel = 'icon';
-          document.head.appendChild(link);
+      if (data.success) {
+        localStorage.setItem('app_system_settings', JSON.stringify(settingsPayload));
+
+        if (logo) {
+          let link = document.querySelector("link[rel~='icon']");
+          if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
+          }
+          link.href = logo;
         }
-        link.href = logo;
+
+        window.dispatchEvent(new Event('settingsUpdated'));
+
+        setSuccess('System configurations and parameters saved successfully to database!');
+        setTimeout(() => setSuccess(''), 4000);
+      } else {
+        setError(data.message || 'Failed to persist settings.');
       }
-
-      window.dispatchEvent(new Event('settingsUpdated'));
-
-      setSuccess('System configurations and parameters saved successfully!');
-      setTimeout(() => setSuccess(''), 4000);
     } catch (err) {
-      setError('Failed to persist system settings configuration.');
+      setError(err.message || 'Failed to persist system settings configuration.');
     }
   };
 

@@ -31,6 +31,7 @@ app.use('/api/whatsapp', require('./routes/whatsapp'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/banks', require('./routes/banks'));
 app.use('/api/payment-types', require('./routes/payment-types'));
+app.use('/api/settings', require('./routes/settings'));
 
 // Basic health check route
 app.get('/api/health', (req, res) => {

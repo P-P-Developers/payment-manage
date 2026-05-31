@@ -115,13 +115,23 @@ export default function DashboardLayout() {
       setLoading(false);
     }
 
-    const loadSettings = () => {
+    const loadSettings = async () => {
       try {
+        // Fast local pre-render
         const savedSettings = localStorage.getItem('app_system_settings');
         if (savedSettings) {
           const parsed = JSON.parse(savedSettings);
           if (parsed.logo) setLogo(parsed.logo);
           if (parsed.orgName) setOrgName(parsed.orgName);
+        }
+
+        // Fetch fresh settings from DB to synchronize
+        const data = await apiRequest('/settings');
+        if (data.success && data.settings) {
+          const s = data.settings;
+          setLogo(s.logo || '');
+          setOrgName(s.orgName || 'DEEP MIND');
+          localStorage.setItem('app_system_settings', JSON.stringify(s));
         }
       } catch (e) {
         console.error('Failed to parse saved settings', e);
