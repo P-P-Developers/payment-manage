@@ -121,7 +121,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
 
     const total = await Payment.countDocuments(filterQuery);
     const payments = await Payment.find(filterQuery)
-      .populate('panelId', 'panelName ownerName ownerEmail phoneNumber')
+      .populate('panelId', 'panelName ownerName ownerEmail phoneNumber status')
       .populate('addedBy', 'name email')
       .populate('editHistory.editedBy', 'name email')
       .sort({ timestamp: -1 })
@@ -471,7 +471,7 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
     
     // Populate the newly added editHistory's editedBy before returning
     updatedPayment = await Payment.findById(updatedPayment._id)
-      .populate('panelId', 'panelName ownerName ownerEmail phoneNumber')
+      .populate('panelId', 'panelName ownerName ownerEmail phoneNumber status')
       .populate('addedBy', 'name email')
       .populate('editHistory.editedBy', 'name email');
 

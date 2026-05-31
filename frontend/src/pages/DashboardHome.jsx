@@ -18,7 +18,6 @@ import {
   Info,
   X,
 } from 'lucide-react';
-import AnimatedBackground from '@/components/AnimatedBackground';
 const DashboardSkeleton = () => (
   <div className="space-y-8 animate-pulse">
     {/* Welcome Banner Skeleton */}
@@ -723,7 +722,6 @@ export default function DashboardHome() {
     <>
       <div className="space-y-8 animate-pulse-subtle">
         {/* Welcome Banner */}
-        <AnimatedBackground />
 
         {/* Filter Toolbar Card */}
         <div className="rounded-3xl analytics-card bg-gradient-to-b from-slate-50/40 dark:from-slate-950/20 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-slate-200 dark:border-slate-800/85 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-0.5 hover:shadow-xl">
@@ -777,10 +775,10 @@ export default function DashboardHome() {
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
+                  className="bg-transparent text-slate-900 dark:text-white dark:bg-slate-900 text-xs font-semibold focus:outline-none cursor-pointer"
                 >
                   {availableMonths.map((m) => (
-                    <option key={m.value} value={m.value}>
+                    <option key={m.value} value={m.value} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
                       {m.label}
                     </option>
                   ))}
@@ -797,10 +795,10 @@ export default function DashboardHome() {
                 <select
                   value={selectedQuarter}
                   onChange={(e) => setSelectedQuarter(e.target.value)}
-                  className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
+                  className="bg-transparent text-slate-900 dark:text-white dark:bg-slate-900 text-xs font-semibold focus:outline-none cursor-pointer"
                 >
                   {availableQuarters.map((q) => (
-                    <option key={q.value} value={q.value}>
+                    <option key={q.value} value={q.value} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
                       {q.label}
                     </option>
                   ))}

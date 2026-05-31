@@ -160,12 +160,13 @@ router.post('/', protect, adminOnly, async (req, res) => {
     maintenanceCharges,
     openingBalance,
     category,
+    gstNumber,
   } = req.body;
 
   try {
-    const panelExists = await Panel.findOne({ panelName });
+    const panelExists = await Panel.findOne({ panelName: new RegExp(`^${panelName}$`, 'i'), status: 'Active' });
     if (panelExists) {
-      return res.status(400).json({ success: false, message: 'Panel with this name already exists' });
+      return res.status(400).json({ success: false, message: `An active panel with the name "${panelName}" already exists. Please stop it first.` });
     }
 
     const panel = await Panel.create({
@@ -178,6 +179,8 @@ router.post('/', protect, adminOnly, async (req, res) => {
       maintenanceCharges: Number(maintenanceCharges) || 0,
       openingBalance: Number(openingBalance) || 0,
       category: category || 'Algo',
+      status: req.body.status || 'Active',
+      gstNumber: gstNumber || '',
     });
 
     // Create activity log
@@ -216,6 +219,8 @@ router.put('/:id', protect, adminOnly, async (req, res) => {
       'maintenanceCharges',
       'openingBalance',
       'category',
+      'status',
+      'gstNumber',
     ];
 
     keys.forEach((key) => {
@@ -223,6 +228,20 @@ router.put('/:id', protect, adminOnly, async (req, res) => {
         updatedFields[key] = req.body[key];
       }
     });
+
+    const targetName = req.body.panelName !== undefined ? req.body.panelName : panel.panelName;
+    const targetStatus = req.body.status !== undefined ? req.body.status : panel.status;
+
+    if (targetStatus === 'Active') {
+      const activePanelExists = await Panel.findOne({
+        _id: { $ne: panel._id },
+        panelName: new RegExp(`^${targetName}$`, 'i'),
+        status: 'Active'
+      });
+      if (activePanelExists) {
+        return res.status(400).json({ success: false, message: `Another active panel with the name "${targetName}" already exists. You must stop it first before activating this one.` });
+      }
+    }
 
     const updatedPanel = await Panel.findByIdAndUpdate(req.params.id, updatedFields, {
       new: true,

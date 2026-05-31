@@ -21,8 +21,8 @@ module.exports = {
       return { success: false, error: 'No Admin user found' };
     }
 
-    // 2. Query all panels
-    const panels = await Panel.find({});
+    // 2. Query all panels (except those marked as Stopped)
+    const panels = await Panel.find({ status: { $ne: 'Stopped' } });
     if (panels.length === 0) {
       console.log('[Cron Job] No panels found. Job complete.');
       return { success: true, billedCount: 0, skippedCount: 0 };

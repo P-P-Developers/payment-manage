@@ -285,16 +285,38 @@ export default function Users() {
 
       {/* Success/Error Banners */}
       {success && (
-        <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-emerald-400 flex items-start gap-2 text-sm">
-          <Check className="h-5 w-5 shrink-0" />
-          <span>{success}</span>
+        <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100/50 dark:from-emerald-500/5 dark:to-emerald-500/10 border-l-4 border-l-emerald-500 border-y border-r border-emerald-200 dark:border-emerald-500/20 p-4 text-emerald-800 dark:text-emerald-300 flex items-start gap-3 text-sm shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="h-6 w-6 rounded-lg bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Check className="h-4 w-4" />
+          </div>
+          <div className="flex-1 pt-0.5">
+            <span className="font-semibold">{success}</span>
+          </div>
+          <button
+            onClick={() => setSuccess('')}
+            className="shrink-0 text-emerald-500/60 dark:text-emerald-400/60 hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors p-1 rounded-lg hover:bg-emerald-500/10"
+            title="Dismiss Alert"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
 
       {error && (
-        <div className="rounded-xl bg-rose-500/10 border border-rose-500/20 p-4 text-rose-400 flex items-start gap-2 text-sm">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <span>{error}</span>
+        <div className="rounded-xl bg-gradient-to-r from-rose-50 to-rose-100/50 dark:from-rose-500/5 dark:to-rose-500/10 border-l-4 border-l-rose-500 border-y border-r border-rose-200 dark:border-rose-500/20 p-4 text-rose-800 dark:text-rose-300 flex items-start gap-3 text-sm shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="h-6 w-6 rounded-lg bg-rose-100 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+            <AlertCircle className="h-4 w-4" />
+          </div>
+          <div className="flex-1 pt-0.5">
+            <span className="font-semibold">{error}</span>
+          </div>
+          <button
+            onClick={() => setError('')}
+            className="shrink-0 text-rose-500/60 dark:text-rose-400/60 hover:text-rose-800 dark:hover:text-rose-200 transition-colors p-1 rounded-lg hover:bg-rose-500/10"
+            title="Dismiss Alert"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
 

@@ -1,7 +1,7 @@
 import { X, AlertTriangle } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
-export default function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confirmText = 'Delete', cancelText = 'Cancel' }) {
+export default function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confirmText = 'Delete', cancelText = 'Cancel', variant = 'danger' }) {
   if (!isOpen) return null;
 
   return createPortal(
@@ -13,7 +13,9 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-md rounded-2xl border border-rose-500/20 bg-slate-50/90 dark:bg-slate-950/90 p-6 shadow-2xl backdrop-blur-xl transition-all duration-300 scale-in-center z-10 animate-scale-up">
+      <div className={`relative w-full max-w-md rounded-2xl border bg-slate-50/90 dark:bg-slate-950/90 p-6 shadow-2xl backdrop-blur-xl transition-all duration-300 scale-in-center z-10 animate-scale-up ${
+        variant === 'info' ? 'border-indigo-500/20' : 'border-rose-500/20'
+      }`}>
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -24,7 +26,11 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
 
         <div className="flex gap-4 items-start mt-2">
           {/* Warning Icon Container */}
-          <div className="h-10 w-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/5">
+          <div className={`h-10 w-10 rounded-xl border flex items-center justify-center shrink-0 shadow-lg ${
+            variant === 'info'
+              ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 shadow-indigo-500/5'
+              : 'bg-rose-500/10 border-rose-500/20 text-rose-400 shadow-rose-500/5'
+          }`}>
             <AlertTriangle className="h-5 w-5" />
           </div>
 
@@ -35,7 +41,7 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
         </div>
 
         {/* Actions Button Bar */}
-        <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-slate-900">
+        <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-slate-350 dark:border-slate-800">
           <button
             onClick={onClose}
             className="rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-800 font-semibold px-4 py-2.5 text-sm transition-all"
@@ -47,7 +53,11 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
               onConfirm();
               onClose();
             }}
-            className="rounded-xl bg-rose-600  text-white  font-semibold px-5 py-2.5 text-sm transition-all shadow-lg shadow-rose-600/10 active:scale-95"
+            className={`rounded-xl font-semibold px-5 py-2.5 text-sm transition-all active:scale-95 shadow-lg ${
+              variant === 'info'
+                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/10'
+                : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/10'
+            }`}
           >
             {confirmText}
           </button>

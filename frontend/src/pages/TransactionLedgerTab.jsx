@@ -196,7 +196,7 @@ export default function TransactionLedgerTab({
       {/* Payments Table */}
       <div className="rounded-2xl bg-slate-50/60 bgw light:bg-slate-950/60 border border-slate-300/80 dark:border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full text-left border-collapse text-xs min-w-[900px]">
             <thead>
               <tr className="bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[11px]">
                 <th className="py-3.5 px-4 text-center w-14">S.No</th>
@@ -241,9 +241,16 @@ export default function TransactionLedgerTab({
                       <div className="h-8 w-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-xs font-bold capitalize shrink-0 shadow-sm">
                         {p.panelId?.panelName?.substring(0, 2)}
                       </div>
-                      <span className="font-bold text-slate-900 dark:text-slate-100 tracking-wide max-w-[180px] break-words leading-tight capitalize">
-                        {p.panelId?.panelName || 'Deleted Panel'}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-bold text-slate-900 dark:text-slate-100 tracking-wide max-w-[180px] break-words leading-tight capitalize">
+                          {p.panelId?.panelName || 'Deleted Panel'}
+                        </span>
+                        {p.panelId?.status === 'Stopped' && (
+                          <span className="w-fit px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 tracking-wider">
+                            Stopped
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </td>
 

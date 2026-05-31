@@ -28,7 +28,7 @@ const AnimatedBackground = ({ isDark }) => {
       return { x: w / 2 + x * s, y: h / 2.4 + ry * s, s, op: Math.max(0, 1 - (rz - 150) / 900) };
     };
 
-    const gridC = isDark ? 'rgba(99,102,241,0.14)' : 'rgba(10,37,64,0.09)';
+    const gridC = isDark ? 'rgba(99,102,241,0.14)' : 'rgba(10,37,64,0.22)';
     const nodeC = isDark ? 'rgba(56,189,248,0.35)' : 'rgba(10,37,64,0.22)';
 
     const render = () => {
@@ -47,7 +47,7 @@ const AnimatedBackground = ({ isDark }) => {
         }
         ctx.lineWidth = sf > 0 ? 1.6 : 0.8;
         ctx.strokeStyle = sf > 0
-          ? (isDark ? `rgba(56,189,248,${sf * 0.5 + 0.12})` : `rgba(10,37,64,${sf * 0.35 + 0.08})`)
+          ? (isDark ? `rgba(56,189,248,${sf * 0.5 + 0.12})` : `rgba(10,37,64,${sf * 0.55 + 0.18})`)
           : gridC;
         ctx.stroke();
       }
@@ -86,7 +86,7 @@ const AnimatedBackground = ({ isDark }) => {
     <canvas
       id="login-bg-canvas"
       className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ opacity: isDark ? 0.7 : 0.55 }}
+      style={{ opacity: isDark ? 0.7 : 0.85 }}
     />
   );
 };

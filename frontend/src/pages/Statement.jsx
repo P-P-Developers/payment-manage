@@ -203,7 +203,226 @@ export default function Statement() {
   }, [statementRows, searchQuery, startDate, endDate, sortOrder]);
 
   const handlePrint = () => {
-    window.print();
+    // 1. Fetch system settings
+    let settings = {
+      orgName: 'Deepmind Infotech',
+      contactEmail: 'billing@deepmindinfotech.com',
+      supportPhone: '+91 9876543210',
+    };
+    try {
+      const saved = localStorage.getItem('app_system_settings');
+      if (saved) {
+        settings = JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    // 2. Remove existing print iframe
+    const oldFrame = document.getElementById('passbook-print-iframe');
+    if (oldFrame) oldFrame.remove();
+
+    // 3. Create a new iframe
+    const iframe = document.createElement('iframe');
+    iframe.id = 'passbook-print-iframe';
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    // 4. Build document content
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    
+    // Sort rows for proper chronological listing
+    const rowsHtml = filteredAndSortedRows.map((r, idx) => {
+      const displayIdx = sortOrder === 'asc' ? idx + 1 : filteredAndSortedRows.length - idx;
+      return `
+        <tr>
+          <td style="text-align: center; border-bottom: 1px dashed #e2e8f0; padding: 8px;">${displayIdx}</td>
+          <td style="border-bottom: 1px dashed #e2e8f0; padding: 8px; white-space: nowrap;">${r.date}</td>
+          <td style="border-bottom: 1px dashed #e2e8f0; padding: 8px;">
+            <strong style="color: #1e293b;">${r.description}</strong>
+            ${r.remark ? `<br/><span style="font-size: 9px; color: #64748b;">${r.remark}</span>` : ''}
+          </td>
+          <td style="text-align: right; color: #b91c1c; font-weight: bold; border-bottom: 1px dashed #e2e8f0; padding: 8px;">
+            ${r.debit > 0 ? `-₹${r.debit.toLocaleString()}` : '-'}
+          </td>
+          <td style="text-align: right; color: #15803d; font-weight: bold; border-bottom: 1px dashed #e2e8f0; padding: 8px;">
+            ${r.credit > 0 ? `+₹${r.credit.toLocaleString()}` : '-'}
+          </td>
+          <td style="text-align: right; font-weight: bold; border-bottom: 1px dashed #e2e8f0; padding: 8px;">
+            ₹${Math.abs(r.balance).toLocaleString()} 
+            <span style="font-size: 8px; font-weight: bold; color: ${r.balance >= 0 ? '#15803d' : '#b91c1c'}">
+              ${r.balance >= 0 ? 'CR' : 'DR'}
+            </span>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    const statementPeriod = (startDate || endDate) 
+      ? `${startDate ? new Date(startDate).toLocaleDateString() : 'Beginning'} to ${endDate ? new Date(endDate).toLocaleDateString() : 'Present'}`
+      : 'All Time';
+
+    const currentBal = statementRows[statementRows.length - 1]?.balance || 0;
+    const netBalance = Math.abs(currentBal).toLocaleString();
+    const balanceSign = currentBal >= 0 ? 'Credit (Jama)' : 'Debit (Dues)';
+
+    doc.open();
+    doc.write(`
+      <html>
+        <head>
+          <title>Bank Statement - ${selectedPanel?.panelName}</title>
+          <style>
+            body {
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              padding: 40px;
+              color: #1e293b;
+              font-size: 11px;
+              background: #fff;
+            }
+            .header-bar {
+              height: 8px;
+              background-color: #4f46e5;
+              margin-bottom: 20px;
+              border-radius: 4px;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 30px;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 22px;
+              font-weight: 800;
+              letter-spacing: 1px;
+              color: #0f172a;
+            }
+            .header .subtitle {
+              font-size: 9px;
+              font-weight: 800;
+              color: #4f46e5;
+              margin-top: 6px;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+            }
+            table.summary-table {
+              width: 100%;
+              margin-bottom: 30px;
+              border-collapse: collapse;
+            }
+            table.summary-table td {
+              border: none;
+              padding: 0;
+              vertical-align: top;
+            }
+            table.statement-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 25px;
+            }
+            table.statement-table th {
+              background-color: #f8fafc;
+              border-bottom: 2px solid #cbd5e1;
+              color: #475569;
+              font-weight: 700;
+              font-size: 9px;
+              padding: 10px 8px;
+              text-align: left;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+            table.statement-table td {
+              padding: 10px 8px;
+              border-bottom: 1px dashed #e2e8f0;
+              vertical-align: top;
+            }
+            .totals-row {
+              background-color: #f8fafc;
+              border-top: 2px solid #cbd5e1;
+              font-weight: 800;
+              font-size: 11px;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 50px;
+              font-size: 9px;
+              color: #64748b;
+              border-top: 1px dashed #cbd5e1;
+              padding-top: 20px;
+              line-height: 1.5;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header-bar"></div>
+          <div class="header">
+            <h1>${settings.orgName.toUpperCase()}</h1>
+            <div class="subtitle">Official Account Statement Passbook</div>
+          </div>
+          
+          <table class="summary-table">
+            <tr>
+              <td style="width: 50%; line-height: 1.7;">
+                <span style="font-size: 10px; font-weight: 800; color: #4f46e5; display: block; margin-bottom: 5px; tracking: 0.5px; text-transform: uppercase;">Client Details</span>
+                <span style="font-size: 13px; font-weight: 800; color: #0f172a; display: block; margin-bottom: 3px;">${selectedPanel?.panelName}</span>
+                <strong>Owner:</strong> ${selectedPanel?.ownerName}<br/>
+                <strong>Phone:</strong> +${selectedPanel?.phoneNumber || '-'}<br/>
+                <strong>Email:</strong> ${selectedPanel?.ownerEmail || '-'}
+                ${selectedPanel?.gstNumber ? `<br/><strong>GSTIN:</strong> ${selectedPanel.gstNumber}` : ''}
+              </td>
+              <td style="width: 50%; text-align: right; line-height: 1.7;">
+                <span style="font-size: 10px; font-weight: 800; color: #4f46e5; display: block; margin-bottom: 5px; tracking: 0.5px; text-transform: uppercase;">Statement Summary</span>
+                <strong>Period:</strong> ${statementPeriod}<br/>
+                <strong>Date Printed:</strong> ${new Date().toLocaleString('en-IN')}<br/>
+                <strong>Total Debits (Bills):</strong> ₹${aggregates.totalDebit.toLocaleString()}<br/>
+                <strong>Total Credits (Deposits):</strong> ₹${aggregates.totalCredit.toLocaleString()}<br/>
+                <span style="font-size: 12px; font-weight: 800; color: ${currentBal >= 0 ? '#15803d' : '#b91c1c'}">
+                  Net Balance: ₹${netBalance} ${balanceSign}
+                </span>
+              </td>
+            </tr>
+          </table>
+
+          <table class="statement-table">
+            <thead>
+              <tr>
+                <th style="width: 6%; text-align: center;">S.No.</th>
+                <th style="width: 22%;">Transaction Date</th>
+                <th style="width: 36%;">Transaction Particulars</th>
+                <th style="width: 12%; text-align: right;">Debit (Bills)</th>
+                <th style="width: 12%; text-align: right;">Credit (Deposit)</th>
+                <th style="width: 12%; text-align: right;">Running Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+              <tr class="totals-row">
+                <td colspan="3" style="border: none; padding: 12px 8px;">STATEMENT PERIOD TOTALS:</td>
+                <td style="text-align: right; border: none; padding: 12px 8px; color: #b91c1c;">-₹${aggregates.totalDebit.toLocaleString()}</td>
+                <td style="text-align: right; border: none; padding: 12px 8px; color: #15803d;">+₹${aggregates.totalCredit.toLocaleString()}</td>
+                <td style="text-align: right; border: none; padding: 12px 8px; color: ${currentBal >= 0 ? '#15803d' : '#b91c1c'}">₹${netBalance}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="footer">
+            This is an official system-generated transaction passbook ledger statement for panel software licenses and services.
+            <br/>Verified by Deepmind Infotech Systems &bull; Page 1 of 1 &bull; Thank you for your business!
+          </div>
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    // 5. Trigger Print
+    setTimeout(() => {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    }, 400);
   };
 
   const selectedPanel = panels.find((p) => p._id === selectedPanelId);
@@ -268,7 +487,7 @@ export default function Statement() {
               >
                 {panels.map((p) => (
                   <option key={p._id} value={p._id}>
-                    {p.panelName} ({p.ownerName})
+                    {p.panelName} ({p.ownerName}){p.status === 'Stopped' ? ' (Stopped)' : ''}
                   </option>
                 ))}
               </select>
@@ -432,7 +651,7 @@ export default function Statement() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-xs text-left font-mono">
+              <table className="w-full border-collapse text-xs text-left font-mono min-w-[850px]">
                 <thead>
                   <tr className="bg-slate-100 border-b border-slate-350 text-slate-700 uppercase font-black tracking-wider select-none text-[11px]">
                     <th className="px-5 py-3.5 w-14 text-center">S.No.</th>

@@ -1,8 +1,14 @@
-import { useRef } from 'react';
-import { Printer, X, Download, ShieldCheck, Mail, Calendar, CreditCard, User, Tag } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Printer, X, Download, ShieldCheck, Mail, Calendar, CreditCard, User, Tag, Send, Share2, MessageSquare, Loader2 } from 'lucide-react';
+import { apiRequest } from '@/utils/api';
 
 export default function ReceiptModal({ isOpen, onClose, payment }) {
   const printAreaRef = useRef(null);
+
+  const [sharing, setSharing] = useState(false);
+  const [shareMsg, setShareMsg] = useState('');
+  const [shareError, setShareError] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
 
   if (!isOpen || !payment) return null;
 
@@ -208,13 +214,107 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
   const isPartiallyPaid = payment.billAmount > 0 && payment.amountReceived > 0 && payment.amountReceived < payment.billAmount;
   const isCreditOnly = payment.billAmount > 0 && payment.amountReceived === 0;
 
+  const formatMessageText = () => {
+    const clientName = payment.panelId?.panelName || 'Client';
+    const ownerName = payment.panelId?.ownerName || '';
+    const billAmt = payment.billAmount || 0;
+    const amtPaid = payment.amountReceived || 0;
+    const disc = (payment.billDiscount || 0) + (payment.paymentDiscount || 0);
+    const dueAmt = (billAmt - (payment.billDiscount || 0)) - (amtPaid + (payment.paymentDiscount || 0));
+
+    return `*Dear ${ownerName || clientName},*\n\nYour transaction receipt from *${settings.orgName}* is ready.\n\n*Receipt No:* ${receiptId}\n*Date:* ${timestamp}\n*Payment Type:* ${payment.paymentType}\n*Total Bill:* ₹${billAmt.toLocaleString()}\n*Amount Paid:* ₹${amtPaid.toLocaleString()}\n${disc > 0 ? `*Discount:* ₹${disc.toLocaleString()}\n` : ''}*Remaining Balance:* ₹${dueAmt > 0 ? dueAmt.toLocaleString() : '0'}\n\nThank you for your business!\n_${settings.orgName}_`;
+  };
+
+  const handleShareWeb = () => {
+    const clientPhone = payment.panelId?.phoneNumber || '';
+    const text = encodeURIComponent(formatMessageText());
+    let cleanPhone = clientPhone.replace(/\D/g, '');
+    if (cleanPhone.length === 10) {
+      cleanPhone = '91' + cleanPhone;
+    }
+    const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${text}`;
+    window.open(url, '_blank');
+    setShowDropdown(false);
+  };
+
+  const handleSendAPI = async () => {
+    const clientPhone = payment.panelId?.phoneNumber || '';
+    if (!clientPhone) {
+      setShareError('Client does not have a registered phone number.');
+      setShowDropdown(false);
+      return;
+    }
+    setSharing(true);
+    setShareMsg('');
+    setShareError('');
+    try {
+      let cleanPhone = clientPhone.replace(/\D/g, '');
+      if (cleanPhone.length === 10) {
+        cleanPhone = '91' + cleanPhone;
+      }
+      
+      const res = await apiRequest('/whatsapp/send-bill', {
+        method: 'POST',
+        body: JSON.stringify({
+          paymentId: payment._id,
+          phone: cleanPhone,
+          settings,
+        })
+      });
+
+      if (res.success) {
+        setShareMsg(res.message || 'Receipt successfully sent to client via WhatsApp API!');
+      } else {
+        setShareError(res.message || 'Failed to send WhatsApp message via API.');
+      }
+    } catch (err) {
+      setShareError(err.message || 'Failed to send WhatsApp message.');
+    } finally {
+      setSharing(false);
+      setShowDropdown(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    const clientEmail = payment.panelId?.ownerEmail || '';
+    if (!clientEmail) {
+      setShareError('Client does not have a registered email address.');
+      setShowDropdown(false);
+      return;
+    }
+    setSharing(true);
+    setShareMsg('');
+    setShareError('');
+    try {
+      const res = await apiRequest('/smtp/send-bill', {
+        method: 'POST',
+        body: JSON.stringify({
+          paymentId: payment._id,
+          toEmail: clientEmail,
+          settings,
+        })
+      });
+
+      if (res.success) {
+        setShareMsg('Receipt successfully emailed to client via SMTP!');
+      } else {
+        setShareError(res.message || 'Failed to send email receipt via SMTP.');
+      }
+    } catch (err) {
+      setShareError(err.message || 'Failed to send email receipt.');
+    } finally {
+      setSharing(false);
+      setShowDropdown(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div onClick={onClose} className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"></div>
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-xl rounded-2xl glass-card p-6 md:p-8 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-2xl rounded-2xl glass-card p-6 md:p-8 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
 
         {/* Header Actions */}
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-300/80 dark:border-slate-800/80">
@@ -228,7 +328,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 relative">
             <button
               onClick={handlePrint}
               className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
@@ -237,6 +337,57 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
               <Printer className="h-4 w-4" />
               <span>Print / Save PDF</span>
             </button>
+
+            {/* WhatsApp Dropdown */}
+            {/* Share / Send Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                disabled={sharing}
+                className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-800 rounded-md transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50"
+                title="Share or Send Receipt"
+              >
+                {sharing ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-white" />
+                ) : (
+                  <Share2 className="h-4 w-4" />
+                )}
+                <span>{sharing ? 'Sending...' : 'Share / Send'}</span>
+              </button>
+
+              {showDropdown && (
+                <>
+                  <div onClick={() => setShowDropdown(false)} className="fixed inset-0 z-[155]"></div>
+                  <div className="absolute right-0 mt-2 w-56 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-xl z-[160] py-2 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <button
+                      type="button"
+                      onClick={handleShareWeb}
+                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors"
+                    >
+                      <MessageSquare className="h-4 w-4 text-emerald-500" />
+                      <span>WhatsApp Web / App</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSendAPI}
+                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2.5 transition-colors"
+                    >
+                      <Send className="h-4 w-4 text-indigo-500" />
+                      <span>Official WhatsApp API</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSendEmail}
+                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2.5 transition-colors"
+                    >
+                      <Mail className="h-4 w-4 text-sky-500" />
+                      <span>Send via SMTP Email</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
             <button
               onClick={onClose}
               className="h-8.5 w-8.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors border border-transparent hover:border-slate-800"
@@ -246,12 +397,37 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
           </div>
         </div>
 
+        {shareMsg && (
+          <div className="mb-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-250 dark:border-emerald-900 text-emerald-800 dark:text-emerald-400 p-3 text-xs flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-1">
+            <span className="font-semibold">{shareMsg}</span>
+            <button type="button" onClick={() => setShareMsg('')} className="text-emerald-500 hover:text-emerald-700 font-bold shrink-0 ml-2">Dismiss</button>
+          </div>
+        )}
+
+        {shareError && (
+          <div className="mb-4 rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-250 dark:border-rose-900 text-rose-800 dark:text-rose-400 p-3 text-xs flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-1">
+            <span className="font-semibold">{shareError}</span>
+            <button type="button" onClick={() => setShareError('')} className="text-rose-500 hover:text-rose-700 font-bold shrink-0 ml-2">Dismiss</button>
+          </div>
+        )}
+
         {/* Printable/Preview Receipt Container */}
         <div className="flex-1 overflow-y-auto pr-1">
           <div
             ref={printAreaRef}
             className="p-8 rounded-2xl bg-white border border-slate-200 relative overflow-hidden shadow-xl text-slate-800 font-sans"
           >
+            {/* Dynamic Glassmorphism Loading Overlay */}
+            {sharing && (
+              <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-[2px] z-[150] flex flex-col items-center justify-center text-white space-y-4 animate-in fade-in duration-300">
+                <Loader2 className="h-10 w-10 animate-spin text-emerald-400" />
+                <div className="text-center space-y-1">
+                  <p className="font-extrabold text-sm tracking-wide">Processing Document...</p>
+                  <p className="text-[10px] text-slate-300 font-semibold uppercase tracking-widest">Uploading Receipt PDF & Dispatching</p>
+                </div>
+              </div>
+            )}
+
             {/* Stamp Overlay */}
             {isFullyPaid && (
               <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-12 border-4 border-emerald-500/20 text-emerald-500/20 text-5xl font-black uppercase py-2.5 px-8 rounded-2xl tracking-[0.25em] z-0 select-none pointer-events-none">
@@ -314,6 +490,11 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
                   </div>
                   <p className="font-extrabold text-slate-900 text-sm leading-tight">{payment.panelId?.panelName || 'Deleted Panel Client'}</p>
                   <p className="text-[10px] text-slate-500 dark:text-slate-500 font-semibold">Owner: {payment.panelId?.ownerName || '-'}</p>
+                  {payment.panelId?.gstNumber && (
+                    <p className="text-[9px] text-indigo-600 dark:text-indigo-400 font-bold mt-1 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-md inline-block">
+                      GSTIN: {payment.panelId.gstNumber}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1 text-right">

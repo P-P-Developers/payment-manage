@@ -20,8 +20,9 @@ import {
   Mail,
   User as UserIcon,
   Info,
+  RefreshCw,
+  Tag,
 } from 'lucide-react';
-import AnimatedBackground from '@/components/AnimatedBackground';
 
 const SkeletonRow = () => (
   <tr className="animate-pulse">
@@ -84,6 +85,8 @@ export default function Panels() {
   const [editPanelId, setEditPanelId] = useState(null); // null = add, string = edit
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [panelToDelete, setPanelToDelete] = useState(null);
+  const [isStatusConfirmOpen, setIsStatusConfirmOpen] = useState(false);
+  const [statusPanel, setStatusPanel] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Dynamic Dues Modal State
@@ -99,6 +102,8 @@ export default function Panels() {
   const [ipCharges, setIpCharges] = useState(0);
   const [maintenanceCharges, setMaintenanceCharges] = useState(0);
   const [openingBalance, setOpeningBalance] = useState(0);
+  const [status, setStatus] = useState('Active');
+  const [gstNumber, setGstNumber] = useState('');
   const [formErrors, setFormErrors] = useState({});
 
   const fetchPanels = async (isSilent = false) => {
@@ -173,6 +178,8 @@ export default function Panels() {
     setIpCharges(defaultI);
     setMaintenanceCharges(defaultM);
     setOpeningBalance(0);
+    setStatus('Active');
+    setGstNumber('');
     setFormErrors({});
     setIsModalOpen(true);
   };
@@ -190,6 +197,8 @@ export default function Panels() {
     setIpCharges(panel.ipCharges);
     setMaintenanceCharges(panel.maintenanceCharges);
     setOpeningBalance(panel.openingBalance);
+    setStatus(panel.status || 'Active');
+    setGstNumber(panel.gstNumber || '');
     setFormErrors({});
     setIsModalOpen(true);
   };
@@ -250,6 +259,8 @@ export default function Panels() {
         ipCharges: Number(ipCharges),
         maintenanceCharges: Number(maintenanceCharges),
         openingBalance: Number(openingBalance),
+        status,
+        gstNumber,
       };
 
       if (editPanelId) {
@@ -278,6 +289,67 @@ export default function Panels() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleConfirmToggleStatus = async () => {
+    if (!statusPanel) return;
+    setError('');
+    setSuccess('');
+    setIsStatusConfirmOpen(false);
+    try {
+      const newStatus = statusPanel.status === 'Stopped' ? 'Active' : 'Stopped';
+      const data = await apiRequest(`/panels/${statusPanel._id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (data.success) {
+        setSuccess(`Panel "${statusPanel.panelName}" status updated to ${newStatus} successfully!`);
+        fetchPanels(true);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to update panel status');
+    } finally {
+      setStatusPanel(null);
+    }
+  };
+
+  const handleFreshStart = async (panel) => {
+    setError('');
+    setSuccess('');
+    setFormErrors({});
+
+    // 1. If old panel is not stopped, stop it first
+    if (panel.status !== 'Stopped') {
+      try {
+        const data = await apiRequest(`/panels/${panel._id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ status: 'Stopped' }),
+        });
+        if (!data.success) {
+          setError('Failed to stop the previous panel.');
+          return;
+        }
+      } catch (err) {
+        setError(err.message || 'Failed to stop the previous panel.');
+        return;
+      }
+    }
+
+    // 2. Prefill form fields for the new active clone
+    setEditPanelId(null);
+    setPanelName(panel.panelName);
+    setOwnerName(panel.ownerName);
+    setOwnerEmail(panel.ownerEmail);
+    setPhoneNumber(panel.phoneNumber);
+    setCategory(panel.category || 'Algo');
+    setLicenseCharges(panel.licenseCharges || 0);
+    setIpCharges(panel.ipCharges || 0);
+    setMaintenanceCharges(panel.maintenanceCharges || 0);
+    setOpeningBalance(0);
+    setStatus('Active');
+
+    setIsModalOpen(true);
+    setSuccess(`Old panel "${panel.panelName}" stopped! Prefilled all client details for a fresh start. Just click "Register Client" to create the new active panel.`);
   };
 
   const handleDeletePanel = (panel) => {
@@ -337,7 +409,6 @@ export default function Panels() {
 
   return (
     <div className="space-y-6">
-      <AnimatedBackground />
       {/* Action Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
 
@@ -373,16 +444,38 @@ export default function Panels() {
 
       {/* Alerts */}
       {success && (
-        <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-emerald-400 flex items-start gap-2 text-sm">
-          <Check className="h-5 w-5 shrink-0" />
-          <span>{success}</span>
+        <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100/50 dark:from-emerald-500/5 dark:to-emerald-500/10 border-l-4 border-l-emerald-500 border-y border-r border-emerald-200 dark:border-emerald-500/20 p-4 text-emerald-800 dark:text-emerald-300 flex items-start gap-3 text-sm shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="h-6 w-6 rounded-lg bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Check className="h-4 w-4" />
+          </div>
+          <div className="flex-1 pt-0.5">
+            <span className="font-semibold">{success}</span>
+          </div>
+          <button
+            onClick={() => setSuccess('')}
+            className="shrink-0 text-emerald-500/60 dark:text-emerald-400/60 hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors p-1 rounded-lg hover:bg-emerald-500/10"
+            title="Dismiss Alert"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
 
       {error && (
-        <div className="rounded-xl bg-rose-500/10 border border-rose-500/20 p-4 text-rose-400 flex items-start gap-2 text-sm">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <span>{error}</span>
+        <div className="rounded-xl bg-gradient-to-r from-rose-50 to-rose-100/50 dark:from-rose-500/5 dark:to-rose-500/10 border-l-4 border-l-rose-500 border-y border-r border-rose-200 dark:border-rose-500/20 p-4 text-rose-800 dark:text-rose-300 flex items-start gap-3 text-sm shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="h-6 w-6 rounded-lg bg-rose-100 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+            <AlertCircle className="h-4 w-4" />
+          </div>
+          <div className="flex-1 pt-0.5">
+            <span className="font-semibold">{error}</span>
+          </div>
+          <button
+            onClick={() => setError('')}
+            className="shrink-0 text-rose-500/60 dark:text-rose-400/60 hover:text-rose-800 dark:hover:text-rose-200 transition-colors p-1 rounded-lg hover:bg-rose-500/10"
+            title="Dismiss Alert"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
 
@@ -454,7 +547,7 @@ export default function Panels() {
       {/* Panels Table */}
       <div className="rounded-2xl glass-card border border-slate-300 dark:border-slate-800 overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[950px]">
             <thead>
               <tr className="bg-slate-100/80 dark:bg-slate-900/80 border-b border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-xs uppercase font-semibold tracking-wider">
                 <th className="px-6 py-4">S No.</th>
@@ -463,6 +556,7 @@ export default function Panels() {
                 <th className="px-6 py-4">IP Dues</th>
                 <th className="px-6 py-4">Maint. Dues</th>
                 <th className="px-6 py-4">Outstanding Bal</th>
+                <th className="px-6 py-4 text-center">Status</th>
                 <th className="px-6 py-4 text-center">Actions</th>
               </tr>
             </thead>
@@ -485,6 +579,17 @@ export default function Panels() {
                           <p className="font-bold text-slate-900 dark:text-white text-base break-words">
                             {panel.panelName}
                           </p>
+
+                          {panel.status === 'Stopped' && (
+                            <button
+                              onClick={() => handleFreshStart(panel)}
+                              className="text-[10px] px-2 py-0.5 rounded-lg font-extrabold uppercase tracking-wider bg-violet-500/15 text-violet-400 hover:bg-violet-600 hover:text-white border border-violet-500/25 shadow-sm transition-all duration-250 cursor-pointer active:scale-95 flex items-center gap-1 shrink-0"
+                              title="Click to instantly create a new active panel with these details"
+                            >
+                              <RefreshCw className="h-2.5 w-2.5 animate-pulse" />
+                              Fresh Start
+                            </button>
+                          )}
 
                           <span
                             className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${panel.category === 'Algo'
@@ -549,6 +654,26 @@ export default function Panels() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center">
+                        <button
+                          onClick={() => {
+                            setStatusPanel(panel);
+                            setIsStatusConfirmOpen(true);
+                          }}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            panel.status === 'Stopped' ? 'bg-slate-300 dark:bg-slate-700' : 'bg-emerald-500'
+                          }`}
+                          title={`Click to toggle status (Currently: ${panel.status || 'Active'})`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                              panel.status === 'Stopped' ? 'translate-x-0' : 'translate-x-5'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-1.5">
 
                         {/* View Ledger - matches header bg, indigo icon */}
@@ -571,6 +696,15 @@ export default function Panels() {
 
                         {isAdmin && (
                           <>
+                            {/* Fresh Start - violet icon */}
+                            <button
+                              onClick={() => handleFreshStart(panel)}
+                              className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-900 hover:bg-violet-600 text-violet-500 hover:text-white flex items-center justify-center border border-slate-300 dark:border-slate-700 hover:border-violet-600 transition-all duration-200 hover:shadow-md hover:shadow-violet-500/40"
+                              title="Fresh Start (Stop and Clone to New Panel)"
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                            </button>
+
                             {/* Edit - amber icon */}
                             <button
                               onClick={() => handleOpenEditModal(panel)}
@@ -624,9 +758,20 @@ export default function Panels() {
             </h3>
 
             {error && (
-              <div className="mb-5 rounded-xl bg-rose-500/10 border border-rose-500/20 p-4 text-rose-400 flex items-start gap-2 text-sm">
-                <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-                <span>{error}</span>
+              <div className="mb-5 rounded-xl bg-gradient-to-r from-rose-50 to-rose-100/50 dark:from-rose-500/5 dark:to-rose-500/10 border-l-4 border-l-rose-500 border-y border-r border-rose-200 dark:border-rose-500/20 p-4 text-rose-800 dark:text-rose-300 flex items-start gap-3 text-sm shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="h-6 w-6 rounded-lg bg-rose-100 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                  <AlertCircle className="h-4 w-4" />
+                </div>
+                <div className="flex-1 pt-0.5">
+                  <span className="font-semibold">{error}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setError('')}
+                  className="shrink-0 text-rose-500/60 dark:text-rose-400/60 hover:text-rose-800 dark:hover:text-rose-200 transition-colors p-1 rounded-lg hover:bg-rose-500/10"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             )}
 
@@ -711,6 +856,22 @@ export default function Panels() {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
+                    GST Number (Optional)
+                  </label>
+                  <div className="relative">
+                    <Tag className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
+                    <input
+                      type="text"
+                      value={gstNumber}
+                      onChange={(e) => setGstNumber(e.target.value.toUpperCase())}
+                      placeholder="22AAAAA0000A1Z5"
+                      className="w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
                     Panel Category
                   </label>
                   <div className="relative">
@@ -729,6 +890,23 @@ export default function Panels() {
                           </option>
                         ))
                       )}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
+                    Panel Status
+                  </label>
+                  <div className="relative">
+                    <Info className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
+                    <select
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      className="w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input focus:outline-none appearance-none cursor-pointer"
+                    >
+                      <option value="Active" className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">Active</option>
+                      <option value="Stopped" className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">Stopped</option>
                     </select>
                   </div>
                 </div>
@@ -923,6 +1101,19 @@ export default function Panels() {
         onConfirm={handleConfirmDeletePanel}
         title="Delete Panel Client"
         message={`Are you absolutely sure you want to delete panel: ${panelToDelete?.panelName}? This will ALSO delete all associated payments and transaction records!`}
+      />
+
+      <ConfirmModal
+        isOpen={isStatusConfirmOpen}
+        onClose={() => {
+          setIsStatusConfirmOpen(false);
+          setStatusPanel(null);
+        }}
+        onConfirm={handleConfirmToggleStatus}
+        title="Change Panel Status"
+        message={`Are you sure you want to change the status of panel "${statusPanel?.panelName}" to ${statusPanel?.status === 'Stopped' ? 'Active' : 'Stopped'}? Stopped hone par is panel par cron jobs auto bills generate karna band kar denge.`}
+        confirmText="Update Status"
+        variant="info"
       />
     </div>
   );

@@ -244,7 +244,7 @@ export default function Payments() {
   const [selectedPanelId, setSelectedPanelId] = useState('');
   const [paymentType, setPaymentType] = useState('License');
   const [amountReceived, setAmountReceived] = useState('');
-  const [paymentMode, setPaymentMode] = useState('UPI');
+  const [paymentMode, setPaymentMode] = useState('Cash');
   const [bankName, setBankName] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [unitPrice, setUnitPrice] = useState(0);
@@ -526,6 +526,15 @@ export default function Payments() {
         setError('Please select a panel.');
         setSubmitting(false);
         return;
+      }
+
+      if (modalMode === 'bill') {
+        const panel = panels.find(p => p._id === selectedPanelId);
+        if (panel && panel.status === 'Stopped') {
+          setError('Cannot generate a bill for a stopped panel client.');
+          setSubmitting(false);
+          return;
+        }
       }
 
       let finalAmountReceived = 0;
@@ -898,16 +907,38 @@ export default function Payments() {
 
       {/* Alerts */}
       {success && (
-        <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-emerald-400 flex items-start gap-2 text-sm">
-          <Check className="h-5 w-5 shrink-0" />
-          <span>{success}</span>
+        <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100/50 dark:from-emerald-500/5 dark:to-emerald-500/10 border-l-4 border-l-emerald-500 border-y border-r border-emerald-200 dark:border-emerald-500/20 p-4 text-emerald-800 dark:text-emerald-300 flex items-start gap-3 text-sm shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="h-6 w-6 rounded-lg bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Check className="h-4 w-4" />
+          </div>
+          <div className="flex-1 pt-0.5">
+            <span className="font-semibold">{success}</span>
+          </div>
+          <button
+            onClick={() => setSuccess('')}
+            className="shrink-0 text-emerald-500/60 dark:text-emerald-400/60 hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors p-1 rounded-lg hover:bg-emerald-500/10"
+            title="Dismiss Alert"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
 
       {error && (
-        <div className="rounded-xl bg-rose-500/10 border border-rose-500/20 p-4 text-rose-400 flex items-start gap-2 text-sm">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <span>{error}</span>
+        <div className="rounded-xl bg-gradient-to-r from-rose-50 to-rose-100/50 dark:from-rose-500/5 dark:to-rose-500/10 border-l-4 border-l-rose-500 border-y border-r border-rose-200 dark:border-rose-500/20 p-4 text-rose-800 dark:text-rose-300 flex items-start gap-3 text-sm shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="h-6 w-6 rounded-lg bg-rose-100 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+            <AlertCircle className="h-4 w-4" />
+          </div>
+          <div className="flex-1 pt-0.5">
+            <span className="font-semibold">{error}</span>
+          </div>
+          <button
+            onClick={() => setError('')}
+            className="shrink-0 text-rose-500/60 dark:text-rose-400/60 hover:text-rose-800 dark:hover:text-rose-200 transition-colors p-1 rounded-lg hover:bg-rose-500/10"
+            title="Dismiss Alert"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
 
@@ -917,7 +948,7 @@ export default function Payments() {
           <button
             onClick={() => setActiveTab('list')}
             className={`shrink-0 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-1.5 sm:gap-2 ${activeTab === 'list'
-              ? 'bg-indigo-600 text-slate-900 dark:text-white shadow-md'
+              ? 'bg-indigo-600 text-white shadow-md'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
           >
@@ -927,7 +958,7 @@ export default function Payments() {
           <button
             onClick={() => setActiveTab('consolidated')}
             className={`shrink-0 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-1.5 sm:gap-2 ${activeTab === 'consolidated'
-              ? 'bg-emerald-600 text-slate-900 dark:text-white shadow-md'
+              ? 'bg-emerald-600 text-white shadow-md'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
           >
@@ -1080,18 +1111,20 @@ export default function Payments() {
 
                           {/* List of Panels */}
                           <div className="max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/50 scrollbar-thin">
-                            {panels.filter(p =>
-                              p.panelName.toLowerCase().includes(panelSearchQuery.toLowerCase()) ||
-                              p.ownerName.toLowerCase().includes(panelSearchQuery.toLowerCase())
-                            ).length === 0 ? (
+                            {panels.filter(p => {
+                              if (modalMode === 'bill' && p.status === 'Stopped') return false;
+                              return p.panelName.toLowerCase().includes(panelSearchQuery.toLowerCase()) ||
+                                p.ownerName.toLowerCase().includes(panelSearchQuery.toLowerCase());
+                            }).length === 0 ? (
                               <div className="py-3 px-3 text-xs text-slate-500 text-center font-medium italic">
                                 No clients found matching your search.
                               </div>
                             ) : (
-                              panels.filter(p =>
-                                p.panelName.toLowerCase().includes(panelSearchQuery.toLowerCase()) ||
-                                p.ownerName.toLowerCase().includes(panelSearchQuery.toLowerCase())
-                              ).map((p) => (
+                              panels.filter(p => {
+                                if (modalMode === 'bill' && p.status === 'Stopped') return false;
+                                return p.panelName.toLowerCase().includes(panelSearchQuery.toLowerCase()) ||
+                                  p.ownerName.toLowerCase().includes(panelSearchQuery.toLowerCase());
+                              }).map((p) => (
                                 <button
                                   key={p._id}
                                   type="button"
@@ -1105,7 +1138,14 @@ export default function Payments() {
                                     : 'text-slate-700 dark:text-slate-300'
                                     }`}
                                 >
-                                  <span className="font-bold tracking-wide">{p.panelName}</span>
+                                  <span className="font-bold tracking-wide flex items-center gap-1.5">
+                                    {p.panelName}
+                                    {p.status === 'Stopped' && (
+                                      <span className="px-1 py-0.5 rounded text-[8px] font-extrabold uppercase bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 tracking-wider">
+                                        Stopped
+                                      </span>
+                                    )}
+                                  </span>
                                   <span className="text-[10px] opacity-75">{p.ownerName}</span>
                                 </button>
                               ))
@@ -1882,10 +1922,10 @@ export default function Payments() {
                         className="w-full premium-input px-4 py-2.5 text-sm font-semibold"
                         required
                       >
-                        <option value="License">License Charges</option>
-                        <option value="IP Charges">IP Charges</option>
-                        <option value="Maintenance">Maintenance Charges</option>
-                        <option value="Other">Other Charges</option>
+                        <option value="License" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">License Charges</option>
+                        <option value="IP Charges" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">IP Charges</option>
+                        <option value="Maintenance" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">Maintenance Charges</option>
+                        <option value="Other" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">Other Charges</option>
                       </select>
                     </div>
 
@@ -1968,10 +2008,10 @@ export default function Payments() {
                         className="w-full premium-input px-4 py-2.5 text-sm font-semibold"
                         required
                       >
-                        <option value="UPI">UPI / QR Code</option>
-                        <option value="Cash">Cash</option>
-                        <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="Online">Online Payment</option>
+                        <option value="UPI" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">UPI / QR Code</option>
+                        <option value="Cash" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">Cash</option>
+                        <option value="Bank Transfer" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">Bank Transfer</option>
+                        <option value="Online" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">Online Payment</option>
                       </select>
                     </div>
 
@@ -1982,9 +2022,9 @@ export default function Payments() {
                         onChange={(e) => setEditForm({ ...editForm, bankName: e.target.value })}
                         className="w-full premium-input px-4 py-2.5 text-sm font-semibold"
                       >
-                        <option value="">N/A (Cash / None)</option>
+                        <option value="" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">N/A (Cash / None)</option>
                         {banks.map((bank) => (
-                          <option key={bank} value={bank}>{bank}</option>
+                          <option key={bank} value={bank} className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">{bank}</option>
                         ))}
                       </select>
                     </div>

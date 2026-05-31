@@ -93,7 +93,7 @@ export default function ConsolidatedLedgerTab({
       </div>
 
       {/* Main consolidated table */}
-      <table className="w-full text-left border border-slate-300/60 dark:border-slate-700/60 font-mono text-[13px] md:text-sm border-collapse bg-slate-100/40 dark:bg-slate-900/40">
+      <table className="w-full text-left border border-slate-300/60 dark:border-slate-700/60 font-mono text-[13px] md:text-sm border-collapse bg-slate-100/40 dark:bg-slate-900/40 min-w-[950px]">
         <thead>
           <tr className="bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-b border-slate-300 dark:border-slate-700 font-black uppercase tracking-wider text-[13px] md:text-sm">
             <th className="border-r border-slate-300/60 dark:border-slate-700/60 text-center text-slate-600 dark:text-slate-400 bg-slate-200/50 dark:bg-slate-800/50 py-2.5 w-12">#</th>
@@ -119,7 +119,14 @@ export default function ConsolidatedLedgerTab({
                   {idx + 1}
                 </td>
                 <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-slate-900 dark:text-white break-words whitespace-normal max-w-[200px]">
-                  {p.panelName}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span>{p.panelName}</span>
+                    {p.status === 'Stopped' && (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 tracking-wider">
+                        Stopped
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="border-r border-slate-300/40 dark:border-slate-700/40 px-4 py-2.5 text-slate-800 dark:text-slate-200">
                   {p.ownerName}
@@ -221,7 +228,7 @@ export default function ConsolidatedLedgerTab({
                             </span>
                           </div>
 
-                          <table className="w-full text-left border border-slate-300 dark:border-slate-800 font-mono text-xs md:text-[13px] border-collapse bg-slate-100/10 dark:bg-slate-900/10">
+                          <table className="w-full text-left border border-slate-300 dark:border-slate-800 font-mono text-xs md:text-[13px] border-collapse bg-slate-100/10 dark:bg-slate-900/10 min-w-[950px]">
                             <thead>
                               <tr className="bg-slate-100/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 border-b border-slate-300 dark:border-slate-800 uppercase tracking-wider text-xs md:text-[13px]">
                                 <th className="border-r border-slate-300/60 dark:border-slate-800/60 text-center text-slate-600 bg-slate-100 dark:bg-slate-900 py-2 w-[4%]">#</th>

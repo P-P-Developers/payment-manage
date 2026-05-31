@@ -21,31 +21,31 @@ import ReceiptModal from '@/components/ReceiptModal';
 const CHARGE_TYPE_STYLES = {
   License: {
     dot: 'bg-indigo-500',
-    badge: 'bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-800 border-indigo-300',
-    badgeSm: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    badge: 'bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-800 border-indigo-300 dark:from-indigo-950/40 dark:to-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800',
+    badgeSm: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900',
   },
   'IP Charges': {
     dot: 'bg-violet-500',
-    badge: 'bg-gradient-to-br from-violet-50 to-violet-100 text-violet-800 border-violet-300',
-    badgeSm: 'bg-violet-50 text-violet-700 border-violet-200',
+    badge: 'bg-gradient-to-br from-violet-50 to-violet-100 text-violet-800 border-violet-300 dark:from-violet-950/40 dark:to-violet-950/60 dark:text-violet-300 dark:border-violet-800',
+    badgeSm: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/30 dark:text-violet-400 dark:border-violet-900',
   },
   Maintenance: {
     dot: 'bg-amber-500',
-    badge: 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-800 border-amber-300',
-    badgeSm: 'bg-amber-50 text-amber-700 border-amber-200',
+    badge: 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-800 border-amber-300 dark:from-amber-950/40 dark:to-amber-950/60 dark:text-amber-300 dark:border-amber-800',
+    badgeSm: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900',
   },
   'Setup Cost': {
     dot: 'bg-teal-500',
-    badge: 'bg-gradient-to-br from-teal-50 to-teal-100 text-teal-800 border-teal-300',
-    badgeSm: 'bg-teal-50 text-teal-700 border-teal-200',
+    badge: 'bg-gradient-to-br from-teal-50 to-teal-100 text-teal-800 border-teal-300 dark:from-teal-950/40 dark:to-teal-950/60 dark:text-teal-300 dark:border-teal-800',
+    badgeSm: 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/30 dark:text-teal-400 dark:border-teal-900',
   },
 };
 
 const ChargeTypeBadge = ({ type, size = 'md' }) => {
   const style = CHARGE_TYPE_STYLES[type] || {
     dot: 'bg-emerald-500',
-    badge: 'bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-800 border-emerald-300',
-    badgeSm: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    badge: 'bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-800 border-emerald-300 dark:from-emerald-950/40 dark:to-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800',
+    badgeSm: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900',
   };
 
   if (size === 'sm') {
@@ -59,7 +59,7 @@ const ChargeTypeBadge = ({ type, size = 'md' }) => {
 
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border shadow-sm ${style.badge}`}>
-      <span className={`h-2 w-2 rounded-full shrink-0 ${style.dot}`}></span>
+      <span className={`h-2 w-2 text-black rounded-full shrink-0 ${style.dot}`}></span>
       {type}
     </span>
   );
@@ -288,122 +288,118 @@ export default function PanelLedger() {
   return (
     <div className="space-y-8">
       {/* Top action header / Breadcrumbs and Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div className="space-y-2">
           <button
             onClick={() => navigate('/dashboard/panels')}
-            className="inline-flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 text-slate-600 hover:text-indigo-600 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
+            className="inline-flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 hover:border-slate-350 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             <span>Back to Panels</span>
           </button>
-          <h1 className="text-2xl font-extrabold text-slate-900 font-display tracking-tight flex flex-wrap items-center gap-2.5 mt-1">
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white font-display tracking-tight flex flex-wrap items-center gap-2.5 mt-1">
             <span>Client Ledger Account</span>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-slate-100 text-slate-600 border border-slate-200 font-bold">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-bold">
               ID: #{panel?._id?.substring(18).toUpperCase()}
             </span>
           </h1>
-        </div>
-        <div className="flex items-center gap-2 text-xs font-mono bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-xl w-fit sm:self-end">
-          <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
-          <span className="font-bold">Verified Account Status</span>
         </div>
       </div>
 
       {/* Top Balances & Client Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Card 1: Client Info */}
-        <div className="rounded-2xl bg-white border border-slate-200 border-l-4 border-l-slate-400 p-5 shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300">
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-slate-400 p-5 shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300">
           <div className="absolute top-0 right-0 h-20 w-20 rounded-full bg-indigo-500/5 blur-xl"></div>
           <div className="space-y-3">
-            <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-              <div className="h-9 w-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-150 shrink-0">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="h-9 w-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-150 dark:border-indigo-900/50 shrink-0">
                 <Layers className="h-4.5 w-4.5" />
               </div>
               <div className="min-w-0">
-                <h3 className="font-bold text-slate-900 text-sm leading-tight truncate">{panel?.panelName}</h3>
-                <p className="text-[9px] text-indigo-600 uppercase font-extrabold tracking-wider mt-0.5">Panel Client</p>
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm leading-tight truncate">{panel?.panelName}</h3>
+                <p className="text-[9px] text-indigo-600 dark:text-indigo-400 uppercase font-extrabold tracking-wider mt-0.5">Panel Client</p>
               </div>
             </div>
             <div className="space-y-2 text-xs">
-              <div className="flex items-center gap-2 text-slate-700">
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200">
                 <UserIcon className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                 <span className="truncate font-semibold">{panel?.ownerName}</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-350">
                 <Mail className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                 <span className="truncate font-medium text-slate-600 dark:text-slate-400" title={panel?.ownerEmail}>{panel?.ownerEmail}</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-350">
                 <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                 <span className="font-medium text-slate-600 dark:text-slate-400">{panel?.phoneNumber}</span>
               </div>
             </div>
           </div>
           {panel?.openingBalance > 0 && (
-            <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100 text-[10px]">
+            <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[10px]">
               <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Opening Bal:</span>
-              <span className="font-extrabold text-amber-700 font-mono">₹{panel?.openingBalance?.toLocaleString()}</span>
+              <span className="font-extrabold text-amber-700 dark:text-amber-500 font-mono">₹{panel?.openingBalance?.toLocaleString()}</span>
             </div>
           )}
         </div>
 
         {/* Card 2: Total Generated Bills */}
-        <div className="rounded-2xl bg-indigo-50/40 border border-indigo-100 border-l-4 border-l-indigo-500 p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300">
+        <div className="rounded-2xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 border-l-4 border-l-indigo-500 p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300">
           <div className="absolute top-0 right-0 h-20 w-20 rounded-full bg-indigo-500/5 blur-xl"></div>
           <div>
-            <span className="text-xs uppercase tracking-wider font-extrabold text-indigo-700">Total Bill Amount</span>
-            <p className="text-[10px] text-indigo-500/80 mt-0.5 font-medium leading-normal">Sum of all bills generated for this client</p>
+            <span className="text-xs uppercase tracking-wider font-extrabold text-indigo-700 dark:text-indigo-400">Total Bill Amount</span>
+            <p className="text-[10px] text-indigo-500/80 dark:text-indigo-400/80 mt-0.5 font-medium leading-normal">Sum of all bills generated for this client</p>
           </div>
           <div className="mt-5">
-            <span className="text-2xl sm:text-3xl font-extrabold text-indigo-700 font-display tracking-tight">₹{calculatedTotalBill?.toLocaleString()}</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-indigo-700 dark:text-indigo-400 font-display tracking-tight">₹{calculatedTotalBill?.toLocaleString()}</span>
           </div>
         </div>
 
         {/* Card 3: Total Received */}
-        <div className="rounded-2xl bg-emerald-50/40 border border-emerald-100 border-l-4 border-l-emerald-500 p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300">
+        <div className="rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 border-l-4 border-l-emerald-500 p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300">
           <div className="absolute top-0 right-0 h-20 w-20 rounded-full bg-emerald-500/5 blur-xl"></div>
           <div>
-            <span className="text-xs uppercase tracking-wider font-extrabold text-emerald-700">Total Amount Received</span>
-            <p className="text-[10px] text-emerald-500/80 mt-0.5 font-medium leading-normal">Total payments successfully collected</p>
+            <span className="text-xs uppercase tracking-wider font-extrabold text-emerald-700 dark:text-emerald-400">Total Amount Received</span>
+            <p className="text-[10px] text-emerald-500/80 dark:text-emerald-400/80 mt-0.5 font-medium leading-normal">Total payments successfully collected</p>
           </div>
           <div className="mt-5">
-            <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 font-display tracking-tight">₹{panel?.totalPaid?.toLocaleString()}</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 dark:text-emerald-400 font-display tracking-tight">₹{panel?.totalPaid?.toLocaleString()}</span>
           </div>
         </div>
 
         {/* Card 4: Remaining Balance */}
         <div className={`rounded-2xl border p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300 ${(panel?.outstanding || 0) > 0
-          ? 'bg-rose-50/40 border-rose-100 border-l-4 border-l-rose-500'
+          ? 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/50 border-l-4 border-l-rose-500'
           : (panel?.outstanding || 0) < 0
-            ? 'bg-emerald-50/40 border-emerald-100 border-l-4 border-l-emerald-500'
-            : 'bg-slate-50 border-slate-200 border-l-4 border-l-slate-400'
+            ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/50 border-l-4 border-l-emerald-500'
+            : 'bg-slate-50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 border-l-4 border-l-slate-400'
           }`}>
           <div className="absolute top-0 right-0 h-20 w-20 rounded-full bg-slate-500/5 blur-xl"></div>
           <div>
             <span className={`text-xs uppercase tracking-wider font-extrabold ${(panel?.outstanding || 0) > 0
-              ? 'text-rose-700'
+              ? 'text-rose-700 dark:text-rose-400'
               : (panel?.outstanding || 0) < 0
-                ? 'text-emerald-700'
-                : 'text-slate-700'
+                ? 'text-emerald-700 dark:text-emerald-400'
+                : 'text-slate-700 dark:text-slate-300'
               }`}>
               {(panel?.outstanding || 0) < 0 ? 'Advance Credit Balance' : 'Remaining Balance Due'}
             </span>
             <p className={`text-[10px] mt-0.5 font-medium leading-normal ${(panel?.outstanding || 0) > 0
-              ? 'text-rose-500'
+              ? 'text-rose-500 dark:text-rose-450'
               : (panel?.outstanding || 0) < 0
-                ? 'text-emerald-500'
-                : 'text-slate-500'
+                ? 'text-emerald-500 dark:text-emerald-400'
+                : 'text-slate-500 dark:text-slate-400'
               }`}>
               {(panel?.outstanding || 0) < 0 ? 'Extra amount paid by client in advance' : 'Remaining outstanding dues pending collection'}
             </p>
           </div>
           <div className="mt-5">
             <span className={`text-2xl sm:text-3xl font-extrabold font-display tracking-tight ${(panel?.outstanding || 0) > 0
-              ? 'text-rose-600'
+              ? 'text-rose-600 dark:text-rose-400'
               : (panel?.outstanding || 0) < 0
-                ? 'text-emerald-600'
-                : 'text-slate-700'
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-slate-700 dark:text-slate-300'
               }`}>
               {(panel?.outstanding || 0) < 0
                 ? `₹${Math.abs(panel.outstanding).toLocaleString()} `
@@ -415,21 +411,21 @@ export default function PanelLedger() {
       </div>
 
       {/* Full Width Ledger Transactions Table Card */}
-      <div className="rounded-3xl bg-white border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 w-full">
-        <div className="p-5 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 w-full">
+        <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="shrink-0">
-            <h3 className="font-extrabold text-slate-900 text-base font-display">Ledger Transactions</h3>
-            <p className="text-[11px] text-slate-400 mt-0.5 font-medium leading-relaxed">Toggle between standard list and date-wise Excel view</p>
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-base font-display">Ledger Transactions</h3>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium leading-relaxed">Toggle between standard list and date-wise Excel view</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 lg:justify-end flex-1">
             {/* Standard vs Excel Tab Switcher */}
-            <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 shrink-0">
+            <div className="flex items-center bg-slate-50 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0">
               <button
                 onClick={() => setActiveTab('list')}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${activeTab === 'list'
-                  ? 'bg-[#0A2540] text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#0A2540] dark:bg-indigo-650 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
               >
                 Standard List
@@ -437,8 +433,8 @@ export default function PanelLedger() {
               <button
                 onClick={() => setActiveTab('excel')}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 ${activeTab === 'excel'
-                  ? 'bg-[#059669] text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#059669] dark:bg-emerald-650 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
               >
                 <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -455,7 +451,7 @@ export default function PanelLedger() {
                   <select
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
-                    className="premium-input px-3 py-1.5 text-xs font-semibold cursor-pointer border-slate-200 rounded-lg focus:ring-indigo-500"
+                    className="premium-input bg-white dark:bg-slate-950 px-3 py-1.5 text-xs font-semibold cursor-pointer border-slate-200 dark:border-slate-800 rounded-lg focus:ring-indigo-500 text-slate-900 dark:text-white"
                   >
                     <option value="all">All Transactions</option>
                     <option value="bill">Bills Only</option>
@@ -513,40 +509,41 @@ export default function PanelLedger() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[640px]">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] sm:text-xs uppercase font-bold tracking-wider">
+                <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-[10px] sm:text-xs uppercase font-bold tracking-wider">
                   <th className="px-2 sm:px-4 py-3 sm:py-4 text-center w-10 sm:w-14">S.No</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4">Transaction Date</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4">Charges Type</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4">Mode</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4">Billing & Payment</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4">Received By</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-center">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs sm:text-sm">
                 {filteredPayments.map((p, index) => (
-                  <tr key={p._id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="px-2 sm:px-4 py-3 sm:py-4 text-center font-bold text-slate-400 text-xs">
+                  <tr key={p._id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                    <td className="px-2 sm:px-4 py-3 sm:py-4 text-center font-bold text-slate-400 dark:text-slate-500 text-xs">
                       {index + 1}
                     </td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-800">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-800 dark:text-slate-200">
                       <div className="flex items-center gap-1.5 sm:gap-2">
-                        <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400 shrink-0" />
-                        <span className="font-semibold text-slate-800 whitespace-nowrap">{new Date(p.timestamp).toLocaleDateString()}</span>
-                        <span className="hidden sm:inline text-xs text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded">{new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400 dark:text-slate-500 shrink-0" />
+                        <span className="font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">{new Date(p.timestamp).toLocaleDateString()}</span>
+                        <span className="hidden sm:inline text-xs text-slate-400 dark:text-slate-500 font-bold bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4">
                       <ChargeTypeBadge type={p.paymentType} size="md" />
                     </td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-700">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-700 dark:text-slate-300">
                       {p.amountReceived > 0 ? (
-                        <div className="flex items-center gap-1.5 font-semibold text-slate-700">
-                          <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400 shrink-0" />
+                        <div className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-300">
+                          <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400 dark:text-slate-500 shrink-0" />
                           <span className="whitespace-nowrap">{p.paymentMode}</span>
-                          {p.bankName && <span className="hidden sm:inline text-xs text-slate-400 font-bold bg-slate-50 border border-slate-150 px-1 py-0.5 rounded">({p.bankName})</span>}
+                          {p.bankName && <span className="hidden sm:inline text-xs text-slate-400 dark:text-slate-500 font-bold bg-slate-50 dark:bg-slate-850 border border-slate-150 dark:border-slate-800 px-1 py-0.5 rounded">({p.bankName})</span>}
                         </div>
                       ) : (
-                        <span className="text-slate-400 font-semibold font-mono">-</span>
+                        <span className="text-slate-400 dark:text-slate-600 font-semibold font-mono">-</span>
                       )}
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4">
@@ -554,30 +551,30 @@ export default function PanelLedger() {
                         {p.billAmount > 0 ? (
                           <>
                             <div className="flex items-center gap-1.5 text-xs">
-                              <span className="text-slate-500 font-medium">Bill:</span>
-                              <span className="font-bold text-slate-800">₹{p.billAmount?.toLocaleString()}</span>
+                              <span className="text-slate-500 dark:text-slate-400 font-medium">Bill:</span>
+                              <span className="font-bold text-slate-800 dark:text-slate-200">₹{p.billAmount?.toLocaleString()}</span>
                             </div>
                             {p.amountReceived > 0 && (
                               <div className="flex items-center gap-1.5">
-                                <span className="text-slate-500 font-medium text-xs">Paid:</span>
+                                <span className="text-slate-500 dark:text-slate-400 font-medium text-xs">Paid:</span>
                                 <span className={`font-extrabold text-xs sm:text-sm ${p.amountReceived < p.billAmount
-                                  ? 'text-amber-700'
-                                  : 'text-emerald-700'
+                                  ? 'text-amber-700 dark:text-amber-500'
+                                  : 'text-emerald-700 dark:text-emerald-500'
                                   }`}>
                                   ₹{p.amountReceived?.toLocaleString()}
                                 </span>
                               </div>
                             )}
                             {p.amountReceived === 0 ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200 w-fit whitespace-nowrap">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-450 border border-rose-200 dark:border-rose-900/50 w-fit whitespace-nowrap">
                                 Outstanding / Credit Only
                               </span>
                             ) : p.amountReceived < p.billAmount ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 w-fit whitespace-nowrap">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-500 border border-amber-200 dark:border-amber-900/50 w-fit whitespace-nowrap">
                                 Partial (₹{(p.billAmount - p.amountReceived).toLocaleString()} due)
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 w-fit">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 border border-emerald-200 dark:border-emerald-900/50 w-fit">
                                 Fully Paid
                               </span>
                             )}
@@ -585,15 +582,15 @@ export default function PanelLedger() {
                         ) : (
                           <>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-slate-500 font-medium text-xs">Paid:</span>
-                              <span className="font-extrabold text-slate-800 text-xs sm:text-sm">₹{p.amountReceived?.toLocaleString()}</span>
+                              <span className="text-slate-500 dark:text-slate-400 font-medium text-xs">Paid:</span>
+                              <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">₹{p.amountReceived?.toLocaleString()}</span>
                             </div>
                             {p.amountReceived > 0 ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 w-fit">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 border border-emerald-200 dark:border-emerald-900/50 w-fit">
                                 Direct Payment
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200 w-fit">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 w-fit">
                                 No Amount
                               </span>
                             )}
@@ -601,17 +598,26 @@ export default function PanelLedger() {
                         )}
                       </div>
                     </td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-700 font-semibold">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-700 dark:text-slate-300 font-semibold">
                       <div className="flex items-center gap-1.5">
-                        <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400 shrink-0" />
+                        <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400 dark:text-slate-500 shrink-0" />
                         <span className="text-xs sm:text-sm">{p.addedBy?.name || 'Staff User'}</span>
                       </div>
+                    </td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
+                      <button
+                        onClick={() => setSelectedReceiptPayment(p)}
+                        className="inline-flex h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 dark:hover:bg-emerald-600 text-emerald-500 hover:text-white flex items-center justify-center border border-slate-300 dark:border-slate-700 transition-all duration-200 shadow-sm active:scale-90"
+                        title="View & Share Bill"
+                      >
+                        <Printer className="h-4 w-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}
                 {filteredPayments.length === 0 && (
                   <tr>
-                    <td colSpan="6" className="text-center py-8 text-slate-400 font-medium">
+                    <td colSpan="7" className="text-center py-8 text-slate-400 dark:text-slate-500 font-medium">
                       No transactions found matching your filter criteria.
                     </td>
                   </tr>

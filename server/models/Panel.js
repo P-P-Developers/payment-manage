@@ -5,7 +5,11 @@ const panelSchema = new mongoose.Schema(
     panelName: {
       type: String,
       required: [true, 'Please add a panel name'],
-      unique: true,
+    },
+    status: {
+      type: String,
+      enum: ['Active', 'Stopped'],
+      default: 'Active',
     },
     ownerName: {
       type: String,
@@ -50,6 +54,10 @@ const panelSchema = new mongoose.Schema(
     creditBalance: {
       type: Number,
       default: 0,
+    },
+    gstNumber: {
+      type: String,
+      default: '',
     },
   },
   {

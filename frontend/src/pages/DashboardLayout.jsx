@@ -19,7 +19,7 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
-import InteractiveBackground from '../components/InteractiveBackground';
+import AnimatedBackground from '@/components/AnimatedBackground';
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
@@ -213,10 +213,10 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex h-screen w-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 overflow-hidden relative transition-colors duration-300">
-      <InteractiveBackground isDark={isDark} />
+      <AnimatedBackground isDark={isDark} />
 
       {/* SIDEBAR FOR DESKTOP */}
-      <aside className={`hidden md:flex flex-col h-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-r border-slate-200 dark:border-slate-800 shrink-0 transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'w-20' : 'w-64'
+      <aside className={`relative z-10 hidden md:flex flex-col h-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-r border-slate-200 dark:border-slate-800 shrink-0 transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'w-20' : 'w-64'
         }`}>
         <div className={`h-16 shrink-0 flex items-center border-b border-slate-200 dark:border-slate-800 transition-all duration-300 ${isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-6'
           }`}>
@@ -284,7 +284,7 @@ export default function DashboardLayout() {
       </aside>
 
       {/* MAIN SECTION */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
+      <div className="relative z-10 flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
         {/* HEADER */}
         <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 transition-all duration-300">
           <button
