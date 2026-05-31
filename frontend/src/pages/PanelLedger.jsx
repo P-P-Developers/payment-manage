@@ -540,7 +540,7 @@ export default function PanelLedger() {
                         <div className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-300">
                           <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400 dark:text-slate-500 shrink-0" />
                           <span className="whitespace-nowrap">{p.paymentMode}</span>
-                          {p.bankName && <span className="hidden sm:inline text-xs text-slate-400 dark:text-slate-500 font-bold bg-slate-50 dark:bg-slate-850 border border-slate-150 dark:border-slate-800 px-1 py-0.5 rounded">({p.bankName})</span>}
+                          {p.bankName && <span className="hidden sm:inline text-xs text-slate-600 dark:text-slate-350 font-bold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">({p.bankName})</span>}
                         </div>
                       ) : (
                         <span className="text-slate-400 dark:text-slate-600 font-semibold font-mono">-</span>
