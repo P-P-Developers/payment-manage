@@ -303,34 +303,49 @@ let Panels = [
 
 let Ip_data = [
     {
-        "createdAt": "2026-05-30T19:30:00.033Z",
-        "panel_name": "divineresearch",
-        "count": 3
+        "createdAt": "2026-06-01T04:16:07.898Z",
+        "panel_name": "tools.foxittechnology",
+        "count": 5
     },
     {
-        "createdAt": "2026-05-30T19:30:00.033Z",
-        "panel_name": "tools.expertedgecorporateconsultantsllp",
+        "createdAt": "2026-06-01T03:56:08.037Z",
+        "panel_name": "bizxtechsolutionsindia",
+        "count": 15
+    },
+    {
+        "createdAt": "2026-06-01T03:51:17.773Z",
+        "panel_name": "equityresearchmart",
+        "count": 5
+    },
+    {
+        "createdAt": "2026-05-31T19:30:00.042Z",
+        "panel_name": "soptoolsnew",
         "count": 1
     },
     {
-        "createdAt": "2026-05-30T19:30:00.033Z",
-        "panel_name": "tradinghubresearch",
+        "createdAt": "2026-05-31T19:30:00.042Z",
+        "panel_name": "bizxtechsolutionsindia",
+        "count": 11
+    },
+    {
+        "createdAt": "2026-05-31T19:30:00.042Z",
+        "panel_name": "divineresearch",
         "count": 10
     },
     {
-        "createdAt": "2026-05-30T19:30:00.033Z",
-        "panel_name": "markresearch",
-        "count": 2
+        "createdAt": "2026-05-31T19:30:00.042Z",
+        "panel_name": "masterresearch",
+        "count": 10
+    },
+    {
+        "createdAt": "2026-05-31T19:30:00.042Z",
+        "panel_name": "finwebtechnologies",
+        "count": 5
     },
     {
         "createdAt": "2026-05-30T19:30:00.033Z",
-        "panel_name": "firsttraderesearch",
-        "count": 4
-    },
-    {
-        "createdAt": "2026-05-30T19:30:00.033Z",
-        "panel_name": "bizxtechsolutionsindia",
-        "count": 1
+        "panel_name": "divineresearch",
+        "count": 3
     },
     {
         "createdAt": "2026-05-30T10:38:51.730Z",
@@ -2360,7 +2375,7 @@ Panels.forEach((panel) => {
                 billAmount: Number(item.count) * panel.ipCharges,
                 remark: "update By System",
                 dummyDate: item.createdAt,
-                timestamp: parseCustomDate(item.createdAt)
+                timestamp: item.createdAt
             });
         });
     }
@@ -2426,36 +2441,7 @@ updateData?.forEach((item) => {
     addPayment(item);
 });
 
-// Example:
-// addPayment({
-//     "panelId": "6a116d752b773ca41f333253",
-//     "paymentType": "License",
-//     "amountReceived": 0,
-//     "paymentMode": "UPI",
-//     "bankName": "",
-//     "quantity": 1,
-//     "unitPrice": 1000,
-//     "billAmount": 1000,
-//     "remark": "test",
-//     "timestamp": "2026-05-02T09:37:51.466Z"
-// });
 
 
-// OUTPUT
-// console.log("❌ No Match:", noMatchPanels);
-// console.log("✅ Update Data:", updateData);
 
 
-// POST https://payment.deepmindinfotech.com/backend/api/payments
-// {
-//     "panelId": "6a116d752b773ca41f333253",
-//     "paymentType": "License",
-//     "amountReceived": 0,
-//     "paymentMode": "UPI",
-//     "bankName": "",
-//     "quantity": 1,
-//     "unitPrice": 1000,
-//     "billAmount": 1000,
-//     "remark": "test",
-//     "timestamp": "2026-05-02T09:37:51.466Z"
-// }

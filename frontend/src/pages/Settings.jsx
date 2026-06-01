@@ -38,33 +38,38 @@ export default function Settings() {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!orgName || orgName.trim().length < 3) {
-      newErrors.orgName = 'Organization Name must be at least 3 characters.';
-    }
-    if (!invoicePrefix || invoicePrefix.trim().length === 0) {
-      newErrors.invoicePrefix = 'Invoice Prefix is required.';
-    } else if (invoicePrefix.length > 8) {
-      newErrors.invoicePrefix = 'Invoice Prefix cannot exceed 8 characters.';
-    }
-    if (!contactEmail) {
-      newErrors.contactEmail = 'Contact Email Address is required.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
-      newErrors.contactEmail = 'Please enter a valid email address.';
-    }
-    if (!supportPhone) {
-      newErrors.supportPhone = 'Support Phone Number is required.';
-    } else if (!/^\+?[0-9\s\-()]{8,20}$/.test(supportPhone.trim())) {
-      newErrors.supportPhone = 'Please enter a valid phone number (8-20 characters).';
+
+    if (activeSubTab === 'branding') {
+      if (!orgName || orgName.trim().length < 3) {
+        newErrors.orgName = 'Organization Name must be at least 3 characters.';
+      }
+      if (!invoicePrefix || invoicePrefix.trim().length === 0) {
+        newErrors.invoicePrefix = 'Invoice Prefix is required.';
+      } else if (invoicePrefix.length > 8) {
+        newErrors.invoicePrefix = 'Invoice Prefix cannot exceed 8 characters.';
+      }
+      if (!contactEmail) {
+        newErrors.contactEmail = 'Contact Email Address is required.';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+        newErrors.contactEmail = 'Please enter a valid email address.';
+      }
+      if (supportPhone && supportPhone.trim().length > 0) {
+        if (!/^\+?[0-9\s\-()]{8,20}$/.test(supportPhone.trim())) {
+          newErrors.supportPhone = 'Please enter a valid phone number (8-20 characters).';
+        }
+      }
     }
 
-    if (defaultLicense !== '' && Number(defaultLicense) < 0) {
-      newErrors.defaultLicense = 'Default License Fee cannot be negative.';
-    }
-    if (defaultIp !== '' && Number(defaultIp) < 0) {
-      newErrors.defaultIp = 'Default IP Routing Fee cannot be negative.';
-    }
-    if (defaultMaint !== '' && Number(defaultMaint) < 0) {
-      newErrors.defaultMaint = 'Default Maintenance Fee cannot be negative.';
+    if (activeSubTab === 'billing') {
+      if (defaultLicense !== '' && Number(defaultLicense) < 0) {
+        newErrors.defaultLicense = 'Default License Fee cannot be negative.';
+      }
+      if (defaultIp !== '' && Number(defaultIp) < 0) {
+        newErrors.defaultIp = 'Default IP Routing Fee cannot be negative.';
+      }
+      if (defaultMaint !== '' && Number(defaultMaint) < 0) {
+        newErrors.defaultMaint = 'Default Maintenance Fee cannot be negative.';
+      }
     }
 
     setValidationErrors(newErrors);
@@ -861,7 +866,6 @@ export default function Settings() {
                       ? 'border-rose-500/50 focus:ring-rose-500/30 focus:border-rose-500'
                       : 'focus:ring-[#0A2540]/30 focus:border-[#0A2540]'
                       }`}
-                    required
                   />
                   {validationErrors.supportPhone && (
                     <p className="text-xs text-rose-500 font-semibold mt-1 animate-in fade-in duration-150">{validationErrors.supportPhone}</p>

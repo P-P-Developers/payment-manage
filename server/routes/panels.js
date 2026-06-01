@@ -42,6 +42,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
       }).lean()
     ]);
 
+
     // Create a lookup map of totalPaid and totalBill by panel ID
     const summaryMap = {};
     paymentsSummary.forEach((item) => {
@@ -69,7 +70,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
       const duesBreakdown = {};
 
       panelUnpaid.forEach(b => {
-        const remaining = (b.billAmount - (b.billDiscount || 0)) - b.paidAmount;
+        const remaining = (b.billAmount - (b.billDiscount || 0)) - (b.paidAmount || 0);
         if (remaining > 0) {
           if (!duesBreakdown[b.paymentType]) {
             duesBreakdown[b.paymentType] = 0;
@@ -119,10 +120,10 @@ router.get('/:id', protect, hasPermission('view_panels'), async (req, res) => {
     const payments = await Payment.find({ panelId: panel._id })
       .populate('addedBy', 'name email')
       .populate('editHistory.editedBy', 'name email')
-      .sort({ timestamp: -1 })
+      .sort({ timestamp: 1 })
       .lean();
-    const isSystemCredit = (p) => 
-      p.bankName === 'System Credit' || 
+    const isSystemCredit = (p) =>
+      p.bankName === 'System Credit' ||
       (p.bankName && p.bankName.toLowerCase().trim() === 'system credit') ||
       (p.remark && p.remark.toLowerCase().includes('system credit'));
 
@@ -131,6 +132,7 @@ router.get('/:id', protect, hasPermission('view_panels'), async (req, res) => {
     const totalBillDiscount = payments.reduce((sum, p) => sum + (p.billDiscount || 0), 0);
     const totalPaymentDiscount = payments.reduce((sum, p) => sum + (p.paymentDiscount || 0), 0);
     const outstanding = (panel.openingBalance || 0) + (totalBill - totalBillDiscount) - (totalPaid + totalPaymentDiscount);
+
 
     res.json({
       success: true,

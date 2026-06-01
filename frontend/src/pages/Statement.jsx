@@ -19,9 +19,9 @@ const formatDateTime = (dateVal) => {
   const d = new Date(dateVal);
   if (isNaN(d.getTime())) return '-';
 
-  const month = d.getMonth() + 1;
-  const day = d.getDate();
-  const year = d.getFullYear();
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = String(d.getFullYear()).slice(-2);
 
   let hours = d.getHours();
   const minutes = String(d.getMinutes()).padStart(2, '0');
@@ -30,7 +30,7 @@ const formatDateTime = (dateVal) => {
   hours = hours ? hours : 12;
   const hoursStr = String(hours).padStart(2, '0');
 
-  return `${month}/${day}/${year}, ${hoursStr}:${minutes} ${ampm}`;
+  return `${day}/${month}/${year}, ${hoursStr}:${minutes} ${ampm}`;
 };
 
 export default function Statement() {
@@ -131,17 +131,17 @@ export default function Statement() {
         // It's a bill (Debit / Invoice)
         const netBill = p.billAmount - (p.billDiscount || 0);
         runningBalance -= netBill;
-
+        console.log("p", p)
         rows.push({
           id: p._id,
           date: dateStr,
           timestamp: new Date(p.timestamp),
-          description: `${p.paymentType} Bill Generated`,
+          description: ` ${p?.quantity ? p.quantity : ""} ${p.paymentType} Bill Generated`,
           type: 'Debit',
           debit: netBill,
           credit: 0,
           balance: runningBalance,
-          remark: p.billDiscount > 0 ? `Discount: ₹${p.billDiscount} | Status: ${p.status}` : `Status: ${p.status}`,
+          remark: p.billDiscount > 0 ? `Discount: ₹${p.billDiscount}` : ``,
           paymentMode: p.paymentMode,
         });
       } else if (p.amountReceived > 0 && !isSystemCredit) {
@@ -235,7 +235,7 @@ export default function Statement() {
 
     // 4. Build document content
     const doc = iframe.contentDocument || iframe.contentWindow.document;
-    
+
     // Sort rows for proper chronological listing
     const rowsHtml = filteredAndSortedRows.map((r, idx) => {
       const displayIdx = sortOrder === 'asc' ? idx + 1 : filteredAndSortedRows.length - idx;
@@ -263,7 +263,7 @@ export default function Statement() {
       `;
     }).join('');
 
-    const statementPeriod = (startDate || endDate) 
+    const statementPeriod = (startDate || endDate)
       ? `${startDate ? new Date(startDate).toLocaleDateString() : 'Beginning'} to ${endDate ? new Date(endDate).toLocaleDateString() : 'Present'}`
       : 'All Time';
 
@@ -441,6 +441,8 @@ export default function Statement() {
 
     return { totalDebit, totalCredit };
   }, [filteredAndSortedRows]);
+
+  console.log("filteredAndSortedRows", filteredAndSortedRows)
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">

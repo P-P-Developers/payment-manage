@@ -3,15 +3,17 @@ const router = express.Router();
 const SystemSettings = require('../models/SystemSettings');
 const { protect, adminOnly } = require('../middleware/auth');
 const Log = require('../models/Log');
+const getClientIp = require('../utils/getClientIp');
 
 // Helper to log administrative actions
-const createAuditLog = async (userId, action, details) => {
+const createAuditLog = async (userId, actionType, moduleName, details, req) => {
   try {
     await Log.create({
-      user: userId,
-      action,
+      userId,
+      actionType,
+      module: moduleName,
       details,
-      ipAddress: '127.0.0.1', // local or default fallback
+      ipAddress: req ? getClientIp(req) : '127.0.0.1',
     });
   } catch (err) {
     console.error('Audit logging failed:', err);
@@ -88,8 +90,10 @@ router.put('/', protect, adminOnly, async (req, res) => {
     // Create audit log for changes
     await createAuditLog(
       req.user._id,
-      'UPDATE_SYSTEM_SETTINGS',
-      `Admin updated system & branding configurations. Org Name: ${settings.orgName}`
+      'EDIT',
+      'User',
+      `Admin updated system & branding configurations. Org Name: ${settings.orgName}`,
+      req
     );
 
     res.json({ success: true, message: 'System configurations saved successfully to database!', settings });
