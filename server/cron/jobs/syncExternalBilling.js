@@ -60,7 +60,7 @@ module.exports = {
 
                 for (const item of result) {
                     if (item.license <= 0) continue;
-                    const panel = await Panel.findOne({ panelName: new RegExp(`^${item.panal_name}$`, 'i'), status: { $ne: 'Stopped' } });
+                    const panel = await Panel.findOne({ panelName: item.panal_name, status: { $ne: 'Stopped' } });
 
                     if (panel) {
                         const quantity = item.license;
@@ -120,7 +120,7 @@ module.exports = {
 
                 for (const item of result) {
                     if (item.count <= 0) continue;
-                    const panel = await Panel.findOne({ panelName: new RegExp(`^${item.panel_name}$`, 'i'), status: { $ne: 'Stopped' } });
+                    const panel = await Panel.findOne({ panelName: item.panel_name, status: { $ne: 'Stopped' } });
 
                     if (panel) {
                         const quantity = item.count;

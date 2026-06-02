@@ -41,7 +41,7 @@ const connectDB = async () => {
       dbName: process.env.DB_NAME,
     });
 
-    console.log(getISTTime() + " ✅ Connected to MongoDB ");
+    console.log(getISTTime() + " ✅ Connected to MongoDB " + process.env.DB_NAME);
 
     mongoose.connection.on("error", (error) => {
       console.log(getISTTime() + " ❌ MongoDB Connection Error at IST Time:", error);

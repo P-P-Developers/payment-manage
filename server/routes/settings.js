@@ -23,7 +23,7 @@ const createAuditLog = async (userId, actionType, moduleName, details, req) => {
 // @desc    Get system settings (auto-seeds defaults if empty)
 // @route   GET /api/settings
 // @access  Private
-router.get('/', protect, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     let settings = await SystemSettings.findOne({});
 
