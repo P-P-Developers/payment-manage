@@ -1023,10 +1023,10 @@ export default function Payments() {
 
       {/* RECEIVE PAYMENT / GENERATE BILL FORM MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[150] overflow-y-auto p-4 flex justify-center items-start md:items-center">
+        <div className="fixed inset-0 z-[9999] overflow-y-auto p-4 flex justify-center items-start md:items-center">
           <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-          <div className="relative w-full max-w-4xl rounded-2xl glass-card p-6 md:p-8 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 my-8">
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl glass-card p-6 md:p-8 border border-slate-300 dark:border-slate-800 shadow-2xl z-10 my-8">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -1268,7 +1268,12 @@ export default function Payments() {
 
                   <div className="divide-y divide-slate-200 dark:divide-slate-800 max-h-48 overflow-y-auto space-y-2.5 pr-1 scrollbar-thin">
                     {unpaidBills.map((bill) => {
-                      const remaining = (bill.billAmount - (bill.billDiscount || 0)) - bill.paidAmount;
+                      const remaining =
+                        (bill.billAmount || 0)
+                        - (bill.billDiscount || 0)
+                        - (bill.paidAmount || 0);
+
+
                       const isChecked = !!selectedAllocations[bill._id];
                       const currentAllocatedSum = Object.entries(selectedAllocations).reduce((acc, [id, amt]) => {
                         return acc + (Number(amt) || 0);
