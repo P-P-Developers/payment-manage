@@ -42,15 +42,15 @@ export const setCookie = (name, value, days = 7) => {
 
 // Helper to get a cookie value by name
 export const getCookie = (name) => {
-  if (typeof window !== 'undefined') {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i];
-      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-      if (c.indexOf(nameEQ) === 0) {
-        return decodeURIComponent(c.substring(nameEQ.length, c.length));
-      }
+  if (typeof window === 'undefined' || !document.cookie) return null;
+
+  const nameEQ = `${name}=`;
+  const cookies = document.cookie.split(';');
+
+  for (let cookie of cookies) {
+    cookie = cookie.trim();
+    if (cookie.startsWith(nameEQ)) {
+      return decodeURIComponent(cookie.substring(nameEQ.length));
     }
   }
   return null;
@@ -64,38 +64,51 @@ export const eraseCookie = (name) => {
 };
 
 export const getAuthToken = () => {
-  return getCookie('token');
+  if (typeof window === 'undefined') return null;
+  return getCookie('token') || window.localStorage.getItem('token');
 };
 
 export const setAuthToken = (token) => {
+  if (typeof window === 'undefined') return;
   if (token) {
     setCookie('token', token, 8 / 24); // 8 hours = 8/24 days
+    window.localStorage.setItem('token', token);
   } else {
     eraseCookie('token');
+    window.localStorage.removeItem('token');
   }
 };
 
 export const getLoggedUser = () => {
-  const userStr = getCookie('user');
+  if (typeof window === 'undefined') return null;
+  const userStr = getCookie('user') || window.localStorage.getItem('user');
   try {
     return userStr ? JSON.parse(userStr) : null;
   } catch (error) {
-    console.error('Error parsing user cookie:', error);
+    console.error('Error parsing user data:', error);
     return null;
   }
 };
 
 export const setLoggedUser = (user) => {
+  if (typeof window === 'undefined') return;
   if (user) {
-    setCookie('user', JSON.stringify(user), 8 / 24); // 8 hours = 8/24 days
+    const value = JSON.stringify(user);
+    setCookie('user', value, 8 / 24); // 8 hours = 8/24 days
+    window.localStorage.setItem('user', value);
   } else {
     eraseCookie('user');
+    window.localStorage.removeItem('user');
   }
 };
 
 export const clearAuth = () => {
   eraseCookie('token');
   eraseCookie('user');
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem('token');
+    window.localStorage.removeItem('user');
+  }
 };
 
 export const apiRequest = async (endpoint, options = {}) => {

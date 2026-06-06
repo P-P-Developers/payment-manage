@@ -106,8 +106,7 @@ export default function DashboardLayout() {
   useEffect(() => {
     const token = getAuthToken();
     const loggedUser = getLoggedUser();
-
-    if (!token || !loggedUser) {
+    if ( !loggedUser) {
       clearAuth();
       navigate('/login', { replace: true });
     } else {
