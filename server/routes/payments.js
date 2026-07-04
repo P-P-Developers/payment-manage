@@ -468,7 +468,7 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
     }
 
     let updatedPayment = await payment.save();
-    
+
     // Populate the newly added editHistory's editedBy before returning
     updatedPayment = await Payment.findById(updatedPayment._id)
       .populate('panelId', 'panelName ownerName ownerEmail phoneNumber status')
