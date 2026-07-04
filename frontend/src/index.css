@@ -30,13 +30,29 @@ body {
   color: var(--foreground);
   background: var(--background);
   min-height: 100vh;
-  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Inter', 'Roboto', 'Open Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', 'Montserrat', 'Manrope', 'Rubik', sans-serif;
+  font-weight: 600;
+}
+
 .font-display {
-  font-family: 'Outfit', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Poppins', 'Montserrat', 'Manrope', 'Rubik', sans-serif;
+}
+
+input, textarea, select, label {
+  font-family: 'Inter', 'Roboto', system-ui, sans-serif;
+  font-weight: 500;
+}
+
+button, a.nav-link, nav a {
+  font-family: 'Inter', 'Poppins', 'Open Sans', sans-serif;
+  font-weight: 500;
 }
 
 /* Custom gorgeous scrollbar */
@@ -102,6 +118,7 @@ body {
 .btn-primary {
   background-color: var(--primary);
   color: #ffffff;
+  font-family: 'Inter', 'Poppins', 'Open Sans', sans-serif;
   font-weight: 600;
   border: 1px solid var(--primary);
   border-radius: 14px;
@@ -121,6 +138,7 @@ body {
 .btn-secondary {
   background-color: var(--card-bg);
   color: var(--foreground);
+  font-family: 'Inter', 'Poppins', 'Open Sans', sans-serif;
   font-weight: 600;
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -135,6 +153,7 @@ body {
 .btn-danger {
   background-color: #ef4444;
   color: #ffffff;
+  font-family: 'Inter', 'Poppins', 'Open Sans', sans-serif;
   font-weight: 600;
   border: 1px solid #ef4444;
   border-radius: 14px;
@@ -223,7 +242,7 @@ main table:not(.receipt-table) thead tr {
 
 main table:not(.receipt-table) thead th {
   padding: 16px 20px !important;
-  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'Poppins', 'Montserrat', sans-serif !important;
   font-weight: 700 !important;
   font-size: 13px !important;
   text-transform: uppercase !important;

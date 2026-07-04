@@ -7,6 +7,10 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'Roboto', 'Open Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['Poppins', 'Montserrat', 'Manrope', 'Rubik', 'sans-serif'],
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",

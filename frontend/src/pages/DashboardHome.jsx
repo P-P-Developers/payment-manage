@@ -353,8 +353,12 @@ export default function DashboardHome() {
     const salesBreakdown = [];
     Object.entries(typeStats).forEach(([type, stats]) => {
       if (stats.billed > 0 || standardTypes.includes(type)) {
+        let label = `${type} Bills`;
+        if ((type === 'License' || type === 'IP Charges') && stats.qty > 0) {
+          label += ` (${stats.qty} Qty)`;
+        }
         salesBreakdown.push({
-          label: `${type} Bills`,
+          label,
           value: `₹${stats.billed.toLocaleString()}`,
           dotColor: getDotColor(type),
           link: `/dashboard/payments?transactionType=bill&type=${encodeURIComponent(type)}`
@@ -380,8 +384,12 @@ export default function DashboardHome() {
     const revenueBreakdown = [];
     Object.entries(typeStats).forEach(([type, stats]) => {
       if (stats.paid > 0 || standardTypes.includes(type)) {
+        let label = `${type} Collections`;
+        if ((type === 'License' || type === 'IP Charges') && stats.qty > 0) {
+          label += ` (${stats.qty} Qty)`;
+        }
         revenueBreakdown.push({
-          label: `${type} Collections`,
+          label,
           value: `₹${stats.paid.toLocaleString()}`,
           dotColor: getDotColor(type),
           link: `/dashboard/payments?transactionType=received&type=${encodeURIComponent(type)}`

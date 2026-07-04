@@ -1,301 +1,362 @@
 // 
 
-let Panels = [
-    {
-        "_id": "6a0a99284eac9caadcf65f86",
-        "panelName": "crypto.aismartbit",
-        "licenseCharges": 1180,
-        "ipCharges": 0
-    },
-    {
-        "_id": "6a0a99284eac9caadcf65f8c",
-        "panelName": "crypto.algobuzztechnology",
-        "licenseCharges": 1000,
-        "ipCharges": 0
-    },
-    {
-        "_id": "6a0a99284eac9caadcf65f91",
-        "panelName": "angelai",
-        "licenseCharges": 1180,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a99284eac9caadcf65f96",
-        "panelName": "tools.ariesindiaresearch",
-        "licenseCharges": 1180,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a99284eac9caadcf65f9b",
-        "panelName": "allrobosolution",
-        "licenseCharges": 1000,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a99284eac9caadcf65fa0",
-        "panelName": "tools.brightextech",
-        "licenseCharges": 1180,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a99284eac9caadcf65fa5",
-        "panelName": "bizxtechsolutionsindia",
-        "licenseCharges": 826,
-        "ipCharges": 472
-    },
-    {
-        "_id": "6a0a99294eac9caadcf65faa",
-        "panelName": "darixosolution",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a99294eac9caadcf65faf",
-        "panelName": "dhanresearch",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a99294eac9caadcf65fb4",
-        "panelName": "divineresearch",
-        "licenseCharges": 826,
-        "ipCharges": 472
-    },
-    {
-        "_id": "6a0a99294eac9caadcf65fb9",
-        "panelName": "dreamwealthresearch",
-        "licenseCharges": 1180,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a99294eac9caadcf65fbe",
-        "panelName": "easylifestyle\t",
-        "licenseCharges": 1180,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a99294eac9caadcf65fc3",
-        "panelName": "equityresearchmart",
-        "licenseCharges": 800,
-        "ipCharges": 400
-    },
-    {
-        "_id": "6a0a99294eac9caadcf65fc8",
-        "panelName": "tools.expertalgo",
-        "licenseCharges": 1180,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a99294eac9caadcf65fcd",
-        "panelName": "tools.expertedgecorporateconsultantsllp",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a99294eac9caadcf65fd2",
-        "panelName": "tools.experienceinfotech",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992a4eac9caadcf65fd7",
-        "panelName": "fincapex",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992a4eac9caadcf65fdc",
-        "panelName": "fineinfotech",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992a4eac9caadcf65fe1",
-        "panelName": "finwebtechnologies",
-        "licenseCharges": 1180,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a992a4eac9caadcf65fe6",
-        "panelName": "finwebcapital",
-        "licenseCharges": 1180,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a992a4eac9caadcf65feb",
-        "panelName": "firstbridgeitsolution",
-        "licenseCharges": 1180,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a992a4eac9caadcf65ff0",
-        "panelName": "firsttraderesearch",
-        "licenseCharges": 1062,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a992a4eac9caadcf65ff5",
-        "panelName": "tools.flyertechsoftware",
-        "licenseCharges": 1000,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a992a4eac9caadcf65ffa",
-        "panelName": "tools.foxittechnology",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992a4eac9caadcf65fff",
-        "panelName": "coin.goproalgo",
-        "licenseCharges": 1000,
-        "ipCharges": 0
-    },
-    {
-        "_id": "6a0a992b4eac9caadcf66004",
-        "panelName": "growskyinfotech",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992b4eac9caadcf66009",
-        "panelName": "iconicitsolution",
-        "licenseCharges": 1180,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a992b4eac9caadcf6600e",
-        "panelName": "tools.innovationexpertinfo",
-        "licenseCharges": 1000,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a992b4eac9caadcf66013",
-        "panelName": "kodiqtech",
-        "licenseCharges": 1180,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a992b4eac9caadcf6601c",
-        "panelName": "linkupinfotech",
-        "licenseCharges": 850,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992b4eac9caadcf66021",
-        "panelName": "markresearch",
-        "licenseCharges": 1062,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a992b4eac9caadcf66026",
-        "panelName": "masterresearch",
-        "licenseCharges": 826,
-        "ipCharges": 472
-    },
-    {
-        "_id": "6a0a992c4eac9caadcf6602b",
-        "panelName": "nexteraresearch",
-        "licenseCharges": 800,
-        "ipCharges": 400
-    },
-    {
-        "_id": "6a0a992c4eac9caadcf66030",
-        "panelName": "nextwaveinvest",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992c4eac9caadcf66035",
-        "panelName": "primepulse",
-        "licenseCharges": 1000,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a992c4eac9caadcf6603a",
-        "panelName": "tools.quantit",
-        "licenseCharges": 1180,
-        "ipCharges": 0
-    },
-    {
-        "_id": "6a0a992c4eac9caadcf6603f",
-        "panelName": "sparkstechnologies",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992c4eac9caadcf66044",
-        "panelName": "techelitesolution",
-        "licenseCharges": 1180,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a992c4eac9caadcf66049",
-        "panelName": "techntowns",
-        "licenseCharges": 850,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992c4eac9caadcf6604e",
-        "panelName": "theskytrident",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992c4eac9caadcf66053",
-        "panelName": "tradewintech",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992d4eac9caadcf66058",
-        "panelName": "trade4wealth",
-        "licenseCharges": 850,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992d4eac9caadcf6605d",
-        "panelName": "tradinghubresearch",
-        "licenseCharges": 1062,
-        "ipCharges": 590
-    },
-    {
-        "_id": "6a0a992d4eac9caadcf66062",
-        "panelName": "uniquetechnology",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992d4eac9caadcf66067",
-        "panelName": "visionalgotech",
-        "licenseCharges": 1000,
-        "ipCharges": 0
-    },
-    {
-        "_id": "6a0a992d4eac9caadcf6606c",
-        "panelName": "visionstechnologies",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992d4eac9caadcf66071",
-        "panelName": "wealthwavesresearch",
-        "licenseCharges": 1000,
-        "ipCharges": 500
-    },
-    {
-        "_id": "6a0a992d4eac9caadcf66076",
-        "panelName": "Tradecodeacademy.com",
-        "licenseCharges": 1000,
-        "ipCharges": 0
-    },
-    {
-        "_id": "6a11835e5e54c2b2797412d7",
-        "panelName": "tools.kodiqtech",
-        "licenseCharges": 1180,
-        "ipCharges": 590
-    }
-]
+let Panels = [{
+
+    "_id": "6a0a99284eac9caadcf65f86",
+    "panelName": "crypto.aismartbit",
+    "licenseCharges": 1180,
+    "ipCharges": 0
+},
+{
+
+    "_id": "6a0a99284eac9caadcf65f8c",
+    "panelName": "crypto.algobuzztechnology",
+    "licenseCharges": 1000,
+    "ipCharges": 0
+},
+{
+
+    "_id": "6a0a99284eac9caadcf65f91",
+    "panelName": "angelai",
+    "licenseCharges": 1180,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a99284eac9caadcf65f96",
+    "panelName": "tools.ariesindiaresearch",
+    "licenseCharges": 1180,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a99284eac9caadcf65f9b",
+    "panelName": "allrobosolution",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a99284eac9caadcf65fa0",
+    "panelName": "tools.brightextech",
+    "licenseCharges": 1180,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a99284eac9caadcf65fa5",
+    "panelName": "bizxtechsolutionsindia",
+    "licenseCharges": 826,
+    "ipCharges": 472
+},
+{
+
+    "_id": "6a0a99294eac9caadcf65faa",
+    "panelName": "darixosolution",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a99294eac9caadcf65faf",
+    "panelName": "dhanresearch",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a99294eac9caadcf65fb4",
+    "panelName": "divineresearch",
+    "licenseCharges": 826,
+    "ipCharges": 472
+},
+{
+
+    "_id": "6a0a99294eac9caadcf65fb9",
+    "panelName": "dreamwealthresearch",
+    "licenseCharges": 1180,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a99294eac9caadcf65fbe",
+    "panelName": "easylifestyle\t",
+    "licenseCharges": 1180,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a99294eac9caadcf65fc3",
+    "panelName": "equityresearchmart",
+    "licenseCharges": 800,
+    "ipCharges": 400
+},
+{
+
+    "_id": "6a0a99294eac9caadcf65fc8",
+    "panelName": "tools.expertalgo",
+    "licenseCharges": 1180,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a99294eac9caadcf65fcd",
+    "panelName": "tools.expertedgecorporateconsultantsllp",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a99294eac9caadcf65fd2",
+    "panelName": "tools.experienceinfotech",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992a4eac9caadcf65fd7",
+    "panelName": "fincapex",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992a4eac9caadcf65fdc",
+    "panelName": "fineinfotech",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992a4eac9caadcf65fe1",
+    "panelName": "finwebtechnologies",
+    "licenseCharges": 1180,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a992a4eac9caadcf65fe6",
+    "panelName": "finwebcapital",
+    "licenseCharges": 1180,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a992a4eac9caadcf65feb",
+    "panelName": "firstbridgeitsolution",
+    "licenseCharges": 1180,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a992a4eac9caadcf65ff0",
+    "panelName": "firsttraderesearch",
+    "licenseCharges": 1062,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a992a4eac9caadcf65ff5",
+    "panelName": "tools.flyertechsoftware",
+    "licenseCharges": 1000,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a992a4eac9caadcf65ffa",
+    "panelName": "tools.foxittechnology",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992a4eac9caadcf65fff",
+    "panelName": "coin.goproalgo",
+    "licenseCharges": 1000,
+    "ipCharges": 0
+},
+{
+
+    "_id": "6a0a992b4eac9caadcf66004",
+    "panelName": "growskyinfotech",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992b4eac9caadcf66009",
+    "panelName": "iconicitsolution",
+    "licenseCharges": 1180,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a992b4eac9caadcf6600e",
+    "panelName": "tools.innovationexpertinfo",
+    "licenseCharges": 1000,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a992b4eac9caadcf66013",
+    "panelName": "kodiqtech",
+    "licenseCharges": 1180,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a992b4eac9caadcf6601c",
+    "panelName": "linkupinfotech",
+    "licenseCharges": 850,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992b4eac9caadcf66021",
+    "panelName": "markresearch",
+    "licenseCharges": 1062,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a992b4eac9caadcf66026",
+    "panelName": "masterresearch",
+    "licenseCharges": 826,
+    "ipCharges": 472
+},
+{
+
+    "_id": "6a0a992c4eac9caadcf6602b",
+    "panelName": "nexteraresearch",
+    "licenseCharges": 800,
+    "ipCharges": 400
+},
+{
+
+    "_id": "6a0a992c4eac9caadcf66030",
+    "panelName": "nextwaveinvest",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992c4eac9caadcf66035",
+    "panelName": "primepulse",
+    "licenseCharges": 1000,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a992c4eac9caadcf6603a",
+    "panelName": "tools.quantit",
+    "licenseCharges": 1180,
+    "ipCharges": 0
+},
+{
+
+    "_id": "6a0a992c4eac9caadcf6603f",
+    "panelName": "sparkstechnologies",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992c4eac9caadcf66044",
+    "panelName": "techelitesolution",
+    "licenseCharges": 1180,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a992c4eac9caadcf66049",
+    "panelName": "techntowns",
+    "licenseCharges": 850,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992c4eac9caadcf6604e",
+    "panelName": "theskytrident",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992c4eac9caadcf66053",
+    "panelName": "tradewintech",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992d4eac9caadcf66058",
+    "panelName": "trade4wealth",
+    "licenseCharges": 850,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992d4eac9caadcf6605d",
+    "panelName": "tradinghubresearch",
+    "licenseCharges": 1062,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a0a992d4eac9caadcf66062",
+    "panelName": "uniquetechnology",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992d4eac9caadcf66067",
+    "panelName": "visionalgotech",
+    "licenseCharges": 1000,
+    "ipCharges": 0
+},
+{
+
+    "_id": "6a0a992d4eac9caadcf6606c",
+    "panelName": "visionstechnologies",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992d4eac9caadcf66071",
+    "panelName": "wealthwavesresearch",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a0a992d4eac9caadcf66076",
+    "panelName": "Tradecodeacademy.com",
+    "licenseCharges": 1000,
+    "ipCharges": 0
+},
+{
+
+    "_id": "6a11835e5e54c2b2797412d7",
+    "panelName": "tools.kodiqtech",
+    "licenseCharges": 1180,
+    "ipCharges": 590
+},
+{
+
+    "_id": "6a1cff90095bf77a9cefd0e8",
+    "panelName": "test",
+    "licenseCharges": 1000,
+    "ipCharges": 500
+},
+{
+
+    "_id": "6a239a388aa72b89b39e6bef",
+    "panelName": "chartviewresearch-newalgo",
+    "licenseCharges": 900,
+    "ipCharges": 500
+}]
 
 
 
@@ -2324,21 +2385,7 @@ let Ip_data = [
     }
 ]
 
-const parseCustomDate = (str) => {
-    if (!str) return new Date();
 
-    // format: "07 Apr 2026"
-    const [day, mon, year] = str.split(" ");
-
-    const months = {
-        Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-        Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
-    };
-
-    const d = new Date(Number(year), months[mon], Number(day));
-
-    return isNaN(d) ? new Date() : d;
-};
 
 const normalize = (str) => {
     return str

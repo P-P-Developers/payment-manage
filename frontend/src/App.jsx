@@ -13,25 +13,25 @@ import Settings from './pages/Settings';
 import Statement from './pages/Statement';
 
 export default function App() {
-  // useEffect(() => {
-  //   try {
-  //     const savedSettings = localStorage.getItem('app_system_settings');
-  //     if (savedSettings) {
-  //       const parsed = JSON.parse(savedSettings);
-  //       if (parsed.logo) {
-  //         let link = document.querySelector("link[rel~='icon']");
-  //         if (!link) {
-  //           link = document.createElement('link');
-  //           link.rel = 'icon';
-  //           document.head.appendChild(link);
-  //         }
-  //         link.href = parsed.logo;
-  //       }
-  //     }
-  //   } catch (e) {
-  //     console.error('Failed to parse settings for favicon', e);
-  //   }
-  // }, []);
+  useEffect(() => {
+    try {
+      const savedSettings = localStorage.getItem('app_system_settings');
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        if (parsed.logo) {
+          let link = document.querySelector("link[rel~='icon']");
+          if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
+          }
+          link.href = parsed.logo;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse settings for favicon', e);
+    }
+  }, []);
 
   return (
     <Router>
