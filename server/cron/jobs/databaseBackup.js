@@ -8,44 +8,50 @@ const { EJSON } = require('bson');
  * Frequency: Every night at 11:45 PM (45 23 * * *)
  * Description: Takes a daily backup of all MongoDB collections and saves as EJSON format for easy restoration.
  */
-module.exports = {
-    name: 'Daily Database Backup',
-    schedule: '45 23 * * *',
-    run: async () => {
-        try {
-            console.log(`[Cron Job] [${new Date().toISOString()}] Starting daily database backup...`);
+module.exports = async () => {
+    try {
+        console.log(`[Cron Job] [${new Date().toISOString()}] Starting daily database backup...`);
 
-            // Ensure backup directory exists in the root folder
-            const backupDir = path.join(__dirname, '../../backups');
-            if (!fs.existsSync(backupDir)) {
-                fs.mkdirSync(backupDir, { recursive: true });
-            }
+        // Check if database is fully connected before proceeding
+        if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
+            console.error("[Cron Job] ❌ Database is not fully connected yet. Skipping backup this time.");
+            return { success: false, error: 'Database not connected' };
+        }
 
-            const date = new Date();
-            const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-            const folderName = path.join(backupDir, `backup_${dateString}`);
 
-            if (!fs.existsSync(folderName)) {
-                fs.mkdirSync(folderName, { recursive: true });
-            }
+        const backupDir = path.join(__dirname, '../../../backups');
+        if (!fs.existsSync(backupDir)) {
+            fs.mkdirSync(backupDir, { recursive: true });
+        }
 
-            const collections = await mongoose.connection.db.listCollections().toArray();
+        const date = new Date();
+        const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        const folderName = path.join(backupDir, `backup_${dateString}`);
 
-            for (let collection of collections) {
+        if (!fs.existsSync(folderName)) {
+            fs.mkdirSync(folderName, { recursive: true });
+        }
+
+        const collections = await mongoose.connection.db.listCollections().toArray();
+
+        for (let collection of collections) {
+            try {
                 const name = collection.name;
                 const data = await mongoose.connection.db.collection(name).find({}).toArray();
 
                 // Using EJSON to preserve MongoDB ObjectIds and Dates properly
                 fs.writeFileSync(path.join(folderName, `${name}.json`), EJSON.stringify(data, null, 2));
                 console.log(`[Cron Job] Backed up collection: ${name} (${data.length} documents)`);
+            } catch (collectionError) {
+                console.error(`[Cron Job] ❌ Error backing up collection ${collection.name}:`, collectionError.message);
             }
-
-            console.log(`[Cron Job] ✅ Backup completed successfully at ${folderName}`);
-            return { success: true, backupLocation: folderName };
-
-        } catch (error) {
-            console.error("[Cron Job] ❌ Error during database backup:", error);
-            return { success: false, error: error.message };
         }
+
+        console.log(`[Cron Job] ✅ Backup completed successfully at ${folderName}`);
+        return { success: true, backupLocation: folderName };
+
+    } catch (error) {
+        console.error("[Cron Job] ❌ Error during database backup:", error);
+        return { success: false, error: error.message };
     }
 };

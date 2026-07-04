@@ -12,9 +12,9 @@ The system is configured to automatically backup the entire MongoDB database eve
 If you ever need to restore the database from a previous backup, you can use the built-in restoration script.
 
 **Usage:**
-1. Open your terminal and navigate to the `server/scripts/` directory:
+1. Open your terminal and navigate to the `server/backups/` directory:
    ```bash
-   cd server/scripts
+   cd server/backups
    ```
 2. Run the `restoreBackup.js` script, passing the exact name of the backup folder you want to restore from:
    ```bash
