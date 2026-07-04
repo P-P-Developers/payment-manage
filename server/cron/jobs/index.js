@@ -1,5 +1,6 @@
 const generateMaintenanceBills = require('./generateMaintenanceBills');
 const syncExternalBilling = require('./syncExternalBilling');
+const databaseBackup = require('./databaseBackup');
 
 // Registry of all scheduled background jobs.
 // To add a new cron job in the future:
@@ -9,4 +10,5 @@ const syncExternalBilling = require('./syncExternalBilling');
 module.exports = [
   generateMaintenanceBills,
   syncExternalBilling,
+  databaseBackup,
 ];
