@@ -13,7 +13,7 @@ module.exports = {
     name: 'Sync External Billing (Licenses & IP Charges)',
     schedule: '0 19 * * *', // Runs at 19:00 (7:00 PM) every day
     run: async () => {
-        console.log(`[Cron Job] [${new Date().toISOString()}] Starting external billing sync...`);
+
 
         // 1. Find Admin user
         const admin = await User.findOne({ role: 'Admin' });
@@ -43,7 +43,7 @@ module.exports = {
                 "licAdd": true
             };
 
-            console.log(`[Cron Job] Fetching licenses from ${algoUrl} for date ${dateString}...`);
+
             const licenseResponse = await axios.post(algoUrl, payload);
 
             if (licenseResponse.data.status == true) {
@@ -89,15 +89,10 @@ module.exports = {
                             module: 'Payment',
                             details: `[System Cron] Generated license bill of ₹${billAmount} for panel "${panel.panelName}" for ${quantity} licenses.`,
                         });
-                        console.log(`[Cron Job] ✅ Billed panel "${panel.panelName}" for ${quantity} licenses (₹${billAmount}).`);
-                        licenseBilled++;
-                    } else {
-                        console.log(`[Cron Job] ⚠️ Panel "${item.panal_name}" not found in local DB. Skipping.`);
 
+                        licenseBilled++;
                     }
                 }
-            } else {
-                console.log('[Cron Job] Failed to fetch license data from remote API or status is false.');
             }
         } catch (error) {
             console.error('[Cron Job] 🚫 Error during license sync:', error.message);
@@ -109,14 +104,13 @@ module.exports = {
         try {
             const ipUrl = "https://iphub.deepmindinfotech.com/backend/admin/ip/billing-summary-today";
 
-            console.log(`[Cron Job] Fetching IP billing summary from ${ipUrl}...`);
-            const ipResponse = await axios.get(ipUrl);
 
+            const ipResponse = await axios.get(ipUrl);
             if (ipResponse.data.success == true) {
                 let IpData = ipResponse.data.data;
                 let result = IpData;
 
-                console.log(`[Cron Job] Fetched ${result.length} IP records from remote.`);
+
 
                 for (const item of result) {
                     if (item.count <= 0) continue;
@@ -149,20 +143,16 @@ module.exports = {
                             module: 'Payment',
                             details: `[System Cron] Generated IP charges bill of ₹${billAmount} for panel "${panel.panelName}" for ${quantity} IPs.`,
                         });
-                        console.log(`[Cron Job] ✅ Billed panel "${panel.panelName}" for ${quantity} IPs (₹${billAmount}).`);
+
                         ipBilled++;
-                    } else {
-                        console.log(`[Cron Job] ⚠️ Panel "${item.panel_name}" not found in local DB. Skipping.`);
                     }
                 }
-            } else {
-                console.log('[Cron Job] Failed to fetch IP data from remote API or status is false.');
             }
         } catch (error) {
             console.error('[Cron Job] 🚫 Error during IP sync:', error.message);
         }
 
-        console.log(`[Cron Job] Completed external billing sync. Licenses Billed: ${licenseBilled}, IPs Billed: ${ipBilled}`);
+
         return { success: true, licenseBilled, ipBilled };
     }
 };
