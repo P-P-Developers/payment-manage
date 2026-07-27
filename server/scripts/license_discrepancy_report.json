@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-07-27T10:48:55.006Z",
+  "missingEntries": [
+    {
+      "panelName": "deepmind",
+      "date": "2026-07-27",
+      "apiCount": 11,
+      "message": "API has license entry for this date but DB has none"
+    }
+  ],
+  "countMismatches": [],
+  "panelSummaries": [
+    {
+      "panelName": "deepmind",
+      "totalApi": 11,
+      "totalDb": 0,
+      "difference": 11
+    }
+  ]
+}

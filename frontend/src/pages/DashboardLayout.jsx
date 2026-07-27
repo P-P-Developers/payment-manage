@@ -18,8 +18,8 @@ import {
   BookOpen,
   Sun,
   Moon,
+  RefreshCw,
 } from 'lucide-react';
-import AnimatedBackground from '@/components/AnimatedBackground';
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
@@ -212,6 +212,12 @@ export default function DashboardLayout() {
       icon: ClipboardList,
       isAdminOnly: true,
     },
+    {
+      name: 'Data Sync',
+      href: '/dashboard/sync',
+      icon: RefreshCw,
+      isAdminOnly: true,
+    },
   ];
 
   const filteredNav = navItems.filter((item) => {
@@ -222,8 +228,6 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex h-screen w-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 overflow-hidden relative transition-colors duration-300">
-      <AnimatedBackground isDark={isDark} />
-
       {/* SIDEBAR FOR DESKTOP */}
       <aside className={`relative z-10 hidden md:flex flex-col h-full bg-surface dark:bg-surface border-r border-border-primary shrink-0 transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'w-16' : 'w-52'
         }`}>

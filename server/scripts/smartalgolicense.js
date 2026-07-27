@@ -33,26 +33,26 @@ const LicennseUpdate = async () => {
         const today = new Date();
         const dateString = today.toISOString().split('T')[0];
 
+        // const payload = {
+        //     "page": 1,
+        //     "limit": 10000,
+        //     "search": "",
+        //     // "startDate": dateString,
+        //     // "endDate": dateString,
+        //     "month": "",
+        //     "licAdd": true
+        // };
+
+
         const payload = {
             "page": 1,
             "limit": 10000,
             "search": "",
-            // "startDate": dateString,
-            // "endDate": dateString,
+            "startDate": "2020-05-25",
+            "endDate": "2027-05-25",
             "month": "",
             "licAdd": true
-        };
-
-
-        // const payload = {
-        //     "page": 1,
-        //     "limit": 10,
-        //     "search": "",
-        //     "startDate": "2026-05-25",
-        //     "endDate": "2026-05-25",
-        //     "month": "",
-        //     "licAdd": true
-        // }
+        }
 
         console.log(`Fetching licenses from ${algoUrl} for date ${dateString}...`);
         const response = await axios.post(algoUrl, payload);

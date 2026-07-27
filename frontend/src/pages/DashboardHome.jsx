@@ -702,7 +702,7 @@ export default function DashboardHome() {
       breakdown: revenueBreakdown,
     },
     {
-      title: outstandingBalance > 0 ? 'Outstanding Dues (Lena Baki)' : 'Advance Balance (Jama)',
+      title: outstandingBalance > 0 ? 'Outstanding Dues (Dues)' : 'Advance Balance (Jama)',
       value: outstandingBalance > 0
         ? `₹${outstandingBalance.toLocaleString()}`
         : `₹${Math.abs(outstandingBalance).toLocaleString()}`,
@@ -731,27 +731,23 @@ export default function DashboardHome() {
       <div className="space-y-8 animate-pulse-subtle">
         {/* Welcome Banner */}
 
-        {/* Filter Toolbar Card */}
-        <div className="rounded-2xl analytics-card bg-surface dark:bg-surface border border-border-primary p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm relative overflow-hidden transition-premium hover:-translate-y-0.5 hover:shadow-md">
-          {/* Top Accent Gradient Border */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-violet-500"></div>
+        {/* Filter Toolbar */}
+        <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500"></div>
 
-          <div className="flex items-center gap-3 pt-1">
-            <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-              <Filter className="h-5 w-5" />
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-500/20">
+              <Filter className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-text-primary font-display">Period Filtering</h3>
-              <p className="text-xs text-text-secondary">View stats for a custom month, quarter, or overall</p>
+              <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">Period Filter</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">View stats by month, quarter, or all time</p>
             </div>
           </div>
 
-
-          <div className="flex flex-wrap items-center gap-4">
-
+          <div className="flex flex-wrap items-center gap-3">
             {/* Toggle Tabs */}
-            <div className="flex items-center p-1 rounded-2xl bg-slate-100/70 dark:bg-slate-900/70 border border-slate-300/60 dark:border-slate-800/60 backdrop-blur-md shadow-sm">
-
+            <div className="flex items-center p-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
               {[
                 { id: "all", label: "All Time" },
                 { id: "monthly", label: "Monthly" },
@@ -760,35 +756,27 @@ export default function DashboardHome() {
                 <button
                   key={t.id}
                   onClick={() => setFilterType(t.id)}
-                  className={`relative px-4 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300
-        ${filterType === t.id
-                      ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-sm"
-                      : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  className={`px-4 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 ${filterType === t.id
+                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                 >
-                  {filterType === t.id && (
-                    <span className="absolute inset-0 rounded-xl bg-indigo-500/10 blur-sm"></span>
-                  )}
-                  <span className="relative z-10">{t.label}</span>
+                  {t.label}
                 </button>
               ))}
             </div>
 
             {/* Monthly Dropdown */}
             {filterType === "monthly" && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300/60 dark:border-slate-800/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
-
-                <Calendar className="h-4 w-4 text-indigo-500" />
-
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                <Calendar className="h-3.5 w-3.5 text-indigo-500" />
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent text-slate-900 dark:text-white dark:bg-slate-900 text-xs font-semibold focus:outline-none cursor-pointer"
+                  className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
                 >
                   {availableMonths.map((m) => (
-                    <option key={m.value} value={m.value} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-                      {m.label}
-                    </option>
+                    <option key={m.value} value={m.value}>{m.label}</option>
                   ))}
                 </select>
               </div>
@@ -796,96 +784,85 @@ export default function DashboardHome() {
 
             {/* Quarterly Dropdown */}
             {filterType === "quarterly" && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300/60 dark:border-slate-800/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
-
-                <Calendar className="h-4 w-4 text-indigo-500" />
-
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                <Calendar className="h-3.5 w-3.5 text-indigo-500" />
                 <select
                   value={selectedQuarter}
                   onChange={(e) => setSelectedQuarter(e.target.value)}
-                  className="bg-transparent text-slate-900 dark:text-white dark:bg-slate-900 text-xs font-semibold focus:outline-none cursor-pointer"
+                  className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
                 >
                   {availableQuarters.map((q) => (
-                    <option key={q.value} value={q.value} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-                      {q.label}
-                    </option>
+                    <option key={q.value} value={q.value}>{q.label}</option>
                   ))}
                 </select>
               </div>
             )}
-
           </div>
         </div>
 
-        {/* Sleek, Unified 3-Card Dashboard Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 animate-in fade-in duration-300">
+        {/* 3 Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {premiumCards.map((card, i) => {
             const Icon = card.icon;
-            const hoverClass = i === 0
-              ? 'hover:bg-indigo-50/45 hover:border-indigo-100/60 dark:hover:bg-indigo-950/10'
-              : i === 1
-                ? 'hover:bg-emerald-50/45 hover:border-emerald-100/60 dark:hover:bg-emerald-950/10'
-                : 'hover:bg-red-50/45 hover:border-red-100/60 dark:hover:bg-red-950/10';
+            const cardAccents = [
+              { border: 'border-l-indigo-500', iconBg: 'bg-indigo-50 dark:bg-indigo-500/10', iconText: 'text-indigo-600 dark:text-indigo-400', iconBorder: 'border-indigo-200 dark:border-indigo-500/20', topBar: 'from-indigo-500 to-violet-500' },
+              { border: 'border-l-emerald-500', iconBg: 'bg-emerald-50 dark:bg-emerald-500/10', iconText: 'text-emerald-600 dark:text-emerald-400', iconBorder: 'border-emerald-200 dark:border-emerald-500/20', topBar: 'from-emerald-500 to-teal-500' },
+              { border: 'border-l-rose-500', iconBg: 'bg-rose-50 dark:bg-rose-500/10', iconText: 'text-rose-600 dark:text-rose-400', iconBorder: 'border-rose-200 dark:border-rose-500/20', topBar: 'from-rose-500 to-red-500' },
+            ];
+            const accent = cardAccents[i];
             return (
               <div
                 key={i}
-                className={`rounded-2xl analytics-card bg-surface dark:bg-surface border border-border-primary p-4 sm:p-5 flex flex-col justify-between shadow-sm relative overflow-hidden transition-premium hover:-translate-y-1 hover:shadow-md`}
+                className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-l-4 ${accent.border} shadow-sm flex flex-col relative overflow-hidden`}
               >
-                {/* Top Accent Gradient Border */}
-                <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${card.topBorderColor}`}></div>
-
                 {/* Card Header */}
-                <div className="flex justify-between items-start mb-5 pt-1.5">
-                  <div>
-                    <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-display">{card.title}</h3>
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">{card.desc}</p>
+                <div className="flex items-start justify-between p-4 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`h-9 w-9 rounded-lg ${accent.iconBg} ${accent.iconText} flex items-center justify-center border ${accent.iconBorder} shrink-0`}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{card.title}</p>
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{card.desc}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setModalInfo(card);
-                      }}
-                      className="h-7 w-7 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center border border-slate-200 dark:border-slate-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
-                      title="Audit Step-by-Step Math"
-                    >
-                      <Info className="h-3.5 w-3.5" />
-                    </button>
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setModalInfo(card); }}
+                    className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 flex items-center justify-center border border-slate-200 dark:border-slate-700 transition-colors shrink-0"
+                    title="View calculation"
+                  >
+                    <Info className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                {/* Big Value */}
+                <div className="px-4 pb-3">
+                  <Link to={card.link}>
+                    <span className={`text-2xl font-bold tracking-tight ${card.valueColor || 'text-slate-900 dark:text-slate-50'} hover:opacity-80 transition-opacity`}>
+                      {card.value}
+                    </span>
+                  </Link>
+                </div>
+
+                {/* Divider */}
+                <div className="mx-4 border-t border-slate-100 dark:border-slate-800"></div>
+
+                {/* Breakdown list */}
+                <div className="p-4 pt-3 space-y-1.5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Breakdown</p>
+                  {card.breakdown.map((item, idx) => (
                     <Link
-                      to={card.link}
-                      className="h-7 w-7 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center border border-slate-200 dark:border-slate-700 transition-all hover:scale-105 active:scale-95 shadow-sm shrink-0"
+                      key={idx}
+                      to={item.link}
+                      className="flex justify-between items-center py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
                     >
-                      <Icon className="h-3.5 w-3.5" />
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`h-1.5 w-1.5 rounded-full ${item.dotColor || 'bg-slate-400'} shrink-0`}></span>
+                        <span className="text-xs text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white truncate">{item.label}</span>
+                      </div>
+                      <span className={`text-xs font-bold font-mono shrink-0 ml-2 ${item.textColor || 'text-slate-800 dark:text-slate-100'}`}>{item.value}</span>
                     </Link>
-                  </div>
-                </div>
-
-                {/* Card Value */}
-                <div className="mb-4 pb-3 border-b border-border-primary flex items-baseline">
-                  <span className={`text-xl sm:text-2xl font-bold ${card.valueColor || 'text-text-primary'} font-display tracking-tight leading-none`}>{card.value}</span>
-                </div>
-
-                {/* Sub-breakdown Items (The Magic Section) */}
-                <div className="space-y-3.5">
-                  <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest block font-display">Itemized Breakdown</span>
-                  <div className="space-y-2">
-                    {card.breakdown.map((item, idx) => (
-                      <Link
-                        key={idx}
-                        to={item.link}
-                        className={`flex justify-between items-center text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-slate-50/50 dark:bg-slate-950/30 border border-slate-100/50 dark:border-slate-800/40 transition-all group/row ${hoverClass}`}
-                      >
-                        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 mr-2">
-                          <span className={`h-1.5 w-1.5 rounded-full ${item.dotColor || 'bg-slate-500'} group-hover/row:scale-125 transition-transform shrink-0`}></span>
-                          <span className="text-slate-600 dark:text-slate-300 group-hover/row:text-slate-800 dark:group-hover/row:text-slate-100 font-semibold transition-colors truncate">{item.label}</span>
-                        </div>
-                        <span className={`font-mono font-bold transition-colors shrink-0 ${item.textColor || 'text-slate-800 dark:text-slate-100'}`}>
-                          {item.value}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
+                  ))}
                 </div>
               </div>
             );
@@ -893,29 +870,24 @@ export default function DashboardHome() {
         </div>
 
         {/* Analytics Chart & Breakdown Panel */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Payment & Billing Trend Chart */}
-          <div className="lg:col-span-2 rounded-3xl analytics-card bg-gradient-to-b from-indigo-50/20 dark:from-slate-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-slate-200 dark:border-slate-850 p-6 md:p-8 shadow-lg relative flex flex-col justify-between min-h-[350px] overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl">
-            {/* Top Accent Gradient Border */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500"></div>
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col min-h-[320px] relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-emerald-500"></div>
 
-            <div className="pt-1.5">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="font-bold text-lg text-slate-800 dark:text-slate-50 font-display">Billing & Collections Trend</h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                    Comparison of sales generated (billed) against revenue collected (paid)
-                  </p>
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">Billing & Collections Trend</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Billed vs Paid comparison</p>
+              </div>
+              <div className="flex items-center gap-4 text-xs font-medium select-none">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-indigo-500"></span>
+                  <span className="text-slate-600 dark:text-slate-300">Billed</span>
                 </div>
-                <div className="flex items-center gap-4 text-xs font-semibold select-none">
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-3 w-3 rounded-full bg-indigo-500"></span>
-                    <span className="text-slate-600 dark:text-slate-300">Billed Sales</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-3 w-3 rounded-full bg-emerald-500"></span>
-                    <span className="text-slate-600 dark:text-slate-300">Paid Revenue</span>
-                  </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                  <span className="text-slate-600 dark:text-slate-300">Collected</span>
                 </div>
               </div>
             </div>
@@ -1035,53 +1007,52 @@ export default function DashboardHome() {
             </div>
           </div>
 
-          {/* Ledger Registry Overview */}
-          <div className="lg:col-span-1 rounded-3xl analytics-card bg-gradient-to-b from-violet-50/40 dark:from-violet-950/15 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-slate-200 dark:border-slate-800/80 p-6 md:p-8 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.01] hover:shadow-2xl flex flex-col justify-center gap-6">
-            {/* Top Accent Gradient Border */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-violet-500 to-purple-500"></div>
+          {/* Registry Overview */}
+          <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm relative overflow-hidden flex flex-col gap-4">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 to-purple-500"></div>
 
-            <div className="pt-1.5">
-              <h3 className="font-bold text-lg text-slate-800 dark:text-slate-50 font-display mb-2">Ledger Registry Overview</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">General breakdown of system clients and generated receipts in this period.</p>
+            <div>
+              <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 mb-0.5">Ledger Overview</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Clients and transactions in this period</p>
             </div>
 
-            <div className="space-y-4">
-              <Link to="/dashboard/panels" className="flex items-center gap-4 bg-slate-100/50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 p-4 rounded-2xl hover:bg-indigo-50/45 hover:border-indigo-200/60 dark:hover:bg-indigo-950/15 transition-premium cursor-pointer shadow-sm">
-                <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-                  <Layers className="h-5 w-5" />
+            <div className="space-y-3">
+              <Link to="/dashboard/panels" className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors">
+                <div className="h-9 w-9 rounded-lg bg-indigo-100 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-500/20 shrink-0">
+                  <Layers className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Total Registered Panels</p>
-                  <p className="text-lg font-bold text-slate-800 dark:text-slate-100 font-display mt-0.5">{stats?.counts?.totalPanels || 0} Clients</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wide">Total Panels</p>
+                  <p className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0">{stats?.counts?.totalPanels || 0} Clients</p>
                 </div>
               </Link>
 
-              <Link to="/dashboard/payments" className="flex items-center gap-4 bg-slate-100/50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 p-4 rounded-2xl hover:bg-emerald-50/45 hover:border-emerald-200/60 dark:hover:bg-emerald-950/15 transition-premium cursor-pointer shadow-sm">
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-                  <FileSpreadsheet className="h-5 w-5" />
+              <Link to="/dashboard/payments" className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:border-emerald-200 dark:hover:border-emerald-800 transition-colors">
+                <div className="h-9 w-9 rounded-lg bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-500/20 shrink-0">
+                  <FileSpreadsheet className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Active Transactions</p>
-                  <p className="text-lg font-bold text-slate-800 dark:text-slate-100 font-display mt-0.5">{filteredPayments.length} Actions</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wide">Transactions</p>
+                  <p className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0">{filteredPayments.length} Entries</p>
                 </div>
               </Link>
 
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider font-display">Payments Mode Distribution</p>
-                <div className="grid grid-cols-2 gap-2.5 text-xs font-mono">
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Payment Mode Split</p>
+                <div className="grid grid-cols-2 gap-2">
                   {['Cash', 'UPI', 'Bank Transfer', 'Online'].map((mode) => {
                     const modeAmt = filteredPayments
                       .filter((p) => p.paymentMode === mode)
                       .reduce((sum, p) => sum + (p.amountReceived || 0), 0);
-                    const colors = {
-                      Cash: 'text-amber-700 dark:text-amber-400 hover:bg-amber-100/20 dark:hover:bg-amber-950/30 hover:border-amber-300/40 bg-amber-50/50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30',
-                      UPI: 'text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100/20 dark:hover:bg-emerald-950/30 hover:border-emerald-300/40 bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30',
-                      'Bank Transfer': 'text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100/20 dark:hover:bg-indigo-950/30 hover:border-indigo-300/40 bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/30',
-                      Online: 'text-violet-700 dark:text-violet-400 hover:bg-violet-100/20 dark:hover:bg-violet-950/30 hover:border-violet-300/40 bg-violet-50/50 dark:bg-violet-950/20 border-violet-100 dark:border-violet-900/30',
+                    const modeColors = {
+                      Cash: 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40 text-amber-700 dark:text-amber-400',
+                      UPI: 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-400',
+                      'Bank Transfer': 'bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-900/40 text-indigo-700 dark:text-indigo-400',
+                      Online: 'bg-violet-50 dark:bg-violet-950/20 border-violet-200 dark:border-violet-900/40 text-violet-700 dark:text-violet-400',
                     };
                     return (
-                      <div key={mode} className={`p-2.5 rounded-xl border hover:scale-[1.03] transition-all duration-300 shadow-sm cursor-pointer ${colors[mode]}`}>
-                        <span className="text-slate-500 dark:text-slate-400 block mb-0.5 text-[9px] uppercase font-bold">{mode}</span>
+                      <div key={mode} className={`p-2 rounded-lg border ${modeColors[mode]}`}>
+                        <span className="block text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-0.5">{mode}</span>
                         <span className="font-bold text-sm">₹{modeAmt.toLocaleString()}</span>
                       </div>
                     );
@@ -1092,25 +1063,23 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Leaderboard Rankings Title */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4 border-t border-slate-300/60 dark:border-slate-800/60">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
           <div>
-            <h3 className="font-bold text-xl text-slate-900 dark:text-white flex items-center gap-2">
-              <Award className="h-6 w-6 text-indigo-700" />
-              Client Rankings & Performance Leaderboards
+            <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <Award className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              Client Performance Leaderboards
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              Top performing clients by invoiced sales, revenue collected, licenses issued, and SLAs
-            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Top clients by revenue, billing, licenses and maintenance</p>
           </div>
 
           {inactivePanels.length > 0 && (
             <button
               onClick={() => setShowInactive(!showInactive)}
-              className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 hover:border-red-500/40 text-red-700 transition-all duration-200"
+              className="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 hover:border-red-400 dark:hover:border-red-500/40 text-red-600 dark:text-red-400 transition-colors"
             >
-              <AlertCircle className="h-4 w-4" />
-              <span>{showInactive ? 'Hide' : 'Show'} Inactive Clients ({inactivePanels.length})</span>
+              <AlertCircle className="h-3.5 w-3.5" />
+              <span>{showInactive ? 'Hide' : 'Show'} Inactive ({inactivePanels.length})</span>
             </button>
           )}
         </div>
@@ -1135,19 +1104,16 @@ export default function DashboardHome() {
         )}
 
         {/* Leaderboard Rankings Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* 1. Revenue Leaders */}
-          <div className="rounded-3xl analytics-card bg-gradient-to-b from-emerald-50/30 dark:from-emerald-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-emerald-100/70 dark:border-emerald-950/20 p-5 md:p-6 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-2xl flex flex-col h-full">
-            {/* Top Accent Gradient Border */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
-
-            <div className="flex items-center gap-3 mb-5 pt-1.5">
-              <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-                <CircleDollarSign className="h-5 w-5" />
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-emerald-500 p-4 shadow-sm flex flex-col">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="h-8 w-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-500/20">
+                <CircleDollarSign className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white font-display">Revenue Leaders</h4>
-                <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">Top Payments Paid</p>
+                <h4 className="font-semibold text-sm text-slate-900 dark:text-white">Revenue Leaders</h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-medium">Most Paid</p>
               </div>
             </div>
 
@@ -1181,17 +1147,14 @@ export default function DashboardHome() {
           </div>
 
           {/* 2. Billing Leaders */}
-          <div className="rounded-3xl analytics-card bg-gradient-to-b from-indigo-50/30 dark:from-indigo-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-indigo-100/70 dark:border-indigo-950/20 p-5 md:p-6 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-2xl flex flex-col h-full">
-            {/* Top Accent Gradient Border */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 to-blue-500"></div>
-
-            <div className="flex items-center gap-3 mb-5 pt-1.5">
-              <div className="h-9 w-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-                <FileSpreadsheet className="h-5 w-5" />
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-indigo-500 p-4 shadow-sm flex flex-col">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-500/20">
+                <FileSpreadsheet className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white font-display">Sales Invoiced</h4>
-                <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">Top Sales Billed</p>
+                <h4 className="font-semibold text-sm text-slate-900 dark:text-white">Sales Invoiced</h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-medium">Top Billed</p>
               </div>
             </div>
 
@@ -1225,17 +1188,14 @@ export default function DashboardHome() {
           </div>
 
           {/* 3. License Leaders */}
-          <div className="rounded-3xl analytics-card bg-gradient-to-b from-cyan-50/30 dark:from-cyan-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-cyan-100/70 dark:border-cyan-950/20 p-5 md:p-6 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-2xl flex flex-col h-full">
-            {/* Top Accent Gradient Border */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-500 to-blue-500"></div>
-
-            <div className="flex items-center gap-3 mb-5 pt-1.5">
-              <div className="h-9 w-9 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-500/20">
-                <Layers className="h-5 w-5" />
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-cyan-500 p-4 shadow-sm flex flex-col">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="h-8 w-8 rounded-lg bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center border border-cyan-200 dark:border-cyan-500/20">
+                <Layers className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white font-display">License Intake</h4>
-                <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">Most Licenses Taken</p>
+                <h4 className="font-semibold text-sm text-slate-900 dark:text-white">License Intake</h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-medium">Most Licenses</p>
               </div>
             </div>
 
@@ -1270,17 +1230,14 @@ export default function DashboardHome() {
           </div>
 
           {/* 4. Maintenance SLA Tracker */}
-          <div className="rounded-3xl analytics-card bg-gradient-to-b from-amber-50/30 dark:from-amber-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-amber-100/70 dark:border-amber-950/20 p-5 md:p-6 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-2xl flex flex-col h-full">
-            {/* Top Accent Gradient Border */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 to-orange-500"></div>
-
-            <div className="flex items-center gap-3 mb-5 pt-1.5">
-              <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
-                <Wrench className="h-5 w-5" />
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-amber-500 p-4 shadow-sm flex flex-col">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="h-8 w-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-200 dark:border-amber-500/20">
+                <Wrench className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white font-display">Maintenance Dues</h4>
-                <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">SLA Support Payments</p>
+                <h4 className="font-semibold text-sm text-slate-900 dark:text-white">Maintenance Dues</h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-medium">SLA Payments</p>
               </div>
             </div>
 
@@ -1315,93 +1272,53 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Stacked Full-Width Section for Performance Alerts & Client Performance Grid Table */}
-        <div className="space-y-8 pt-4 border-t border-slate-300/60 dark:border-slate-800/60">
+        {/* Performance Section */}
+        <div className="space-y-4 pt-2 border-t border-slate-200 dark:border-slate-800">
 
-          {/* Row 1: Worst Performing Clients Alerts */}
+          {/* Performance Alerts */}
           {worstPerforming.length > 0 && (
-            <div className="rounded-3xl analytics-card bg-gradient-to-b from-red-50/20 dark:from-red-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-red-100/50 dark:border-red-950/20 p-6 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-0.5 hover:shadow-2xl space-y-4">
-              {/* Top Accent Gradient Border */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-500 to-rose-600"></div>
-
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-red-500/10 pb-3 pt-1.5">
-
-                <div className="flex items-center gap-3">
-
-                  <div className="h-9 w-9 rounded-xl bg-red-500/10 text-red-700 flex items-center justify-center border border-red-500/20">
-                    <AlertCircle className="h-5 w-5" />
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-rose-500 p-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200 dark:border-rose-500/20">
+                    <AlertCircle className="h-4 w-4" />
                   </div>
-
                   <div>
-                    <h4 className="font-bold text-base text-slate-900 dark:text-white font-display">
-                      Performance Alerts
-                    </h4>
-                    <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">
-                      Clients with lowest recovery rates or critical dues in this period
-                    </p>
+                    <h4 className="font-semibold text-sm text-slate-900 dark:text-white">Performance Alerts</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Clients with lowest recovery rates</p>
                   </div>
                 </div>
-
-                <div className="text-[10px] font-bold px-3 py-1 rounded uppercase bg-red-800/10 border border-red-500/20 text-red-700 tracking-wider text-center sm:text-right shrink-0">
-                  ⚠️ Critically Inactive: {inactivePanels.length} Panels
-                </div>
+                <span className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400">
+                  ⚠️ Inactive: {inactivePanels.length} Panels
+                </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {worstPerforming.map((item, idx) => (
-
-                  <div
-                    key={item._id}
-                    className="rounded-2xl bg-gradient-to-b from-red-50/40 dark:from-red-950/15 to-white dark:to-slate-900/50 border border-red-100/60 dark:border-red-950/20 p-5 md:p-6 relative overflow-hidden group transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-xl shadow-sm flex flex-col justify-between"
-                  >
-                    {/* Card Accent line */}
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-400 to-rose-500"></div>
-
-                    <div className="flex justify-between items-start gap-2 pt-1">
-
+                  <div key={item._id} className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 flex flex-col gap-2">
+                    <div className="flex justify-between items-start">
                       <div>
                         <Link
                           to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`}
-                          className="text-slate-800 dark:text-slate-200 hover:text-indigo-400 font-bold text-sm block truncate max-w-[190px]"
+                          className="text-slate-800 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold text-xs block truncate max-w-[150px]"
                         >
                           {idx + 1}. {item.panelName}
                         </Link>
-
-                        <Link
-                          to={`/dashboard/panels?category=${encodeURIComponent(item.category || 'Algo')}`}
-                          className="text-[10px] text-slate-500 dark:text-slate-500 hover:text-indigo-400 mt-0.5 block font-semibold uppercase"
-                        >
-                          {item.category || 'Algo'} Category
-                        </Link>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-medium">{item.category || 'Algo'}</span>
                       </div>
-
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded uppercase bg-red-500/10 border border-red-500/20 text-red-700 shrink-0">
-                        {item.totalBilled > 0
-                          ? `Recovery: ${item.recoveryRate}%`
-                          : "Outstanding"}
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-500/10 border border-rose-300 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 shrink-0">
+                        {item.totalBilled > 0 ? `${item.recoveryRate}%` : 'No Bills'}
                       </span>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-3 mt-4 pt-3.5 border-t border-red-100 dark:border-red-950/30 text-xs font-mono">
-
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-700 text-[11px] font-mono">
                       <div>
-                        <span className="text-slate-500 dark:text-slate-500 block text-[9px] uppercase font-bold">
-                          Billed
-                        </span>
-                        <span className="text-slate-700 dark:text-slate-300 font-bold">
-                          ₹{item.totalBilled.toLocaleString()}
-                        </span>
+                        <span className="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold">Billed</span>
+                        <span className="text-slate-700 dark:text-slate-300 font-semibold">₹{item.totalBilled.toLocaleString()}</span>
                       </div>
-
                       <div>
-                        <span className="text-slate-500 dark:text-slate-500 block text-[9px] uppercase font-bold">
-                          Dues Pending
-                        </span>
-                        <span className="text-red-700 font-bold">
-                          ₹{item.outstanding.toLocaleString()}
-                        </span>
+                        <span className="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold">Dues</span>
+                        <span className="text-rose-600 dark:text-rose-400 font-bold">₹{item.outstanding.toLocaleString()}</span>
                       </div>
-
                     </div>
                   </div>
                 ))}
@@ -1410,172 +1327,119 @@ export default function DashboardHome() {
           )}
 
           {/* Row 2: Client Performance Ledger Grid Table (Full Width) */}
-          <div className="rounded-3xl analytics-card bg-gradient-to-b from-slate-50/30 dark:from-slate-950/10 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-0.5 hover:shadow-2xl flex flex-col justify-between">
-            {/* Top Accent Gradient Border */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-slate-400 to-slate-600"></div>
-            {/* Table Header with Filters */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            {/* Table Header */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 p-4 border-b border-slate-200 dark:border-slate-800">
               <div>
-                <h3 className="font-bold text-lg text-slate-900 dark:text-white">Client Performance Ledger Grid</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Click column headers to toggle ascending/descending sorting</p>
+                <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Client Performance Table</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Click column headers to sort</p>
               </div>
 
               {/* Grid Filters */}
-              <div className="flex flex-wrap items-center gap-3">
-                {/* Category Filter */}
-                <div className="flex items-center gap-2 rounded-xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-xs text-slate-600 dark:text-slate-400">
-                  <span className="font-semibold uppercase tracking-wider text-[10px]">Category:</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs">
+                  <span className="font-semibold uppercase tracking-wider text-[10px] text-slate-500 dark:text-slate-400">Category:</span>
                   <select
                     value={selectedCatFilter}
                     onChange={(e) => setSelectedCatFilter(e.target.value)}
                     className="bg-transparent border-none text-slate-900 dark:text-white font-bold cursor-pointer outline-none text-xs"
                   >
-                    <option value="All" className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">All Categories</option>
+                    <option value="All">All</option>
                     {uniqueCategories.map((c) => (
-                      <option key={c} value={c} className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">{c}</option>
+                      <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
                 </div>
 
-                {/* Status Filter */}
-
-                {/* Status Filter */}
-                <div className="flex items-center gap-2 rounded-xl 
-  bg-slate-200/60 dark:bg-slate-900 
-  border border-slate-300 dark:border-slate-700 
-  px-3.5 py-2 text-xs text-slate-700 dark:text-slate-300">
-
-                  <span className="font-semibold uppercase tracking-wider text-[10px] text-slate-600 dark:text-slate-400">
-                    Status:
-                  </span>
-
+                <div className="flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs">
+                  <span className="font-semibold uppercase tracking-wider text-[10px] text-slate-500 dark:text-slate-400">Status:</span>
                   <select
                     value={selectedStatusFilter}
                     onChange={(e) => setSelectedStatusFilter(e.target.value)}
                     className="bg-transparent text-slate-900 dark:text-white font-semibold cursor-pointer outline-none text-xs"
                   >
-                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white" value="All">
-                      All Statuses
-                    </option>
-
-                    <option className="bg-white dark:bg-slate-900 text-emerald-700 font-bold" value="Excellent">
-                      Excellent (≥90%)
-                    </option>
-
-                    <option className="bg-white dark:bg-slate-900 text-indigo-700 font-bold" value="Healthy">
-                      Healthy (50-89%)
-                    </option>
-
-                    <option className="bg-white dark:bg-slate-900 text-amber-700 font-bold" value="Needs Attention">
-                      Needs Attention (&lt;50%)
-                    </option>
-
-                    <option className="bg-white dark:bg-slate-900 text-red-700 font-bold" value="Critically Inactive">
-                      Inactive (₹0)
-                    </option>
+                    <option value="All">All</option>
+                    <option value="Excellent">Excellent (≥90%)</option>
+                    <option value="Healthy">Healthy (50-89%)</option>
+                    <option value="Needs Attention">Needs Attention (&lt;50%)</option>
+                    <option value="Critically Inactive">Inactive</option>
                   </select>
                 </div>
-
               </div>
             </div>
 
-            {/* Interactive Table Container */}
-            <div className="overflow-x-auto rounded-xl border border-slate-300/80 dark:border-slate-800/80 bg-slate-50/20 dark:bg-slate-950/20 max-h-[550px] overflow-y-auto">
+            {/* Performance Table */}
+            <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs min-w-[850px]">
                 <thead>
-                  <tr className="bg-slate-100/95 dark:bg-slate-900/95 border-b border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 uppercase font-bold tracking-wider select-none sticky top-0 z-10 backdrop-blur-md">
-                    <th className="px-4 py-3.5 text-center w-14">S.No.</th>
-                    <th onClick={() => handleSort('panelName')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
-                      <div className="flex items-center gap-1.5">
-                        <span>Client Panel</span>
-                        {perfSortField === 'panelName' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
-                      </div>
+                  <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wider text-[11px] sticky top-0">
+                    <th className="px-4 py-3 text-center w-10">#</th>
+                    <th onClick={() => handleSort('panelName')} className="px-4 py-3 cursor-pointer hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                      <div className="flex items-center gap-1">Client Panel {perfSortField === 'panelName' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
                     </th>
-                    <th className="px-5 py-3.5">Category</th>
-                    <th onClick={() => handleSort('totalBilled')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <span>Sales Billed</span>
-                        {perfSortField === 'totalBilled' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
-                      </div>
+                    <th className="px-4 py-3">Category</th>
+                    <th onClick={() => handleSort('totalBilled')} className="px-4 py-3 cursor-pointer hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-right">
+                      <div className="flex items-center justify-end gap-1">Sales Billed {perfSortField === 'totalBilled' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
                     </th>
-                    <th onClick={() => handleSort('totalPaid')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <span>Payments Paid</span>
-                        {perfSortField === 'totalPaid' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
-                      </div>
+                    <th onClick={() => handleSort('totalPaid')} className="px-4 py-3 cursor-pointer hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-right">
+                      <div className="flex items-center justify-end gap-1">Paid {perfSortField === 'totalPaid' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
                     </th>
-                    <th onClick={() => handleSort('outstanding')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <span>Outstanding</span>
-                        {perfSortField === 'outstanding' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
-                      </div>
+                    <th onClick={() => handleSort('outstanding')} className="px-4 py-3 cursor-pointer hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-right">
+                      <div className="flex items-center justify-end gap-1">Outstanding {perfSortField === 'outstanding' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
                     </th>
-                    <th onClick={() => handleSort('recoveryRate')} className="px-5 py-3.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <span>Recovery</span>
-                        {perfSortField === 'recoveryRate' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}
-                      </div>
+                    <th onClick={() => handleSort('recoveryRate')} className="px-4 py-3 cursor-pointer hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-center">
+                      <div className="flex items-center justify-center gap-1">Recovery {perfSortField === 'recoveryRate' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
                     </th>
-                    <th className="px-5 py-3.5 text-center">Performance</th>
+                    <th className="px-4 py-3 text-center">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {processedPerfPanels.length === 0 ? (
                     <tr>
-                      <td colSpan="8" className="text-center py-12 text-slate-500 dark:text-slate-500 font-semibold uppercase">
+                      <td colSpan="8" className="text-center py-10 text-slate-400 dark:text-slate-500 font-medium">
                         No client records match the criteria
                       </td>
                     </tr>
                   ) : (
                     processedPerfPanels.map((p, idx) => {
-                      const statusColors = {
-                        Excellent:
-                          "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
-
-                        Healthy:
-                          "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30",
-
-                        "Needs Attention":
-                          "bg-amber-500/15 text-amber-400 border border-amber-500/30",
-
-                        "Critically Inactive":
-                          "bg-red-500/15 text-red-400 border border-red-500/30",
+                      const statusCfg = {
+                        Excellent: { bg: 'bg-emerald-100 dark:bg-emerald-500/15', text: 'text-emerald-700 dark:text-emerald-400', border: 'border-emerald-300 dark:border-emerald-500/30' },
+                        Healthy: { bg: 'bg-indigo-100 dark:bg-indigo-500/15', text: 'text-indigo-700 dark:text-indigo-400', border: 'border-indigo-300 dark:border-indigo-500/30' },
+                        'Needs Attention': { bg: 'bg-amber-100 dark:bg-amber-500/15', text: 'text-amber-700 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-500/30' },
+                        'Critically Inactive': { bg: 'bg-red-100 dark:bg-red-500/15', text: 'text-red-700 dark:text-red-400', border: 'border-red-300 dark:border-red-500/30' },
                       };
-                      const categoryColors = {
-                        Algo: 'bg-indigo-500/10 text-indigo-700 border border-indigo-500/20',
-                        Sop: 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20',
-                        crypto: 'bg-amber-500/10 text-amber-700 border border-amber-500/20',
+                      const catCfg = {
+                        Algo: 'bg-indigo-100 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-500/20',
+                        Sop: 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/20',
+                        crypto: 'bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-500/20',
                       };
-
+                      const s = statusCfg[p.status] || statusCfg['Critically Inactive'];
                       return (
-                        <tr key={p._id} className="hover:bg-slate-100/20 dark:hover:bg-slate-900/20 transition-colors">
-                          <td className="px-4 py-3.5 text-center font-bold text-slate-500 dark:text-slate-500 w-14">{idx + 1}</td>
-                          <td className="px-5 py-3.5 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                            <Link to={`/dashboard/panels?search=${encodeURIComponent(p.panelName)}`} className="hover:text-indigo-400 transition-colors cursor-pointer">
+                        <tr key={p._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                          <td className="px-4 py-3 text-center font-mono text-slate-400 dark:text-slate-500">{idx + 1}</td>
+                          <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                            <Link to={`/dashboard/panels?search=${encodeURIComponent(p.panelName)}`} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                               {p.panelName}
                             </Link>
                           </td>
-                          <td className="px-5 py-3.5">
-                            <Link to={`/dashboard/panels?category=${encodeURIComponent(p.category || 'Algo')}`} className="cursor-pointer">
-                              <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${categoryColors[p.category || 'Algo'] || 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'}`}>
-                                {p.category || 'Algo'}
-                              </span>
-                            </Link>
+                          <td className="px-4 py-3">
+                            <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold uppercase tracking-wide border ${catCfg[p.category || 'Algo'] || 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700'}`}>
+                              {p.category || 'Algo'}
+                            </span>
                           </td>
-                          <td className="px-5 py-3.5 font-semibold text-right text-slate-700 dark:text-slate-300 whitespace-nowrap">₹{p.totalBilled.toLocaleString()}</td>
-                          <td className="px-5 py-3.5 font-bold text-right text-emerald-400 whitespace-nowrap">₹{p.totalPaid.toLocaleString()}</td>
-                          <td className="px-5 py-3.5 font-bold text-right text-red-600 whitespace-nowrap">₹{p.outstanding.toLocaleString()}</td>
-                          <td className="px-5 py-3.5 font-bold text-center text-slate-700 dark:text-slate-300">{p.recoveryRate}%</td>
-                          <td className="px-5 py-3.5 text-center">
-                            <span
-                              className={`
-                              text-[12px] px-3 py-1 rounded-lg
-                              font-bold uppercase tracking-wide
-                              inline-block min-w-[100px] text-center
-                              border border-md
-                              ${statusColors[p.status]}
-                            `}
-                            >
+                          <td className="px-4 py-3 text-right font-mono font-semibold text-slate-700 dark:text-slate-300">₹{p.totalBilled.toLocaleString()}</td>
+                          <td className="px-4 py-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">₹{p.totalPaid.toLocaleString()}</td>
+                          <td className="px-4 py-3 text-right font-mono font-bold text-rose-600 dark:text-rose-400">₹{p.outstanding.toLocaleString()}</td>
+                          <td className="px-4 py-3 text-center">
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="font-mono font-bold text-slate-700 dark:text-slate-200 text-xs">{p.recoveryRate}%</span>
+                              <div className="w-16 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full transition-all ${p.recoveryRate >= 90 ? 'bg-emerald-500' : p.recoveryRate >= 50 ? 'bg-indigo-500' : 'bg-rose-500'}`} style={{ width: `${Math.min(p.recoveryRate, 100)}%` }}></div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`text-[11px] px-2.5 py-1 rounded-lg font-semibold border ${s.bg} ${s.text} ${s.border}`}>
                               {p.status}
                             </span>
                           </td>

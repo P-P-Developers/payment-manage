@@ -617,7 +617,7 @@ export default function Statement() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                        {isCredit ? 'Net Account Credit (Jama)' : 'Net Outstanding Balance (Lena Baki)'}
+                        {isCredit ? 'Net Account Credit (Jama)' : 'Net Outstanding Balance (Dues)'}
                       </h4>
                       <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Current passbook net balance</p>
                     </div>
