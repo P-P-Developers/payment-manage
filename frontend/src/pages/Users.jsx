@@ -27,6 +27,9 @@ import {
 const SkeletonRow = () => (
   <tr className="animate-pulse">
     <td className="px-6 py-4">
+      <div className="h-4 w-6 rounded bg-slate-200 dark:bg-slate-800"></div>
+    </td>
+    <td className="px-6 py-4">
       <div className="flex items-center gap-3">
         <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-800"></div>
         <div className="space-y-2">
@@ -326,6 +329,7 @@ export default function Users() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr>
+                <th className="px-6 py-4 w-16">S. No.</th>
                 <th className="px-6 py-4">User Info</th>
                 <th className="px-6 py-4">System Role</th>
                 <th className="px-6 py-4">2FA Protection</th>
@@ -341,8 +345,11 @@ export default function Users() {
                   <SkeletonRow />
                 </>
               ) : users.length > 0 ? (
-                users.map((user) => (
+                users.map((user, idx) => (
                   <tr key={user._id} className="hover:bg-slate-200/20 dark:hover:bg-slate-800/20 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-slate-500 dark:text-slate-400">
+                      {(idx + 1).toString().padStart(2, '0')}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-full bg-brand/10 flex items-center justify-center text-brand font-bold uppercase shadow-inner text-xs">
@@ -435,7 +442,7 @@ export default function Users() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className="text-center py-8 text-slate-600 dark:text-slate-400">
+                  <td colSpan="6" className="text-center py-8 text-slate-600 dark:text-slate-400">
                     No staff accounts found.
                   </td>
                 </tr>
