@@ -106,7 +106,7 @@ export default function DashboardLayout() {
   useEffect(() => {
     const token = getAuthToken();
     const loggedUser = getLoggedUser();
-    if ( !loggedUser) {
+    if (!loggedUser) {
       clearAuth();
       navigate('/login', { replace: true });
     } else {
@@ -183,7 +183,7 @@ export default function DashboardLayout() {
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     {
-      name: 'User Management',
+      name: 'Users',
       href: '/dashboard/users',
       icon: Users,
       isAdminOnly: true,
@@ -238,7 +238,7 @@ export default function DashboardLayout() {
               <img src={logo} alt="Logo" className={`object-contain shrink-0 ${isSidebarCollapsed ? 'h-7 w-7' : 'h-8 max-w-full'}`} />
             ) : (
               <>
-                <div className="h-7 w-7 rounded-lg bg-brand flex items-center justify-center text-white font-bold shadow-sm shrink-0">
+                <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-[#4F46E5] to-[#6366F1] flex items-center justify-center text-white font-bold shadow-sm shrink-0">
                   {orgName ? orgName.substring(0, 1).toUpperCase() : 'D'}
                 </div>
                 {!isSidebarCollapsed && (
@@ -283,7 +283,7 @@ export default function DashboardLayout() {
                 title={isSidebarCollapsed ? item.name : ""}
                 className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-semibold transition-premium ${isSidebarCollapsed ? 'justify-center px-0 h-10 w-10 mx-auto hover:scale-105' : 'px-3 hover:translate-x-1'
                   } ${isActive
-                    ? 'bg-slate-900 dark:bg-indigo-600 text-white shadow-sm'
+                    ? 'bg-gradient-to-r from-[#4F46E5] to-[#6366F1] dark:bg-indigo-600 text-white shadow-sm shadow-[#4F46E5]/20'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100 border border-transparent'
                   }`}
               >
@@ -358,7 +358,7 @@ export default function DashboardLayout() {
                         setIsProfileOpen(false);
                         setIsChangePasswordOpen(true);
                       }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#0A2540] dark:hover:text-indigo-400 hover:bg-[#0A2540]/5 dark:hover:bg-indigo-500/10 border border-transparent hover:border-[#0A2540]/10 dark:hover:border-indigo-500/20 transition-all"
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#4F46E5] dark:hover:text-indigo-400 hover:bg-[#4F46E5]/5 dark:hover:bg-indigo-500/10 border border-transparent hover:border-[#4F46E5]/10 dark:hover:border-indigo-500/20 transition-all"
                     >
                       <Key className="h-4 w-4 text-slate-400" />
                       <span>Change Password</span>
@@ -369,7 +369,7 @@ export default function DashboardLayout() {
                         <Link
                           to="/dashboard/settings"
                           onClick={() => setIsProfileOpen(false)}
-                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#0A2540] dark:hover:text-indigo-400 hover:bg-[#0A2540]/5 dark:hover:bg-indigo-500/10 border border-transparent hover:border-[#0A2540]/10 dark:hover:border-indigo-500/20 transition-all mt-1"
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#4F46E5] dark:hover:text-indigo-400 hover:bg-[#4F46E5]/5 dark:hover:bg-indigo-500/10 border border-transparent hover:border-[#4F46E5]/10 dark:hover:border-indigo-500/20 transition-all mt-1"
                         >
                           <Settings className="h-4 w-4 text-slate-400" />
                           <span>System Settings</span>
@@ -377,7 +377,7 @@ export default function DashboardLayout() {
                         <Link
                           to="/dashboard/smtp"
                           onClick={() => setIsProfileOpen(false)}
-                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#0A2540] dark:hover:text-indigo-400 hover:bg-[#0A2540]/5 dark:hover:bg-indigo-500/10 border border-transparent hover:border-[#0A2540]/10 dark:hover:border-indigo-500/20 transition-all mt-1"
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#4F46E5] dark:hover:text-indigo-400 hover:bg-[#4F46E5]/5 dark:hover:bg-indigo-500/10 border border-transparent hover:border-[#4F46E5]/10 dark:hover:border-indigo-500/20 transition-all mt-1"
                         >
                           <Mail className="h-4 w-4 text-slate-400" />
                           <span>SMTP Settings</span>
@@ -429,7 +429,7 @@ export default function DashboardLayout() {
                 <img src={logo} alt="Logo" className="h-12 max-w-full object-contain shrink-0" />
               ) : (
                 <>
-                  <div className="h-8 w-8 rounded-lg bg-[#0A2540] dark:bg-indigo-600 flex items-center justify-center text-white font-bold shrink-0">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#4F46E5] to-[#6366F1] dark:bg-indigo-600 flex items-center justify-center text-white font-bold shrink-0">
                     {orgName ? orgName.substring(0, 1).toUpperCase() : 'P'}
                   </div>
                   <span className="font-bold text-lg tracking-wider text-slate-900 dark:text-slate-100 truncate" title={orgName}>
@@ -449,7 +449,7 @@ export default function DashboardLayout() {
                     to={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${isActive
-                      ? 'bg-[#0A2540] dark:bg-indigo-600 text-white shadow-md shadow-[#0a2540]/15 dark:shadow-indigo-500/10'
+                      ? 'bg-gradient-to-r from-[#4F46E5] to-[#6366F1] dark:bg-indigo-600 text-white shadow-md shadow-[#4F46E5]/15 dark:shadow-indigo-500/10'
                       : 'text-[#4E5E7A] dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-slate-100'
                       }`}
                   >
@@ -488,7 +488,7 @@ export default function DashboardLayout() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fadeIn">
           <div className="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-8 overflow-hidden">
             {/* Background glowing orb */}
-            <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-[#0A2540]/5 dark:bg-indigo-500/5 blur-2xl"></div>
+            <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-[#4F46E5]/10 dark:bg-indigo-500/5 blur-2xl"></div>
 
             <button
               onClick={() => {
