@@ -42,7 +42,7 @@ async function getIpReport() {
         const dateStr = d.toISOString().split('T')[0];
 
         if (!apiAgg[panelName]) apiAgg[panelName] = {};
-        if (!apiAgg[panelName][dateStr]) apiAgg[panelName][dateStr] = { count: 0 };
+        if (!apiAgg[panelName][dateStr]) apiAgg[panelName][dateStr] = { count: 0, originalDate: item.createdAt || item.date };
         apiAgg[panelName][dateStr].count += (item.count || 0);
     }
 
@@ -81,6 +81,7 @@ async function getIpReport() {
                 report.missingEntries.push({
                     panelName: panelIdToName[panelId],
                     date: dateStr,
+                    originalDate: apiInfo.originalDate,
                     apiCount: apiInfo.count,
                     message: 'API has entry for this date but DB has none'
                 });
@@ -90,6 +91,7 @@ async function getIpReport() {
                     report.countMismatches.push({
                         panelName: panelIdToName[panelId],
                         date: dateStr,
+                        originalDate: apiInfo.originalDate,
                         apiCount: apiInfo.count,
                         dbQuantity: dbInfo.quantity,
                         difference: apiInfo.count - dbInfo.quantity,
@@ -146,7 +148,7 @@ async function getLicenseReport() {
         const dateStr = d.toISOString().split('T')[0];
 
         if (!apiAgg[panelName]) apiAgg[panelName] = {};
-        if (!apiAgg[panelName][dateStr]) apiAgg[panelName][dateStr] = { count: 0 };
+        if (!apiAgg[panelName][dateStr]) apiAgg[panelName][dateStr] = { count: 0, originalDate: item.createdAt || item.date };
         apiAgg[panelName][dateStr].count += number;
     }
 
@@ -201,6 +203,7 @@ async function getLicenseReport() {
                 report.missingEntries.push({
                     panelName: panelIdToName[panelId],
                     date: dateStr,
+                    originalDate: apiInfo.originalDate,
                     apiCount: apiInfo.count,
                     message: 'API has license entry for this date but DB has none'
                 });
@@ -210,6 +213,7 @@ async function getLicenseReport() {
                     report.countMismatches.push({
                         panelName: panelIdToName[panelId],
                         date: dateStr,
+                        originalDate: apiInfo.originalDate,
                         apiCount: apiInfo.count,
                         dbQuantity: dbInfo.quantity,
                         difference: apiInfo.count - dbInfo.quantity,
@@ -271,7 +275,7 @@ router.post('/fix-ip', protect, adminOnly, async (req, res) => {
             const quantity = entry.apiCount;
             const unitPrice = panel.ipCharges || 1;
             const billAmount = quantity * unitPrice;
-            const dateObj = new Date(entry.date + 'T12:00:00Z');
+            const dateObj = entry.originalDate ? new Date(entry.originalDate) : new Date(entry.date + 'T12:00:00Z');
 
             await Payment.create({
                 panelId: panel._id,
@@ -363,7 +367,7 @@ router.post('/fix-license', protect, adminOnly, async (req, res) => {
             const quantity = entry.apiCount;
             const unitPrice = panel.licenseCharges || 1000;
             const billAmount = quantity * unitPrice;
-            const dateObj = new Date(entry.date + 'T12:00:00Z');
+            const dateObj = entry.originalDate ? new Date(entry.originalDate) : new Date(entry.date + 'T12:00:00Z');
 
             await Payment.create({
                 panelId: panel._id, paymentType: 'License',

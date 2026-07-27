@@ -185,7 +185,12 @@ export default function DashboardHome() {
   } = useMemo(() => {
     const rawPanels = stats?.panels || [];
     const rawPayments = stats?.payments || [];
-    const openingBalSum = rawPanels.reduce((sum, p) => sum + (p.openingBalance || 0), 0);
+
+    let panelsToUse = rawPanels;
+    if (selectedCatFilter !== 'All') {
+      panelsToUse = rawPanels.filter(p => (p.category || 'Algo') === selectedCatFilter);
+    }
+    const openingBalSum = panelsToUse.reduce((sum, p) => sum + (p.openingBalance || 0), 0);
 
     // Filter payments based on selection
     const filtered = rawPayments.filter((p) => {
@@ -195,6 +200,12 @@ export default function DashboardHome() {
         (p.remark && p.remark.toLowerCase().includes('system credit'));
       if (isSystemCredit) {
         return false;
+      }
+
+      // Filter by Category
+      if (selectedCatFilter !== 'All') {
+        const pCat = p.panelId?.category || 'Algo';
+        if (pCat !== selectedCatFilter) return false;
       }
 
       if (!p.timestamp) return false;
@@ -496,7 +507,7 @@ export default function DashboardHome() {
       revenueBreakdown,
       outstandingBreakdown,
     };
-  }, [stats, filterType, selectedMonth, selectedQuarter]);
+  }, [stats, filterType, selectedMonth, selectedQuarter, selectedCatFilter]);
 
   // Compute trend data for SVG Chart
   const trendData = useMemo(() => {
@@ -740,12 +751,27 @@ export default function DashboardHome() {
               <Filter className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">Period Filter</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">View stats by month, quarter, or all time</p>
+              <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">Dashboard Filters</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">View stats by category, month, quarter, or all time</p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            {/* Category Dropdown */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+              <Layers className="h-3.5 w-3.5 text-emerald-500" />
+              <select
+                value={selectedCatFilter}
+                onChange={(e) => setSelectedCatFilter(e.target.value)}
+                className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
+              >
+                <option value="All" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">All Categories</option>
+                {uniqueCategories.map((c) => (
+                  <option key={c} value={c} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{c}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Toggle Tabs */}
             <div className="flex items-center p-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
               {[
@@ -776,7 +802,7 @@ export default function DashboardHome() {
                   className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
                 >
                   {availableMonths.map((m) => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
+                    <option key={m.value} value={m.value} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{m.label}</option>
                   ))}
                 </select>
               </div>
@@ -792,7 +818,7 @@ export default function DashboardHome() {
                   className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
                 >
                   {availableQuarters.map((q) => (
-                    <option key={q.value} value={q.value}>{q.label}</option>
+                    <option key={q.value} value={q.value} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{q.label}</option>
                   ))}
                 </select>
               </div>
@@ -1338,31 +1364,17 @@ export default function DashboardHome() {
               {/* Grid Filters */}
               <div className="flex flex-wrap items-center gap-2">
                 <div className="flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs">
-                  <span className="font-semibold uppercase tracking-wider text-[10px] text-slate-500 dark:text-slate-400">Category:</span>
-                  <select
-                    value={selectedCatFilter}
-                    onChange={(e) => setSelectedCatFilter(e.target.value)}
-                    className="bg-transparent border-none text-slate-900 dark:text-white font-bold cursor-pointer outline-none text-xs"
-                  >
-                    <option value="All">All</option>
-                    {uniqueCategories.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs">
                   <span className="font-semibold uppercase tracking-wider text-[10px] text-slate-500 dark:text-slate-400">Status:</span>
                   <select
                     value={selectedStatusFilter}
                     onChange={(e) => setSelectedStatusFilter(e.target.value)}
                     className="bg-transparent text-slate-900 dark:text-white font-semibold cursor-pointer outline-none text-xs"
                   >
-                    <option value="All">All</option>
-                    <option value="Excellent">Excellent (≥90%)</option>
-                    <option value="Healthy">Healthy (50-89%)</option>
-                    <option value="Needs Attention">Needs Attention (&lt;50%)</option>
-                    <option value="Critically Inactive">Inactive</option>
+                    <option value="All" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">All</option>
+                    <option value="Excellent" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Excellent (≥90%)</option>
+                    <option value="Healthy" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Healthy (50-89%)</option>
+                    <option value="Needs Attention" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Needs Attention (&lt;50%)</option>
+                    <option value="Critically Inactive" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Inactive</option>
                   </select>
                 </div>
               </div>
