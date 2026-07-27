@@ -225,20 +225,20 @@ export default function DashboardLayout() {
       <AnimatedBackground isDark={isDark} />
 
       {/* SIDEBAR FOR DESKTOP */}
-      <aside className={`relative z-10 hidden md:flex flex-col h-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-r border-slate-200 dark:border-slate-800 shrink-0 transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'w-20' : 'w-64'
+      <aside className={`relative z-10 hidden md:flex flex-col h-full bg-surface dark:bg-surface border-r border-border-primary shrink-0 transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'w-16' : 'w-52'
         }`}>
-        <div className={`h-16 shrink-0 flex items-center border-b border-slate-200 dark:border-slate-800 transition-all duration-300 ${isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-6'
+        <div className={`h-14 shrink-0 flex items-center border-b border-border-primary transition-all duration-300 ${isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-5'
           }`}>
           <div className="flex items-center gap-2">
             {logo ? (
-              <img src={logo} alt="Logo" className={`object-contain shrink-0 ${isSidebarCollapsed ? 'h-8 w-8' : 'h-10 max-w-full'}`} />
+              <img src={logo} alt="Logo" className={`object-contain shrink-0 ${isSidebarCollapsed ? 'h-7 w-7' : 'h-8 max-w-full'}`} />
             ) : (
               <>
-                <div className="h-8 w-8 rounded-lg bg-[#0A2540] dark:bg-indigo-600 flex items-center justify-center text-white font-bold shadow-md shrink-0">
+                <div className="h-7 w-7 rounded-lg bg-brand flex items-center justify-center text-white font-bold shadow-sm shrink-0">
                   {orgName ? orgName.substring(0, 1).toUpperCase() : 'D'}
                 </div>
                 {!isSidebarCollapsed && (
-                  <span className="font-extrabold text-lg tracking-wider text-[#0A2540] dark:text-indigo-400 animate-fadeIn truncate max-w-[140px]" title={orgName}>
+                  <span className="font-extrabold text-sm tracking-wider text-brand animate-fadeIn truncate max-w-[140px]" title={orgName}>
                     {orgName || 'DEEP MIND'}
                   </span>
                 )}
@@ -248,7 +248,7 @@ export default function DashboardLayout() {
           {!isSidebarCollapsed && (
             <button
               onClick={() => setIsSidebarCollapsed(true)}
-              className="flex items-center justify-center h-8 w-8 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all duration-200"
+              className="flex items-center justify-center h-7 w-7 rounded-lg border border-border-primary hover:bg-bg-secondary text-text-muted hover:text-text-primary transition-all duration-200"
               title="Collapse Sidebar"
             >
               <Menu className="h-4 w-4" />
@@ -277,13 +277,13 @@ export default function DashboardLayout() {
                 key={item.href}
                 to={item.href}
                 title={isSidebarCollapsed ? item.name : ""}
-                className={`flex items-center gap-3 py-3 rounded-xl text-sm font-semibold transition-premium ${isSidebarCollapsed ? 'justify-center px-0 h-11 w-11 mx-auto hover:scale-105' : 'px-4 hover:translate-x-1.5'
+                className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-semibold transition-premium ${isSidebarCollapsed ? 'justify-center px-0 h-10 w-10 mx-auto hover:scale-105' : 'px-3 hover:translate-x-1'
                   } ${isActive
-                    ? 'bg-[#0A2540] dark:bg-indigo-600 text-white shadow-md shadow-[#0a2540]/15 dark:shadow-indigo-500/10 hover:shadow-lg'
-                    : 'text-[#4E5E7A] dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-slate-100 border border-transparent'
+                    ? 'bg-slate-900 dark:bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100 border border-transparent'
                   }`}
               >
-                <Icon className="h-5 w-5 shrink-0" />
+                <Icon className="h-4 w-4 shrink-0" />
                 {!isSidebarCollapsed && <span className="animate-fadeIn">{item.name}</span>}
               </Link>
             );
@@ -295,15 +295,15 @@ export default function DashboardLayout() {
       {/* MAIN SECTION */}
       <div className="relative z-10 flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
         {/* HEADER */}
-        <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 transition-all duration-300">
+        <header className="h-14 shrink-0 flex items-center justify-between px-6 bg-surface/90 backdrop-blur-md border-b border-border-primary sticky top-0 z-40 transition-all duration-300">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors animate-in fade-in"
+            className="md:hidden text-text-secondary hover:text-text-primary transition-colors animate-in fade-in"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </button>
 
-          <h1 className="hidden md:block font-bold text-xl text-slate-900 dark:text-slate-50 font-display transition-colors">
+          <h1 className="hidden md:block font-semibold text-[15px] text-text-primary transition-colors">
             {navItems.find((item) => pathname === item.href)?.name || 'Panel Accounting'}
           </h1>
 
@@ -399,7 +399,7 @@ export default function DashboardLayout() {
         </header>
 
         {/* WORKSPACE AREA */}
-        <main className="p-4 sm:p-6 md:p-8 w-full flex-1">
+        <main className="p-4 sm:p-5 w-full flex-1">
           <Outlet />
         </main>
       </div>

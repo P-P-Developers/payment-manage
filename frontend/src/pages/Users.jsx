@@ -325,7 +325,7 @@ export default function Users() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-100/80 dark:bg-slate-900/80 border-b border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-xs uppercase font-semibold tracking-wider">
+              <tr>
                 <th className="px-6 py-4">User Info</th>
                 <th className="px-6 py-4">System Role</th>
                 <th className="px-6 py-4">2FA Protection</th>
@@ -333,7 +333,7 @@ export default function Users() {
                 <th className="px-6 py-4 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800 text-sm">
+            <tbody className="divide-y divide-border-primary text-sm">
               {loading && users.length === 0 ? (
                 <>
                   <SkeletonRow />
@@ -345,20 +345,20 @@ export default function Users() {
                   <tr key={user._id} className="hover:bg-slate-200/20 dark:hover:bg-slate-800/20 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-indigo-400 font-bold border border-slate-300 dark:border-slate-700 uppercase shadow-inner">
+                        <div className="h-8 w-8 rounded-full bg-brand/10 flex items-center justify-center text-brand font-bold uppercase shadow-inner text-xs">
                           {user.name.substring(0, 2)}
                         </div>
                         <div>
-                          <p className="font-semibold text-slate-900 dark:text-white">{user.name}</p>
-                          <p className="text-xs text-slate-600 dark:text-slate-400">{user.email}</p>
+                          <p className="font-semibold text-text-primary text-[13px]">{user.name}</p>
+                          <p className="text-xs text-text-secondary">{user.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${user.role === 'Admin'
-                          ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                          : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        className={`premium-badge ${user.role === 'Admin'
+                          ? 'badge-primary'
+                          : 'badge-success'
                           }`}
                       >
                         {user.role}
@@ -366,13 +366,13 @@ export default function Users() {
                     </td>
                     <td className="px-6 py-4">
                       {user.twoFactorEnabled ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          <ShieldCheck className="h-3.5 w-3.5" />
+                        <span className="premium-badge badge-success gap-1">
+                          <ShieldCheck className="h-3 w-3" />
                           <span>Enabled</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">
-                          <ShieldX className="h-3.5 w-3.5" />
+                        <span className="premium-badge badge-secondary gap-1">
+                          <ShieldX className="h-3 w-3" />
                           <span>Not Setup</span>
                         </span>
                       )}
@@ -401,7 +401,7 @@ export default function Users() {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleViewUserLogs(user)}
-                          className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-indigo-400 hover:text-indigo-300 flex items-center justify-center border border-slate-300 dark:border-slate-700 transition-colors"
+                          className="h-8 w-8 rounded-lg bg-surface-elevated hover:bg-surface-hover text-brand flex items-center justify-center border border-border-primary transition-colors"
                           title="View User Activity Logs"
                         >
                           <History className="h-4 w-4" />
@@ -409,7 +409,7 @@ export default function Users() {
                         {user.twoFactorEnabled && (
                           <button
                             onClick={() => handleReset2FA(user)}
-                            className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-amber-600/20 hover:border-amber-500/30 text-amber-500 flex items-center justify-center border border-slate-300 dark:border-slate-700 transition-colors"
+                            className="h-8 w-8 rounded-lg bg-surface-elevated hover:bg-surface-hover text-warning flex items-center justify-center border border-border-primary transition-colors"
                             title="Reset 2FA Protection"
                           >
                             <RefreshCw className="h-4 w-4 animate-spin-hover" />
@@ -417,14 +417,14 @@ export default function Users() {
                         )}
                         <button
                           onClick={() => handleOpenEditModal(user)}
-                          className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center border border-slate-300 dark:border-slate-700 transition-colors"
+                          className="h-8 w-8 rounded-lg bg-surface-elevated hover:bg-surface-hover text-text-primary flex items-center justify-center border border-border-primary transition-colors"
                           title="Edit User"
                         >
                           <Edit2 className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user)}
-                          className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-rose-600/20 text-slate-700 dark:text-slate-300 hover:text-rose-400 flex items-center justify-center border border-slate-300 dark:border-slate-700 hover:border-rose-500/30 transition-colors"
+                          className="h-8 w-8 rounded-lg bg-surface-elevated hover:bg-danger hover:text-white text-danger flex items-center justify-center border border-border-primary transition-colors"
                           title="Delete User"
                         >
                           <Trash2 className="h-4 w-4" />

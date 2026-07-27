@@ -86,18 +86,18 @@ export default function TransactionLedgerTab({
   return (
     <>
       {/* Filters bar */}
-      <div className="w-full bg-slate-100/10 dark:bg-slate-900/10 p-3 rounded-2xl border border-slate-900/40 space-y-2.5">
+      <div className="w-full bg-surface border border-border-primary p-3 rounded-xl space-y-2.5">
 
         {/* Row 1: Search + Reset */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search panel client or category..."
-              className="w-full rounded-xl pl-10 pr-4 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500/40"
+              className="w-full rounded-lg pl-9 pr-4 text-xs premium-input bg-surface border border-border-primary text-text-primary focus:outline-none"
             />
           </div>
           {(startDate || endDate || transactionTypeFilter !== 'all' || typeFilter !== 'All' || modeFilter !== 'All' || categoryFilter !== 'All' || searchQuery) && (
@@ -125,29 +125,29 @@ export default function TransactionLedgerTab({
           <select
             value={transactionTypeFilter}
             onChange={(e) => setTransactionTypeFilter(e.target.value)}
-            className="flex-1 min-w-[130px] rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-semibold"
+            className="flex-1 min-w-[130px] rounded-lg px-3 text-xs premium-input bg-surface border border-border-primary text-text-primary cursor-pointer font-semibold"
           >
-            <option value="all" className="bg-slate-100 dark:bg-slate-900">All Transactions</option>
-            <option value="bill" className="bg-slate-100 dark:bg-slate-900">Bills Only</option>
-            <option value="received" className="bg-slate-100 dark:bg-slate-900">Payments Only</option>
+            <option value="all">All Transactions</option>
+            <option value="bill">Bills Only</option>
+            <option value="received">Payments Only</option>
           </select>
 
           {/* Date Range Picker */}
-          <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 flex-1 min-w-[200px]">
+          <div className="flex items-center gap-1.5 bg-surface border border-border-primary rounded-lg px-3 py-1.5 flex-1 min-w-[200px]" style={{height: '36px'}}>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               onClick={(e) => e.target.showPicker()}
-              className="flex-1 min-w-0 bg-transparent text-slate-900 dark:text-white focus:outline-none cursor-pointer text-xs font-semibold"
+              className="flex-1 min-w-0 bg-transparent text-text-primary focus:outline-none cursor-pointer text-xs font-semibold"
             />
-            <span className="text-slate-500 text-[9px] uppercase shrink-0">to</span>
+            <span className="text-text-muted text-[9px] uppercase shrink-0">to</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
               onClick={(e) => e.target.showPicker()}
-              className="flex-1 min-w-0 bg-transparent text-slate-900 dark:text-white focus:outline-none cursor-pointer text-xs font-semibold"
+              className="flex-1 min-w-0 bg-transparent text-text-primary focus:outline-none cursor-pointer text-xs font-semibold"
             />
           </div>
 
@@ -155,11 +155,11 @@ export default function TransactionLedgerTab({
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="flex-1 min-w-[120px] rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
+            className="flex-1 min-w-[120px] rounded-lg px-3 text-xs premium-input bg-surface border border-border-primary text-text-primary cursor-pointer font-medium"
           >
-            <option value="All" className="bg-slate-100 dark:bg-slate-900">All Categories</option>
+            <option value="All">All Categories</option>
             {categories.map((cat) => (
-              <option key={cat._id} value={cat.name} className="bg-slate-100 dark:bg-slate-900">
+              <option key={cat._id} value={cat.name}>
                 {cat.name}
               </option>
             ))}
@@ -169,11 +169,11 @@ export default function TransactionLedgerTab({
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="flex-1 min-w-[110px] rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
+            className="flex-1 min-w-[110px] rounded-lg px-3 text-xs premium-input bg-surface border border-border-primary text-text-primary cursor-pointer font-medium"
           >
-            <option value="All" className="bg-slate-100 dark:bg-slate-900">All Charges</option>
+            <option value="All">All Charges</option>
             {(paymentTypes.length > 0 ? paymentTypes : FALLBACK_PAYMENT_TYPES.map(name => ({ _id: name, name }))).map((pt) => (
-              <option key={pt._id} value={pt.name} className="bg-slate-100 dark:bg-slate-900">{pt.name}</option>
+              <option key={pt._id} value={pt.name}>{pt.name}</option>
             ))}
           </select>
 
@@ -181,34 +181,34 @@ export default function TransactionLedgerTab({
           <select
             value={modeFilter}
             onChange={(e) => setModeFilter(e.target.value)}
-            className="flex-1 min-w-[110px] rounded-xl px-3 py-2.5 text-xs glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all font-medium"
+            className="flex-1 min-w-[110px] rounded-lg px-3 text-xs premium-input bg-surface border border-border-primary text-text-primary cursor-pointer font-medium"
           >
-            <option value="All" className="bg-slate-100 dark:bg-slate-900">All Modes</option>
-            <option value="UPI" className="bg-slate-100 dark:bg-slate-900">UPI</option>
-            <option value="Cash" className="bg-slate-100 dark:bg-slate-900">Cash</option>
-            <option value="Bank Transfer" className="bg-slate-100 dark:bg-slate-900">Bank Transfer</option>
-            <option value="Online" className="bg-slate-100 dark:bg-slate-900">Online</option>
+            <option value="All">All Modes</option>
+            <option value="UPI">UPI</option>
+            <option value="Cash">Cash</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="Online">Online</option>
           </select>
 
         </div>
       </div>
 
       {/* Payments Table */}
-      <div className="rounded-2xl bg-slate-50/60 bgw light:bg-slate-950/60 border border-slate-300/80 dark:border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md">
+      <div className="rounded-xl bg-surface border border-border-primary overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs min-w-[900px]">
             <thead>
-              <tr className="bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[11px]">
-                <th className="py-3.5 px-4 text-center w-14">S.No</th>
-                <th className="py-3.5 px-5">Date &amp; Time</th>
-                <th className="py-3.5 px-5">Panel Client</th>
-                <th className="py-3.5 px-5">Billing Type</th>
-                <th className="py-3.5 px-5">Financial Details</th>
-                <th className="py-3.5 px-5">Collected By</th>
-                <th className="py-3.5 px-4 text-center w-28">Action</th>
+              <tr className="bg-bg-secondary border-b border-border-primary text-text-secondary uppercase tracking-wider text-[11px]">
+                <th className="py-3 px-4 text-center w-14">S.No</th>
+                <th className="py-3 px-5">Date &amp; Time</th>
+                <th className="py-3 px-5">Panel Client</th>
+                <th className="py-3 px-5">Billing Type</th>
+                <th className="py-3 px-5">Financial Details</th>
+                <th className="py-3 px-5">Collected By</th>
+                <th className="py-3 px-4 text-center w-28">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80 text-slate-700 dark:text-slate-300">
+            <tbody className="divide-y divide-border-primary text-text-primary">
               {loading && payments.length === 0 ? (
                 <>
                   <SkeletonRow />
@@ -379,7 +379,7 @@ export default function TransactionLedgerTab({
               ))}
               {filteredPayments.length === 0 && !loading && (
                 <tr>
-                  <td colSpan="7" className="text-center py-8 text-slate-500 dark:text-slate-500 italic font-medium">
+                  <td colSpan="7" className="text-center py-8 text-text-muted italic font-medium">
                     No payments recorded yet.
                   </td>
                 </tr>
@@ -389,7 +389,7 @@ export default function TransactionLedgerTab({
         </div>
 
         {/* Pagination Controls */}
-        <div className="p-4 bg-slate-100/40 dark:bg-slate-900/40 border-t border-slate-300 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+        <div className="p-3 bg-bg-secondary border-t border-border-primary flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <div className="flex flex-wrap items-center gap-4">
             <p className="text-slate-600 dark:text-slate-400 font-medium">
               Showing <span className="text-indigo-400">{filteredPayments.length}</span> of{' '}

@@ -732,7 +732,7 @@ export default function DashboardHome() {
         {/* Welcome Banner */}
 
         {/* Filter Toolbar Card */}
-        <div className="rounded-3xl analytics-card bg-gradient-to-b from-slate-50/40 dark:from-slate-950/20 via-white dark:via-slate-900 to-white dark:to-slate-900 border border-slate-200 dark:border-slate-800/85 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-0.5 hover:shadow-xl">
+        <div className="rounded-2xl analytics-card bg-surface dark:bg-surface border border-border-primary p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm relative overflow-hidden transition-premium hover:-translate-y-0.5 hover:shadow-md">
           {/* Top Accent Gradient Border */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-violet-500"></div>
 
@@ -741,8 +741,8 @@ export default function DashboardHome() {
               <Filter className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-slate-800 dark:text-slate-50 font-display">Period Filtering</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400">View stats for a custom month, quarter, or overall</p>
+              <h3 className="font-bold text-sm text-text-primary font-display">Period Filtering</h3>
+              <p className="text-xs text-text-secondary">View stats for a custom month, quarter, or overall</p>
             </div>
           </div>
 
@@ -829,7 +829,7 @@ export default function DashboardHome() {
             return (
               <div
                 key={i}
-                className={`rounded-3xl analytics-card bg-gradient-to-b ${card.color} border p-4 sm:p-6 flex flex-col justify-between shadow-lg relative overflow-hidden backdrop-blur-md transition-premium hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-2xl`}
+                className={`rounded-2xl analytics-card bg-surface dark:bg-surface border border-border-primary p-4 sm:p-5 flex flex-col justify-between shadow-sm relative overflow-hidden transition-premium hover:-translate-y-1 hover:shadow-md`}
               >
                 {/* Top Accent Gradient Border */}
                 <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${card.topBorderColor}`}></div>
@@ -862,8 +862,8 @@ export default function DashboardHome() {
                 </div>
 
                 {/* Card Value */}
-                <div className="mb-5 pb-4 border-b border-slate-100 dark:border-slate-800 flex items-baseline">
-                  <span className={`text-2xl sm:text-3xl font-black ${card.valueColor || 'text-slate-800 dark:text-slate-100'} font-display tracking-tight leading-none`}>{card.value}</span>
+                <div className="mb-4 pb-3 border-b border-border-primary flex items-baseline">
+                  <span className={`text-xl sm:text-2xl font-bold ${card.valueColor || 'text-text-primary'} font-display tracking-tight leading-none`}>{card.value}</span>
                 </div>
 
                 {/* Sub-breakdown Items (The Magic Section) */}
