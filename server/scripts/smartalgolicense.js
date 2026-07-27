@@ -48,7 +48,7 @@ const LicennseUpdate = async () => {
             "page": 1,
             "limit": 10000,
             "search": "",
-            "startDate": "2020-05-25",
+            "startDate": "2026-04-01",
             "endDate": "2027-05-25",
             "month": "",
             "licAdd": true

@@ -6,7 +6,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 // ─── DB Connection ────────────────────────────────────────────────────
 const MONGO_URI = process.env.MONGO_URI;
-const DB_NAME   = process.env.DB_NAME;
+const DB_NAME = process.env.DB_NAME;
 
 if (!MONGO_URI) {
     console.error('❌ MONGO_URI is not defined in .env file');
@@ -26,7 +26,7 @@ const ALGO_PAYLOAD = {
     page: 1,
     limit: 10000,
     search: '',
-    startDate: '2020-05-25',
+    startDate: '2026-04-01',
     endDate: new Date().toISOString().split('T')[0],   // today
     month: '',
     licAdd: true
@@ -75,10 +75,10 @@ async function checkMissingLicenses() {
 
             apiAgg[panelName][dateStr].count += number;
             apiAgg[panelName][dateStr].records.push({
-                panelName : item.panal_name,
-                msg       : item.msg,
-                qty       : number,
-                createdAt : item.createdAt
+                panelName: item.panal_name,
+                msg: item.msg,
+                qty: number,
+                createdAt: item.createdAt
             });
         }
 
@@ -87,21 +87,21 @@ async function checkMissingLicenses() {
         // ── 3. Fetch DB payments (License type) ─────────────────────
         console.log('Fetching License payments from local DB...');
         const dbPayments = await Payment.find({
-            billAmount  : { $gt: 0 },
-            paymentType : 'License'
+            billAmount: { $gt: 0 },
+            paymentType: 'License'
         }).lean();
         console.log(`✅ Found ${dbPayments.length} License payments in DB.`);
 
         // Build panel lookup maps
         const panels = await Panel.find({}).lean();
-        const panelMap      = {};   // name(lower) -> id
+        const panelMap = {};   // name(lower) -> id
         const panelIdToName = {};   // id -> name
 
         for (const p of panels) {
             if (p.panelName) {
                 const key = p.panelName.toLowerCase().trim();
-                panelMap[key]                    = p._id.toString();
-                panelIdToName[p._id.toString()]  = p.panelName;
+                panelMap[key] = p._id.toString();
+                panelIdToName[p._id.toString()] = p.panelName;
             }
         }
 
@@ -109,7 +109,7 @@ async function checkMissingLicenses() {
         const dbAgg = {};
 
         for (const pay of dbPayments) {
-            const panelId   = pay.panelId ? pay.panelId.toString() : 'unknown';
+            const panelId = pay.panelId ? pay.panelId.toString() : 'unknown';
             const panelName = (panelIdToName[panelId] || 'unknown').toLowerCase().trim();
 
             const d = new Date(pay.timestamp || pay.createdAt);
@@ -127,10 +127,10 @@ async function checkMissingLicenses() {
 
         // ── 4. Compare & build report ────────────────────────────────
         const report = {
-            generatedAt     : new Date().toISOString(),
-            missingEntries  : [],
-            countMismatches : [],
-            panelSummaries  : [] // To show total API vs DB for each panel
+            generatedAt: new Date().toISOString(),
+            missingEntries: [],
+            countMismatches: [],
+            panelSummaries: [] // To show total API vs DB for each panel
         };
 
         for (const [panelName, datesMap] of Object.entries(apiAgg)) {
@@ -146,34 +146,34 @@ async function checkMissingLicenses() {
 
             for (const [dateStr, apiInfo] of Object.entries(datesMap)) {
                 const dbInfo = dbAgg[panelName] && dbAgg[panelName][dateStr];
-                
+
                 totalApiForPanel += apiInfo.count;
-                
+
                 if (!dbInfo) {
                     // Missing entirely
                     report.missingEntries.push({
-                        panelName  : panelIdToName[panelId],
-                        date       : dateStr,
-                        apiCount   : apiInfo.count,
-                        message    : 'API has license entry for this date but DB has none'
+                        panelName: panelIdToName[panelId],
+                        date: dateStr,
+                        apiCount: apiInfo.count,
+                        message: 'API has license entry for this date but DB has none'
                     });
                 } else {
                     totalDbForPanel += dbInfo.quantity;
-                    
+
                     if (dbInfo.quantity !== apiInfo.count) {
                         // Exists but count is different
                         report.countMismatches.push({
-                            panelName  : panelIdToName[panelId],
-                            date       : dateStr,
-                            apiCount   : apiInfo.count,
-                            dbQuantity : dbInfo.quantity,
-                            difference : apiInfo.count - dbInfo.quantity,
-                            message    : 'License count mismatch between API and DB'
+                            panelName: panelIdToName[panelId],
+                            date: dateStr,
+                            apiCount: apiInfo.count,
+                            dbQuantity: dbInfo.quantity,
+                            difference: apiInfo.count - dbInfo.quantity,
+                            message: 'License count mismatch between API and DB'
                         });
                     }
                 }
             }
-            
+
             // Add any DB entries for this panel that are NOT in API to the total DB count
             if (dbAgg[panelName]) {
                 for (const [dateStr, dbInfo] of Object.entries(dbAgg[panelName])) {

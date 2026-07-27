@@ -129,7 +129,7 @@ async function getLicenseReport() {
     const ALGO_URL = 'https://newpenal.deepmindinfotech.com/backend/getall/history';
     const ALGO_PAYLOAD = {
         page: 1, limit: 10000, search: '',
-        startDate: '2020-05-25',
+        startDate: '2026-04-01',
         endDate: new Date().toISOString().split('T')[0],
         month: '', licAdd: true
     };
@@ -158,8 +158,8 @@ async function getLicenseReport() {
     }).lean();
 
     const panels = await Panel.find({}).lean();
-    const panelMap = {}; 
-    const panelIdToName = {}; 
+    const panelMap = {};
+    const panelIdToName = {};
     for (const p of panels) {
         if (p.panelName) {
             const key = p.panelName.toLowerCase().trim();
