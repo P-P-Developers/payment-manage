@@ -33,90 +33,94 @@ const LicennseUpdate = async () => {
         const today = new Date();
         const dateString = today.toISOString().split('T')[0];
 
-        // const payload = {
-        //     "page": 1,
-        //     "limit": 1000,
-        //     "search": "",
-        //     "startDate": dateString,
-        //     "endDate": dateString,
-        //     "month": "",
-        //     "licAdd": true
-        // };
-
-
         const payload = {
             "page": 1,
-            "limit": 10,
+            "limit": 10000,
             "search": "",
-            "startDate": "2026-05-25",
-            "endDate": "2026-05-25",
+            // "startDate": dateString,
+            // "endDate": dateString,
             "month": "",
             "licAdd": true
-        }
+        };
+
+
+        // const payload = {
+        //     "page": 1,
+        //     "limit": 10,
+        //     "search": "",
+        //     "startDate": "2026-05-25",
+        //     "endDate": "2026-05-25",
+        //     "month": "",
+        //     "licAdd": true
+        // }
 
         console.log(`Fetching licenses from ${algoUrl} for date ${dateString}...`);
         const response = await axios.post(algoUrl, payload);
 
-        if (response.data.status == true) {
-            let LicenseData = response.data.data;
+        console.log("response", response?.data?.data);
+        console.log("response Count", response?.data?.data?.length);
 
-            // Map results to { panal_name, license: count }
-            let result = LicenseData.map((item) => {
-                let number = item.msg.match(/\d+/)?.[0];
-                return {
-                    panal_name: item.panal_name,
-                    license: Number(number) || 0
-                };
-            });
 
-            console.log(`Fetched ${result.length} license records from remote.`);
+        // if (response.data.status == true) {
+        //     let LicenseData = response.data.data;
 
-            // Loop through results
-            for (const item of result) {
-                if (item.license <= 0) continue;
+        //     // Map results to { panal_name, license: count }
+        //     let result = LicenseData.map((item) => {
+        //         let number = item.msg.match(/\d+/)?.[0];
+        //         return {
+        //             panal_name: item.panal_name,
+        //             license: Number(number) || 0
+        //         };
+        //     });
 
-                // Find matching panel in local DB by name (case-insensitive)
-                const panel = await Panel.findOne({ panelName: new RegExp(`^${item.panal_name}$`, 'i') });
+        //     console.log(`Fetched ${result.length} license records from remote.`);
 
-                if (panel) {
-                    const quantity = item.license;
-                    // Ensure licenseCharges is set, fallback to 1000 if not available
-                    const unitPrice = panel.licenseCharges || 1000;
-                    const billAmount = quantity * unitPrice;
+        //     // Loop through results
+        //     // for (const item of result) {
+        //     //     if (item.license <= 0) continue;
 
-                    // Create payment bill
-                    const payment = await Payment.create({
-                        panelId: panel._id,
-                        paymentType: 'License',
-                        amountReceived: 0,
-                        paymentMode: 'UPI',
-                        bankName: '',
-                        quantity: quantity,
-                        unitPrice: unitPrice,
-                        billAmount: billAmount,
-                        billDiscount: 0,
-                        paymentDiscount: 0,
-                        remark: `Synced ${quantity} licenses from smartalgo`,
-                        addedBy: admin._id,
-                        timestamp: new Date(item.createdAt)
-                    });
+        //     //     // Find matching panel in local DB by name (case-insensitive)
+        //     //     const panel = await Panel.findOne({ panelName: new RegExp(`^${item.panal_name}$`, 'i') });
 
-                    await Log.create({
-                        userId: admin._id,
-                        actionType: 'ADD',
-                        module: 'Payment',
-                        details: `Generated license bill of ₹${billAmount} for panel "${panel.panelName}" for ${quantity} licenses.`,
-                        timestamp: new Date()
-                    });
-                    console.log(`✅ Billed panel "${panel.panelName}" for ${quantity} licenses (₹${billAmount}).`);
+        //     //     if (panel) {
+        //     //         const quantity = item.license;
+        //     //         // Ensure licenseCharges is set, fallback to 1000 if not available
+        //     //         const unitPrice = panel.licenseCharges || 1000;
+        //     //         const billAmount = quantity * unitPrice;
 
-                } else {
-                    console.log(`⚠️ Panel "${item.panal_name}" not found in local DB. Skipping.`);
-                }
-            }
-        } else {
-            console.log('Failed to fetch data from remote API or status is false.');
-        }
+        //     //         // Create payment bill
+        //     //         const payment = await Payment.create({
+        //     //             panelId: panel._id,
+        //     //             paymentType: 'License',
+        //     //             amountReceived: 0,
+        //     //             paymentMode: 'UPI',
+        //     //             bankName: '',
+        //     //             quantity: quantity,
+        //     //             unitPrice: unitPrice,
+        //     //             billAmount: billAmount,
+        //     //             billDiscount: 0,
+        //     //             paymentDiscount: 0,
+        //     //             remark: `Synced ${quantity} licenses from smartalgo`,
+        //     //             addedBy: admin._id,
+        //     //             timestamp: new Date(item.createdAt)
+        //     //         });
+
+        //     //         await Log.create({
+        //     //             userId: admin._id,
+        //     //             actionType: 'ADD',
+        //     //             module: 'Payment',
+        //     //             details: `Generated license bill of ₹${billAmount} for panel "${panel.panelName}" for ${quantity} licenses.`,
+        //     //             timestamp: new Date()
+        //     //         });
+        //     //         console.log(`✅ Billed panel "${panel.panelName}" for ${quantity} licenses (₹${billAmount}).`);
+
+        //     //     } else {
+        //     //         console.log(`⚠️ Panel "${item.panal_name}" not found in local DB. Skipping.`);
+        //     //     }
+        //     // }
+        // } else {
+        //     console.log('Failed to fetch data from remote API or status is false.');
+        // }
 
         await mongoose.disconnect();
         console.log('Disconnected from MongoDB.');
