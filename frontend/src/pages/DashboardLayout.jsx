@@ -242,7 +242,7 @@ export default function DashboardLayout() {
                   {orgName ? orgName.substring(0, 1).toUpperCase() : 'D'}
                 </div>
                 {!isSidebarCollapsed && (
-                  <span className="font-extrabold text-sm tracking-wider text-brand animate-fadeIn truncate max-w-[140px]" title={orgName}>
+                  <span className="font-extrabold text-sm tracking-wider text-white animate-fadeIn truncate max-w-[140px]" title={orgName}>
                     {orgName || 'DEEP MIND'}
                   </span>
                 )}
@@ -283,8 +283,8 @@ export default function DashboardLayout() {
                 title={isSidebarCollapsed ? item.name : ""}
                 className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-semibold transition-premium ${isSidebarCollapsed ? 'justify-center px-0 h-10 w-10 mx-auto hover:scale-105' : 'px-3 hover:translate-x-1'
                   } ${isActive
-                    ? 'bg-gradient-to-r from-[#4F46E5] to-[#6366F1] dark:bg-indigo-600 text-white shadow-sm shadow-[#4F46E5]/20'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100 border border-transparent'
+                    ? 'bg-gradient-to-r from-[#4F46E5] to-[#6366F1] text-white shadow-sm shadow-[#4F46E5]/30'
+                    : 'text-slate-400 hover:bg-white/8 hover:text-white border border-transparent'
                   }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
