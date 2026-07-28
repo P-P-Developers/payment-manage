@@ -195,19 +195,19 @@ export default function DashboardLayout() {
       permission: 'view_panels',
     },
     {
-      name: 'Receive Payments',
+      name: 'Payments',
       href: '/dashboard/payments',
       icon: CircleDollarSign,
       permission: 'add_payments',
     },
     {
-      name: 'Statement Passbook',
+      name: 'Passbook',
       href: '/dashboard/statement',
       icon: BookOpen,
       permission: 'view_panels',
     },
     {
-      name: 'Activity Logs',
+      name: 'Logs',
       href: '/dashboard/logs',
       icon: ClipboardList,
       isAdminOnly: true,

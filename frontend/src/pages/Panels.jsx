@@ -780,13 +780,13 @@ export default function Panels() {
                     Panel (Client) Name
                   </label>
                   <div className="relative">
-                    <Layers className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
+                    <Layers className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500 pointer-events-none" />
                     <input
                       type="text"
                       value={panelName}
                       onChange={(e) => setPanelName(e.target.value)}
                       placeholder="Gold Trading Panel"
-                      className={`w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input ${formErrors.panelName ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
+                      className={`w-full rounded-xl pl-10 pr-4 py-3 text-sm glass-input ${formErrors.panelName ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
                       required
                     />
                   </div>
@@ -798,13 +798,13 @@ export default function Panels() {
                     Owner Name
                   </label>
                   <div className="relative">
-                    <UserIcon className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
+                    <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500 pointer-events-none" />
                     <input
                       type="text"
                       value={ownerName}
                       onChange={(e) => setOwnerName(e.target.value)}
                       placeholder="John Doe"
-                      className={`w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input ${formErrors.ownerName ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
+                      className={`w-full rounded-xl pl-10 pr-4 py-3 text-sm glass-input ${formErrors.ownerName ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
                       required
                     />
                   </div>
@@ -816,13 +816,13 @@ export default function Panels() {
                     Owner Email
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500 pointer-events-none" />
                     <input
                       type="email"
                       value={ownerEmail}
                       onChange={(e) => setOwnerEmail(e.target.value)}
                       placeholder="john@example.com"
-                      className={`w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input ${formErrors.ownerEmail ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
+                      className={`w-full rounded-xl pl-10 pr-4 py-3 text-sm glass-input ${formErrors.ownerEmail ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
                       required
                     />
                   </div>
@@ -834,7 +834,7 @@ export default function Panels() {
                     Phone Number
                   </label>
                   <div className="relative">
-                    <Phone className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
+                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500 pointer-events-none" />
                     <input
                       type="text"
                       value={phoneNumber}
@@ -845,7 +845,7 @@ export default function Panels() {
                         }
                       }}
                       placeholder="9876543210"
-                      className={`w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input ${formErrors.phoneNumber ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
+                      className={`w-full rounded-xl pl-10 pr-4 py-3 text-sm glass-input ${formErrors.phoneNumber ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
                       required
                     />
                   </div>
@@ -857,13 +857,13 @@ export default function Panels() {
                     GST Number (Optional)
                   </label>
                   <div className="relative">
-                    <Tag className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
+                    <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500 pointer-events-none" />
                     <input
                       type="text"
                       value={gstNumber}
                       onChange={(e) => setGstNumber(e.target.value.toUpperCase())}
                       placeholder="22AAAAA0000A1Z5"
-                      className="w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input"
+                      className="w-full rounded-xl pl-10 pr-4 py-3 text-sm glass-input"
                     />
                   </div>
                 </div>
@@ -873,11 +873,11 @@ export default function Panels() {
                     Panel Category
                   </label>
                   <div className="relative">
-                    <Layers className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
+                    <Layers className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500 pointer-events-none" />
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input focus:outline-none appearance-none cursor-pointer"
+                      className="w-full rounded-xl pl-10 pr-4 py-3 text-sm glass-input focus:outline-none appearance-none cursor-pointer"
                     >
                       {categories.length === 0 ? (
                         <option value="Algo">Algo</option>
@@ -897,11 +897,11 @@ export default function Panels() {
                     Panel Status
                   </label>
                   <div className="relative">
-                    <Info className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
+                    <Info className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500 pointer-events-none" />
                     <select
                       value={status}
                       onChange={(e) => setStatus(e.target.value)}
-                      className="w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input focus:outline-none appearance-none cursor-pointer"
+                      className="w-full rounded-xl pl-10 pr-4 py-3 text-sm glass-input focus:outline-none appearance-none cursor-pointer"
                     >
                       <option value="Active" className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">Active</option>
                       <option value="Stopped" className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">Stopped</option>
@@ -918,12 +918,12 @@ export default function Panels() {
                       License Charges (₹)
                     </label>
                     <div className="relative">
-                      <Hash className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
+                      <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500 pointer-events-none" />
                       <input
                         type="number"
                         value={licenseCharges}
                         onChange={(e) => setLicenseCharges(e.target.value)}
-                        className={`w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input ${formErrors.licenseCharges ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
+                        className={`w-full rounded-xl pl-10 pr-4 py-3 text-sm glass-input ${formErrors.licenseCharges ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
                         required
                         min="0"
                       />
@@ -936,12 +936,12 @@ export default function Panels() {
                       IP Routing Charges (₹)
                     </label>
                     <div className="relative">
-                      <Globe className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
+                      <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500 pointer-events-none" />
                       <input
                         type="number"
                         value={ipCharges}
                         onChange={(e) => setIpCharges(e.target.value)}
-                        className={`w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input ${formErrors.ipCharges ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
+                        className={`w-full rounded-xl pl-10 pr-4 py-3 text-sm glass-input ${formErrors.ipCharges ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
                         required
                         min="0"
                       />
@@ -954,12 +954,12 @@ export default function Panels() {
                       Maintenance support Charges (₹)
                     </label>
                     <div className="relative">
-                      <Wrench className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
+                      <Wrench className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500 pointer-events-none" />
                       <input
                         type="number"
                         value={maintenanceCharges}
                         onChange={(e) => setMaintenanceCharges(e.target.value)}
-                        className={`w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input ${formErrors.maintenanceCharges ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
+                        className={`w-full rounded-xl pl-10 pr-4 py-3 text-sm glass-input ${formErrors.maintenanceCharges ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
                         required
                         min="0"
                       />
@@ -972,12 +972,12 @@ export default function Panels() {
                       Opening Balance (Previous Due Dues) (₹)
                     </label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500 dark:text-slate-500" />
+                      <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-500 pointer-events-none" />
                       <input
                         type="number"
                         value={openingBalance}
                         onChange={(e) => setOpeningBalance(e.target.value)}
-                        className={`w-full rounded-xl pl-11 pr-4 py-3 text-sm glass-input ${formErrors.openingBalance ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
+                        className={`w-full rounded-xl pl-10 pr-4 py-3 text-sm glass-input ${formErrors.openingBalance ? 'border-rose-500/50 focus:border-rose-500' : ''}`}
                         required
                         min="0"
                       />

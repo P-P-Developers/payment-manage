@@ -461,7 +461,7 @@ export default function DashboardHome() {
     const panelStats = Object.values(map).map((panel) => {
       const netBilled = panel.totalBilled - (panel.billDiscount || 0);
       const netPaid = panel.totalPaid + (panel.paymentDiscount || 0);
-      const rate = netBilled > 0 ? Math.round((panel.totalPaid / netBilled) * 100) : 0;
+      const rate = netBilled > 0 ? Math.min(Math.round((netPaid / netBilled) * 100), 100) : 0;
       const outstanding = (panel.openingBalance || 0) + netBilled - netPaid;
 
       let status = 'Critically Inactive';
