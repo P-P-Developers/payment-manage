@@ -87,7 +87,6 @@ export default function Users() {
         setUserLogs(data.logs);
       }
     } catch (err) {
-      console.log('Failed to load user logs', err);
     } finally {
       setLoadingLogs(false);
     }
@@ -406,36 +405,45 @@ export default function Users() {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
+
+                        {/* View Logs */}
                         <button
                           onClick={() => handleViewUserLogs(user)}
-                          className="h-8 w-8 rounded-lg bg-surface-elevated hover:bg-surface-hover text-brand flex items-center justify-center border border-border-primary transition-colors"
+                          className="h-9 w-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 flex items-center justify-center transition-all duration-200"
                           title="View User Activity Logs"
                         >
                           <History className="h-4 w-4" />
                         </button>
+
+                        {/* Reset 2FA */}
                         {user.twoFactorEnabled && (
                           <button
                             onClick={() => handleReset2FA(user)}
-                            className="h-8 w-8 rounded-lg bg-surface-elevated hover:bg-surface-hover text-warning flex items-center justify-center border border-border-primary transition-colors"
+                            className="h-9 w-9 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200 flex items-center justify-center transition-all duration-200"
                             title="Reset 2FA Protection"
                           >
                             <RefreshCw className="h-4 w-4 animate-spin-hover" />
                           </button>
                         )}
+
+                        {/* Edit */}
                         <button
                           onClick={() => handleOpenEditModal(user)}
-                          className="h-8 w-8 rounded-lg bg-surface-elevated hover:bg-surface-hover text-text-primary flex items-center justify-center border border-border-primary transition-colors"
+                          className="h-9 w-9 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 flex items-center justify-center transition-all duration-200"
                           title="Edit User"
                         >
                           <Edit2 className="h-4 w-4" />
                         </button>
+
+                        {/* Delete */}
                         <button
                           onClick={() => handleDeleteUser(user)}
-                          className="h-8 w-8 rounded-lg bg-surface-elevated hover:bg-danger hover:text-white text-danger flex items-center justify-center border border-border-primary transition-colors"
+                          className="h-9 w-9 rounded-lg bg-red-50 hover:bg-red-600 hover:text-white text-red-600 border border-red-200 flex items-center justify-center transition-all duration-200"
                           title="Delete User"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
+
                       </div>
                     </td>
                   </tr>

@@ -133,7 +133,7 @@ export default function DashboardLayout() {
           localStorage.setItem('app_system_settings', JSON.stringify(s));
         }
       } catch (e) {
-        console.log('Failed to parse saved settings', e);
+
       }
     };
 
@@ -162,7 +162,7 @@ export default function DashboardLayout() {
     try {
       await apiRequest('/auth/logout', { method: 'POST' });
     } catch (e) {
-      console.log('Logout error', e);
+
     } finally {
       clearAuth();
       navigate('/login', { replace: true });

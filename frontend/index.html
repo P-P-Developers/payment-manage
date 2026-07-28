@@ -9,7 +9,9 @@
   <title>Payment Manage</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700&family=Poppins:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700&family=Poppins:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap"
+    rel="stylesheet">
 </head>
 
 <body class="bg-slate-50 text-slate-900">
@@ -20,7 +22,7 @@
     (() => {
       const host = window.location.hostname;
       const isLocal = host === "localhost" || host === "127.0.0.1";
-      console.log("isLocal", isLocal)
+
       if (isLocal) return; // skip in local
 
       // Right click disable
@@ -73,7 +75,7 @@
       });
       setInterval(() => {
         devtoolsOpen = false;
-        console.log(element);
+
         console.clear();
         if (devtoolsOpen) {
           blockPage();

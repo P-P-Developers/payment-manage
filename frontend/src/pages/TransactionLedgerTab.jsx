@@ -133,7 +133,7 @@ export default function TransactionLedgerTab({
           </select>
 
           {/* Date Range Picker */}
-          <div className="flex items-center gap-1.5 bg-surface border border-border-primary rounded-lg px-3 py-1.5 flex-1 min-w-[200px]" style={{height: '36px'}}>
+          <div className="flex items-center gap-1.5 bg-surface border border-border-primary rounded-lg px-3 py-1.5 flex-1 min-w-[200px]" style={{ height: '36px' }}>
             <input
               type="date"
               value={startDate}
@@ -379,8 +379,40 @@ export default function TransactionLedgerTab({
               ))}
               {filteredPayments.length === 0 && !loading && (
                 <tr>
-                  <td colSpan="7" className="text-center py-8 text-text-muted italic font-medium">
-                    No payments recorded yet.
+                  <td colSpan="7" className="py-12">
+                    <div className="flex flex-col items-center justify-center">
+                      {/* No Data Icon */}
+                      <div className="relative w-28 h-28 mb-5">
+                        <div className="absolute inset-0 rounded-full bg-gray-100 dark:bg-gray-800"></div>
+
+                        <div className="absolute inset-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-white dark:bg-gray-900">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="w-12 h-12 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={1.8}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M3 7h18M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2zm3 8h4m-4 4h6"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+
+                      {/* Text */}
+                      <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+                        No Payments Found
+                      </h3>
+
+                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-xs text-center">
+                        There are no payment records available yet.
+                        New payments will appear here once they are added.
+                      </p>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -395,7 +427,7 @@ export default function TransactionLedgerTab({
               Showing <span className="text-indigo-400">{filteredPayments.length}</span> of{' '}
               <span className="text-slate-900 dark:text-white">{totalPaymentsCount}</span> ledger entries
             </p>
-            
+
             {/* Page Size Select */}
             <div className="flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-2.5 py-1.5 text-slate-700 dark:text-slate-300 shadow-sm">
               <span className="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wide shrink-0 text-[10px]">Show:</span>
@@ -415,7 +447,7 @@ export default function TransactionLedgerTab({
               </select>
             </div>
           </div>
-          
+
           {pageSize !== 'all' && totalPages > 1 && (
             <div className="flex items-center gap-2">
               <button

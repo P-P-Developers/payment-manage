@@ -9,7 +9,7 @@ module.exports = {
   init: () => {
     // 1. Database Backup 45 min of 11 PM
     cron.schedule('45 23 * * *', () => {
-      console.log("Run Backup Cron")
+
       databaseBackup()
     });
 

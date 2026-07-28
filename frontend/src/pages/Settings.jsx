@@ -367,7 +367,6 @@ export default function Settings() {
           window.dispatchEvent(new Event('settingsUpdated'));
         }
       } catch (err) {
-        console.log('Failed to load system settings from server:', err);
         // Fallback to localStorage if offline
         const savedSettings = localStorage.getItem('app_system_settings');
         if (savedSettings) {
