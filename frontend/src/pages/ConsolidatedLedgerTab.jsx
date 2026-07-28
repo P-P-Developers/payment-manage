@@ -62,7 +62,7 @@ export default function ConsolidatedLedgerTab({
       const data = await fetchPanelData(panelId);
       if (data) setExpandedPanelPayments(data);
     } catch (err) {
-      console.error('Failed to load panel ledger:', err);
+      console.log('Failed to load panel ledger:', err);
     } finally {
       setExpandedLoading(false);
     }

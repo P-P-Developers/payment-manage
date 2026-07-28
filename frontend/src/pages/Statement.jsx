@@ -215,7 +215,7 @@ export default function Statement() {
         settings = JSON.parse(saved);
       }
     } catch (e) {
-      console.error(e);
+      console.log(e);
     }
 
     // 2. Remove existing print iframe
@@ -606,16 +606,14 @@ export default function Statement() {
               const currentBal = statementRows[statementRows.length - 1]?.balance || 0;
               const isCredit = currentBal >= 0;
               return (
-                <div className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-l-4 shadow-sm flex flex-col relative overflow-hidden ${
-                    isCredit ? 'border-l-indigo-500' : 'border-l-amber-500'
+                <div className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-l-4 shadow-sm flex flex-col relative overflow-hidden ${isCredit ? 'border-l-indigo-500' : 'border-l-amber-500'
                   }`}
                 >
                   <div className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center border ${
-                          isCredit 
-                            ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/20' 
-                            : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'
+                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center border ${isCredit
+                          ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/20'
+                          : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'
                         }`}
                       >
                         <Landmark className="h-5 w-5" />
@@ -626,9 +624,8 @@ export default function Statement() {
                           <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
                             ₹{Math.abs(currentBal).toLocaleString()}
                           </p>
-                          <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${
-                            isCredit ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
-                          }`}>
+                          <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${isCredit ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
+                            }`}>
                             {isCredit ? 'CR (Advance)' : 'DR (Dues)'}
                           </span>
                         </div>

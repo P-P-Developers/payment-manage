@@ -16,7 +16,6 @@ const createAuditLog = async (userId, actionType, moduleName, details, req) => {
       ipAddress: req ? getClientIp(req) : '127.0.0.1',
     });
   } catch (err) {
-    console.error('Audit logging failed:', err);
   }
 };
 

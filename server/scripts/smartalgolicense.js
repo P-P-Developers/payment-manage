@@ -68,7 +68,6 @@ const LicennseUpdate = async () => {
         process.exit(0);
 
     } catch (error) {
-        console.error('🚫 Error during sync:', error);
         try {
             await mongoose.disconnect();
         } catch (e) { }
@@ -96,7 +95,6 @@ const IpUpdate = async () => {
 
 
     } catch (error) {
-        console.error('🚫 Error during sync:', error);
         try {
             await mongoose.disconnect();
         } catch (e) { }

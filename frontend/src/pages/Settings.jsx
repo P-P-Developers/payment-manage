@@ -367,7 +367,7 @@ export default function Settings() {
           window.dispatchEvent(new Event('settingsUpdated'));
         }
       } catch (err) {
-        console.error('Failed to load system settings from server:', err);
+        console.log('Failed to load system settings from server:', err);
         // Fallback to localStorage if offline
         const savedSettings = localStorage.getItem('app_system_settings');
         if (savedSettings) {
@@ -1641,9 +1641,9 @@ export default function Settings() {
       {isMetaPopupOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 overflow-y-auto !mt-0">
           <div onClick={() => setIsMetaPopupOpen(false)} className="fixed inset-0 bg-black/75 backdrop-blur-sm"></div>
- 
+
           <div className="relative w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-350 dark:border-slate-800 shadow-2xl p-6 z-10 animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[90vh]">
-            
+
             {/* Close Button */}
             <button
               onClick={() => setIsMetaPopupOpen(false)}
@@ -1706,7 +1706,7 @@ export default function Settings() {
                         Connecting to Meta secure login portal...
                       </span>
                     </div>
- 
+
                     <div className="flex items-center gap-3 text-xs">
                       <div className={`h-5 w-5 rounded-full flex items-center justify-center font-bold ${metaStep > 1 ? 'bg-emerald-500 text-white' : metaStep === 1 ? 'bg-indigo-500 text-white animate-pulse' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'}`}>
                         {metaStep > 1 ? '✓' : '2'}
@@ -1715,7 +1715,7 @@ export default function Settings() {
                         Authenticating WhatsApp Business App...
                       </span>
                     </div>
- 
+
                     <div className="flex items-center gap-3 text-xs">
                       <div className={`h-5 w-5 rounded-full flex items-center justify-center font-bold ${metaStep > 2 ? 'bg-emerald-500 text-white' : metaStep === 2 ? 'bg-indigo-500 text-white animate-pulse' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'}`}>
                         {metaStep > 2 ? '✓' : '3'}
@@ -1724,7 +1724,7 @@ export default function Settings() {
                         Extracting WABA ID & Phone Number ID...
                       </span>
                     </div>
- 
+
                     <div className="flex items-center gap-3 text-xs">
                       <div className={`h-5 w-5 rounded-full flex items-center justify-center font-bold ${metaStep > 3 ? 'bg-emerald-500 text-white' : metaStep === 3 ? 'bg-indigo-500 text-white animate-pulse' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'}`}>
                         {metaStep > 3 ? '✓' : '4'}

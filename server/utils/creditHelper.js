@@ -62,7 +62,7 @@ const applyCreditToUnpaidBills = async (panelId) => {
 
     await panel.save();
   } catch (error) {
-    console.error('Failed to apply credit automatically:', error.message);
+    console.log('Failed to apply credit automatically:', error.message);
   }
 };
 

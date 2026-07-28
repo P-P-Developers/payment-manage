@@ -58,7 +58,7 @@ router.get('/config', protect, adminOnly, async (req, res) => {
     }
     res.json({ success: true, config });
   } catch (error) {
-    console.error('Failed to fetch SMTP configuration:', error);
+
     res.status(500).json({ success: false, message: 'Failed to retrieve SMTP settings' });
   }
 });
@@ -108,7 +108,7 @@ router.post('/config', protect, adminOnly, async (req, res) => {
 
     res.json({ success: true, message: 'SMTP settings updated successfully!', config });
   } catch (error) {
-    console.error('Failed to update SMTP settings:', error);
+
     res.status(500).json({ success: false, message: 'Internal server error while saving SMTP settings' });
   }
 });
@@ -196,7 +196,7 @@ router.post('/test', protect, adminOnly, async (req, res) => {
       message: `SMTP Connection successful! Test email delivered to ${testRecipient} ${ccEmail ? `and CC'd to ${ccEmail}` : ''}`,
     });
   } catch (error) {
-    console.error('SMTP testing failure:', error);
+
 
     await Log.create({
       userId: req.user._id,
@@ -349,7 +349,7 @@ router.post('/send-bill', protect, async (req, res) => {
       message: 'Invoice Receipt sent to client via Email successfully!',
     });
   } catch (error) {
-    console.error('SMTP bill send failure:', error);
+
     res.status(500).json({
       success: false,
       message: `Failed to send email bill: ${error.message}`,

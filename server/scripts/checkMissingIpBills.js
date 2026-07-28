@@ -8,7 +8,6 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 // Connect to MongoDB
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
-    console.error('MONGO_URI is not defined in .env file');
     process.exit(1);
 }
 
@@ -133,7 +132,6 @@ async function checkMissingData() {
         });
 
     } catch (error) {
-        console.error('Error:', error);
     } finally {
         await mongoose.disconnect();
     }

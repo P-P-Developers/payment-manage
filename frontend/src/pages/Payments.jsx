@@ -50,7 +50,7 @@ export default function Payments() {
         setBanks(data.banks.map(b => b.name));
       }
     } catch (err) {
-      console.error('Failed to load banks list:', err);
+      console.log('Failed to load banks list:', err);
     }
   };
 
@@ -61,7 +61,7 @@ export default function Payments() {
         setCategories(data.categories);
       }
     } catch (err) {
-      console.error('Failed to load categories list:', err);
+      console.log('Failed to load categories list:', err);
     }
   };
 
@@ -72,7 +72,7 @@ export default function Payments() {
         setPaymentTypes(data.paymentTypes);
       }
     } catch (err) {
-      console.error('Failed to load payment types:', err);
+      console.log('Failed to load payment types:', err);
     }
   };
 
@@ -199,7 +199,7 @@ export default function Payments() {
         fetchPaymentsAndPanels(currentPage, true);
       }
     } catch (err) {
-      console.error('Failed to update inline cell:', err);
+      console.log('Failed to update inline cell:', err);
     }
   };
 
@@ -274,7 +274,7 @@ export default function Payments() {
             setSelectedAllocations({});
           }
         } catch (err) {
-          console.error('Failed to load unpaid bills:', err);
+          console.log('Failed to load unpaid bills:', err);
         }
       };
       fetchUnpaidBills();

@@ -254,7 +254,7 @@ router.get('/check-ip', protect, adminOnly, async (req, res) => {
         const report = await getIpReport();
         res.status(200).json({ success: true, data: report });
     } catch (error) {
-        console.error('Check IP error:', error);
+
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 });
@@ -333,7 +333,7 @@ router.post('/fix-ip', protect, adminOnly, async (req, res) => {
         }
         res.status(200).json({ success: true, fixedMissing, fixedMismatch, message: 'IP fixes applied successfully' });
     } catch (error) {
-        console.error('Fix IP error:', error);
+
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 });
@@ -346,7 +346,7 @@ router.get('/check-license', protect, adminOnly, async (req, res) => {
         const report = await getLicenseReport();
         res.status(200).json({ success: true, data: report });
     } catch (error) {
-        console.error('Check License error:', error);
+
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 });
@@ -432,7 +432,7 @@ router.post('/fix-license', protect, adminOnly, async (req, res) => {
         }
         res.status(200).json({ success: true, fixedMissing, fixedMismatch, message: 'License fixes applied successfully' });
     } catch (error) {
-        console.error('Fix License error:', error);
+
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 });

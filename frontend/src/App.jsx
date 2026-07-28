@@ -30,7 +30,7 @@ export default function App() {
         }
       }
     } catch (e) {
-      console.error('Failed to parse settings for favicon', e);
+
     }
   }, []);
 

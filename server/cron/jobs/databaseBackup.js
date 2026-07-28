@@ -14,7 +14,6 @@ module.exports = async () => {
 
         // Check if database is fully connected before proceeding
         if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
-            console.error("[Cron Job] ❌ Database is not fully connected yet. Skipping backup this time.");
             return { success: false, error: 'Database not connected' };
         }
 
@@ -43,7 +42,6 @@ module.exports = async () => {
                 fs.writeFileSync(path.join(folderName, `${name}.json`), EJSON.stringify(data, null, 2));
                 console.log(`[Cron Job] Backed up collection: ${name} (${data.length} documents)`);
             } catch (collectionError) {
-                console.error(`[Cron Job] ❌ Error backing up collection ${collection.name}:`, collectionError.message);
             }
         }
 
@@ -51,7 +49,6 @@ module.exports = async () => {
         return { success: true, backupLocation: folderName };
 
     } catch (error) {
-        console.error("[Cron Job] ❌ Error during database backup:", error);
         return { success: false, error: error.message };
     }
 };

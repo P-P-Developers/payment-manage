@@ -17,7 +17,6 @@ module.exports = {
     // 1. Find an Admin user to assign as the creator of the bills
     const admin = await User.findOne({ role: 'Admin' });
     if (!admin) {
-      console.error('[Cron Job] ERROR: No Admin user found. Background billing requires at least one Admin user for references.');
       return { success: false, error: 'No Admin user found' };
     }
 
@@ -97,7 +96,6 @@ module.exports = {
         console.log(`[Cron Job] Billed ₹${panel.maintenanceCharges} to panel ${panel.panelName}`);
         billedCount++;
       } catch (error) {
-        console.error(`[Cron Job] Failed to generate bill for panel ${panel.panelName}: ${error.message}`);
       }
     }
 

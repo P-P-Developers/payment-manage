@@ -31,7 +31,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
       if (parsed.stamp) settings.stamp = parsed.stamp;
     }
   } catch (e) {
-    console.error('Failed to load settings in ReceiptModal', e);
+
   }
 
   const handlePrint = () => {
@@ -252,7 +252,7 @@ export default function ReceiptModal({ isOpen, onClose, payment }) {
       if (cleanPhone.length === 10) {
         cleanPhone = '91' + cleanPhone;
       }
-      
+
       const res = await apiRequest('/whatsapp/send-bill', {
         method: 'POST',
         body: JSON.stringify({

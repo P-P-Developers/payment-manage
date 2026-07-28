@@ -127,7 +127,7 @@ export default function Panels() {
         setCategories(data.categories);
       }
     } catch (err) {
-      console.error('Failed to fetch categories list:', err);
+      console.log('Failed to fetch categories list:', err);
     }
   };
 
@@ -171,7 +171,7 @@ export default function Panels() {
         if (parsed.defaultMaint) defaultM = Number(parsed.defaultMaint);
       }
     } catch (e) {
-      console.error('Failed to load billing defaults', e);
+      console.log('Failed to load billing defaults', e);
     }
 
     setLicenseCharges(defaultL);
@@ -660,15 +660,13 @@ export default function Panels() {
                             setStatusPanel(panel);
                             setIsStatusConfirmOpen(true);
                           }}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                            panel.status === 'Stopped' ? 'bg-slate-300 dark:bg-slate-700' : 'bg-emerald-500'
-                          }`}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${panel.status === 'Stopped' ? 'bg-slate-300 dark:bg-slate-700' : 'bg-emerald-500'
+                            }`}
                           title={`Click to toggle status (Currently: ${panel.status || 'Active'})`}
                         >
                           <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                              panel.status === 'Stopped' ? 'translate-x-0' : 'translate-x-5'
-                            }`}
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${panel.status === 'Stopped' ? 'translate-x-0' : 'translate-x-5'
+                              }`}
                           />
                         </button>
                       </div>

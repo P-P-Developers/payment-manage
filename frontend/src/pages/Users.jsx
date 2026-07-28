@@ -87,7 +87,7 @@ export default function Users() {
         setUserLogs(data.logs);
       }
     } catch (err) {
-      console.error('Failed to load user logs', err);
+      console.log('Failed to load user logs', err);
     } finally {
       setLoadingLogs(false);
     }

@@ -18,7 +18,7 @@ module.exports = {
         // 1. Find Admin user
         const admin = await User.findOne({ role: 'Admin' });
         if (!admin) {
-            console.error('[Cron Job] ERROR: No Admin user found. Backend billing requires at least one Admin user for reference.');
+
             return { success: false, error: 'No Admin user found' };
         }
 
@@ -95,7 +95,7 @@ module.exports = {
                 }
             }
         } catch (error) {
-            console.error('[Cron Job] 🚫 Error during license sync:', error.message);
+
         }
 
         // ==============================================================
@@ -149,7 +149,7 @@ module.exports = {
                 }
             }
         } catch (error) {
-            console.error('[Cron Job] 🚫 Error during IP sync:', error.message);
+
         }
 
 
