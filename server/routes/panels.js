@@ -163,6 +163,7 @@ router.post('/', protect, adminOnly, async (req, res) => {
     openingBalance,
     category,
     gstNumber,
+    takeSopDiscount,
   } = req.body;
 
   try {
@@ -183,6 +184,7 @@ router.post('/', protect, adminOnly, async (req, res) => {
       category: category || 'Algo',
       status: req.body.status || 'Active',
       gstNumber: gstNumber || '',
+      takeSopDiscount: takeSopDiscount || false,
     });
 
     // Create activity log
@@ -223,6 +225,7 @@ router.put('/:id', protect, adminOnly, async (req, res) => {
       'category',
       'status',
       'gstNumber',
+      'takeSopDiscount',
     ];
 
     keys.forEach((key) => {

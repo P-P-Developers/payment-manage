@@ -515,8 +515,17 @@ router.post('/fix-sop', protect, adminOnly, async (req, res) => {
         for (const match of report.matchedData) {
             if (match.status === 'Payment Missing in DB') {
                 const amount = parseFloat(match.sopItem.AmountDetails) || 0;
+                let finalBillAmount = amount;
+                
+                let gstAmount = 0;
+                
+                if (match.localPanel.takeSopDiscount) {
+                    gstAmount = amount * 0.18;
+                    finalBillAmount = amount + gstAmount;
+                }
+                
                 const unitPrice = match.localPanel.licenseCharges || amount;
-                const quantity = unitPrice > 0 ? (amount / unitPrice) : 1;
+                const quantity = unitPrice > 0 ? Number((amount / unitPrice).toFixed(2)) : 1;
                 
                 // Parse "DD/MM/YYYY HH:mm:ss"
                 let timestamp = new Date();
@@ -539,10 +548,10 @@ router.post('/fix-sop', protect, adminOnly, async (req, res) => {
                     bankName: '',
                     quantity: quantity, 
                     unitPrice: unitPrice, 
-                    billAmount: amount, 
+                    billAmount: finalBillAmount, 
                     billDiscount: 0, 
                     paymentDiscount: 0,
-                    remark: `Auto-fixed: Added SOP payment from Sync (${quantity} licenses)`,
+                    remark: `Auto-fixed: SOP Sync (${quantity} licenses). ${match.localPanel.takeSopDiscount ? `Amount: ₹${amount} + GST: ₹${gstAmount}` : ''}`.trim(),
                     addedBy: req.user._id, 
                     timestamp
                 });

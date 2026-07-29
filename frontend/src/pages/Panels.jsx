@@ -104,6 +104,7 @@ export default function Panels() {
   const [openingBalance, setOpeningBalance] = useState(0);
   const [status, setStatus] = useState('Active');
   const [gstNumber, setGstNumber] = useState('');
+  const [takeSopDiscount, setTakeSopDiscount] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
   const fetchPanels = async (isSilent = false) => {
@@ -180,6 +181,7 @@ export default function Panels() {
     setOpeningBalance(0);
     setStatus('Active');
     setGstNumber('');
+    setTakeSopDiscount(false);
     setFormErrors({});
     setIsModalOpen(true);
   };
@@ -196,10 +198,10 @@ export default function Panels() {
     setLicenseCharges(panel.licenseCharges);
     setIpCharges(panel.ipCharges);
     setMaintenanceCharges(panel.maintenanceCharges);
-    setOpeningBalance(panel.openingBalance);
+    setOpeningBalance(panel.openingBalance || 0);
     setStatus(panel.status || 'Active');
     setGstNumber(panel.gstNumber || '');
-    setFormErrors({});
+    setTakeSopDiscount(panel.takeSopDiscount || false);
     setIsModalOpen(true);
   };
 
@@ -261,6 +263,7 @@ export default function Panels() {
         openingBalance: Number(openingBalance),
         status,
         gstNumber,
+        takeSopDiscount
       };
 
       if (editPanelId) {
@@ -891,6 +894,21 @@ export default function Panels() {
                     </select>
                   </div>
                 </div>
+
+                {category && category.toLowerCase() === 'sop' && (
+                  <div className="col-span-1 md:col-span-2 flex items-center gap-3 bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/30 mt-2">
+                    <input
+                      type="checkbox"
+                      id="takeSopDiscount"
+                      checked={takeSopDiscount}
+                      onChange={(e) => setTakeSopDiscount(e.target.checked)}
+                      className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-slate-300 dark:border-slate-600 dark:bg-slate-800"
+                    />
+                    <label htmlFor="takeSopDiscount" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                      Apply SOP Discount (Include GST in calculation)
+                    </label>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">

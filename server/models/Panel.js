@@ -59,6 +59,10 @@ const panelSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    takeSopDiscount: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
