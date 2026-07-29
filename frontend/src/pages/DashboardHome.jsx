@@ -3,21 +3,36 @@ import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { apiRequest } from '@/utils/api';
 import {
-  TrendingUp,
   CircleDollarSign,
   Layers,
   Wrench,
-  Globe,
   AlertCircle,
   FileSpreadsheet,
-  Wallet,
   Landmark,
   Calendar,
   Filter,
   Award,
   Info,
   X,
+  Search,
+  Tag,
+  BarChart3,
+  Users,
+  Zap,
 } from 'lucide-react';
+
+// Active filter badge pills used throughout the page
+const ActivePill = ({ children, color = 'indigo' }) => {
+  const clsMap = {
+    indigo: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400',
+    emerald: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
+  };
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border ${clsMap[color] || clsMap.indigo}`}>
+      {children}
+    </span>
+  );
+};
 const DashboardSkeleton = () => (
   <div className="space-y-8 animate-pulse">
     {/* Welcome Banner Skeleton */}
@@ -96,9 +111,10 @@ export default function DashboardHome() {
   // Performance Table & Card States
   const [selectedCatFilter, setSelectedCatFilter] = useState('All');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('All');
-  const [perfSortField, setPerfSortField] = useState('totalBilled'); // default sort by billed
-  const [perfSortOrder, setPerfSortOrder] = useState('desc'); // default descending order
+  const [perfSortField, setPerfSortField] = useState('totalBilled');
+  const [perfSortOrder, setPerfSortOrder] = useState('desc');
   const [modalInfo, setModalInfo] = useState(null);
+  const [tableSearch, setTableSearch] = useState('');
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -593,33 +609,26 @@ export default function DashboardHome() {
 
   const processedPerfPanels = useMemo(() => {
     let list = [...panelStatsArray];
-
-    // Filter by Category
     if (selectedCatFilter !== 'All') {
       list = list.filter((p) => p.category === selectedCatFilter);
     }
-
-    // Filter by Status
     if (selectedStatusFilter !== 'All') {
       list = list.filter((p) => p.status === selectedStatusFilter);
     }
-
-    // Sort list
+    if (tableSearch.trim()) {
+      const q = tableSearch.trim().toLowerCase();
+      list = list.filter((p) => p.panelName.toLowerCase().includes(q) || (p.ownerName || '').toLowerCase().includes(q));
+    }
     list.sort((a, b) => {
       let valA = a[perfSortField];
       let valB = b[perfSortField];
-
       if (typeof valA === 'string') {
-        return perfSortOrder === 'asc'
-          ? valA.localeCompare(valB)
-          : valB.localeCompare(valA);
+        return perfSortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
       }
-
       return perfSortOrder === 'asc' ? valA - valB : valB - valA;
     });
-
     return list;
-  }, [panelStatsArray, selectedCatFilter, selectedStatusFilter, perfSortField, perfSortOrder]);
+  }, [panelStatsArray, selectedCatFilter, selectedStatusFilter, perfSortField, perfSortOrder, tableSearch]);
 
   // worstPerforming (recoveryRate < 50, billed > 0) or fallback to highest outstanding
   const worstPerforming = useMemo(() => {
@@ -675,15 +684,26 @@ export default function DashboardHome() {
 
   const inactivePanels = panelStatsArray.filter(p => p.totalBilled === 0 && p.totalPaid === 0);
 
-  // Sorting & Filtering for Client Performance Grid Table
   const handleSort = (field) => {
     if (perfSortField === field) {
       setPerfSortOrder(perfSortOrder === 'asc' ? 'desc' : 'asc');
     } else {
       setPerfSortField(field);
-      setPerfSortOrder('desc'); // Default sort descending
+      setPerfSortOrder('desc');
     }
   };
+
+  // Active period label for display across all sections
+  let activePeriodLabel = 'All Time';
+  if (filterType === 'monthly') {
+    const m = availableMonths.find(x => x.value === selectedMonth);
+    activePeriodLabel = m ? m.label : selectedMonth;
+  } else if (filterType === 'quarterly') {
+    const q = availableQuarters.find(x => x.value === selectedQuarter);
+    activePeriodLabel = q ? q.label : selectedQuarter;
+  }
+
+  const medals = ['🥇', '🥈', '🥉', '4.', '5.'];
 
   const premiumCards = [
     {
@@ -739,154 +759,155 @@ export default function DashboardHome() {
 
   return (
     <>
-      <div className="space-y-8 animate-pulse-subtle">
-        {/* Welcome Banner */}
+      <div className="space-y-6">
 
-        {/* Filter Toolbar */}
-        <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500"></div>
-
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-500/20">
-              <Filter className="h-4 w-4" />
+        {/* ── Filter Toolbar ── */}
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-emerald-500"></div>
+          <div className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center shrink-0">
+                <Filter className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">Dashboard Filters</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Applies to ALL cards, charts &amp; tables below</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">Dashboard Filters</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">View stats by category, month, quarter, or all time</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-emerald-400 transition-colors">
+                <Layers className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                <select value={selectedCatFilter} onChange={(e) => setSelectedCatFilter(e.target.value)} className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer">
+                  <option value="All" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">All Categories</option>
+                  {uniqueCategories.map((c) => <option key={c} value={c} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{c}</option>)}
+                </select>
+              </div>
+              <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                {[{ id: "all", label: "All Time" }, { id: "monthly", label: "Monthly" }, { id: "quarterly", label: "Quarterly" }].map((t) => (
+                  <button key={t.id} onClick={() => setFilterType(t.id)} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${filterType === t.id ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}>{t.label}</button>
+                ))}
+              </div>
+              {filterType === "monthly" && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-indigo-400 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30">
+                  <Calendar className="h-3.5 w-3.5 text-indigo-500" />
+                  <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer">
+                    {availableMonths.map((m) => (
+                      <option key={m.value} value={m.value} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{m.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {filterType === "quarterly" && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-indigo-400 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30">
+                  <Calendar className="h-3.5 w-3.5 text-indigo-500" />
+                  <select value={selectedQuarter} onChange={(e) => setSelectedQuarter(e.target.value)} className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer">
+                    {availableQuarters.map((q) => (
+                      <option key={q.value} value={q.value} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{q.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Category Dropdown */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-              <Layers className="h-3.5 w-3.5 text-emerald-500" />
-              <select
-                value={selectedCatFilter}
-                onChange={(e) => setSelectedCatFilter(e.target.value)}
-                className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
-              >
-                <option value="All" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">All Categories</option>
-                {uniqueCategories.map((c) => (
-                  <option key={c} value={c} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{c}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Toggle Tabs */}
-            <div className="flex items-center p-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-              {[
-                { id: "all", label: "All Time" },
-                { id: "monthly", label: "Monthly" },
-                { id: "quarterly", label: "Quarterly" },
-              ].map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setFilterType(t.id)}
-                  className={`px-4 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 ${filterType === t.id
-                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                    }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Monthly Dropdown */}
-            {filterType === "monthly" && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-                <Calendar className="h-3.5 w-3.5 text-indigo-500" />
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
-                >
-                  {availableMonths.map((m) => (
-                    <option key={m.value} value={m.value} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{m.label}</option>
-                  ))}
-                </select>
-              </div>
+          {/* Active filter strip */}
+          <div className="px-4 pb-3 flex flex-wrap items-center gap-2 border-t border-slate-100 dark:border-slate-800 pt-2.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Showing:</span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
+              <Zap className="h-2.5 w-2.5" />{activePeriodLabel}
+            </span>
+            {selectedCatFilter !== 'All' && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                <Tag className="h-2.5 w-2.5" />{selectedCatFilter}
+              </span>
             )}
-
-            {/* Quarterly Dropdown */}
-            {filterType === "quarterly" && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-                <Calendar className="h-3.5 w-3.5 text-indigo-500" />
-                <select
-                  value={selectedQuarter}
-                  onChange={(e) => setSelectedQuarter(e.target.value)}
-                  className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
-                >
-                  {availableQuarters.map((q) => (
-                    <option key={q.value} value={q.value} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{q.label}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+            <span className="text-[10px] text-slate-400 dark:text-slate-500">— {filteredPayments.length} transactions · {panelStatsArray.length} panels</span>
           </div>
         </div>
 
-        {/* 3 Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* ── Section Label ── */}
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+            <BarChart3 className="h-3 w-3" /> Financial Overview · {activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''}
+          </span>
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
+        </div>
+
+        {/* ── 3 Premium Summary Cards ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {premiumCards.map((card, i) => {
             const Icon = card.icon;
-            const cardAccents = [
-              { border: 'border-l-indigo-500', iconBg: 'bg-indigo-50 dark:bg-indigo-500/10', iconText: 'text-indigo-600 dark:text-indigo-400', iconBorder: 'border-indigo-200 dark:border-indigo-500/20', topBar: 'from-indigo-500 to-violet-500' },
-              { border: 'border-l-emerald-500', iconBg: 'bg-emerald-50 dark:bg-emerald-500/10', iconText: 'text-emerald-600 dark:text-emerald-400', iconBorder: 'border-emerald-200 dark:border-emerald-500/20', topBar: 'from-emerald-500 to-teal-500' },
-              { border: 'border-l-rose-500', iconBg: 'bg-rose-50 dark:bg-rose-500/10', iconText: 'text-rose-600 dark:text-rose-400', iconBorder: 'border-rose-200 dark:border-rose-500/20', topBar: 'from-rose-500 to-red-500' },
+            const accents = [
+              { border: 'border-l-indigo-500', glowHover: 'hover:shadow-indigo-500/15', iconCls: 'bg-indigo-500/15 border-indigo-500/30 text-indigo-500 dark:text-indigo-400', topBar: 'from-indigo-500 to-violet-500', bgGlow: 'from-indigo-600 to-violet-600' },
+              { border: 'border-l-emerald-500', glowHover: 'hover:shadow-emerald-500/15', iconCls: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-500 dark:text-emerald-400', topBar: 'from-emerald-500 to-teal-500', bgGlow: 'from-emerald-600 to-teal-600' },
+              { border: 'border-l-rose-500', glowHover: 'hover:shadow-rose-500/15', iconCls: 'bg-rose-500/15 border-rose-500/30 text-rose-500 dark:text-rose-400', topBar: 'from-rose-500 to-red-500', bgGlow: 'from-rose-600 to-red-600' },
             ];
-            const accent = cardAccents[i];
+            const a = accents[i];
             return (
-              <div
-                key={i}
-                className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-l-4 ${accent.border} shadow-sm flex flex-col relative overflow-hidden`}
-              >
-                {/* Card Header */}
-                <div className="flex items-start justify-between p-4 pb-3">
+              <div key={i} className={`group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 border-l-4 ${a.border} shadow-sm hover:shadow-xl ${a.glowHover} transition-all duration-300 overflow-hidden flex flex-col`}>
+                <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${a.topBar}`}></div>
+                <div className={`absolute inset-0 bg-gradient-to-br ${a.bgGlow} opacity-0 group-hover:opacity-[0.025] transition-opacity duration-300 pointer-events-none`}></div>
+
+                {/* Header */}
+                <div className="flex items-start justify-between p-4 pb-2">
                   <div className="flex items-center gap-3">
-                    <div className={`h-9 w-9 rounded-lg ${accent.iconBg} ${accent.iconText} flex items-center justify-center border ${accent.iconBorder} shrink-0`}>
-                      <Icon className="h-4 w-4" />
+                    <div className={`h-10 w-10 rounded-xl ${a.iconCls} border flex items-center justify-center shrink-0`}>
+                      <Icon className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{card.title}</p>
-                      <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{card.desc}</p>
+                      <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">{card.title}</p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">{card.desc}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setModalInfo(card); }}
-                    className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 flex items-center justify-center border border-slate-200 dark:border-slate-700 transition-colors shrink-0"
-                    title="View calculation"
-                  >
+                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setModalInfo(card); }} className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 flex items-center justify-center border border-slate-200 dark:border-slate-700 transition-colors shrink-0" title="View calculation">
                     <Info className="h-3.5 w-3.5" />
                   </button>
                 </div>
 
-                {/* Big Value */}
-                <div className="px-4 pb-3">
+                {/* Value */}
+                <div className="px-4 pb-1">
                   <Link to={card.link}>
-                    <span className={`text-2xl font-bold tracking-tight ${card.valueColor || 'text-slate-900 dark:text-slate-50'} hover:opacity-80 transition-opacity`}>
-                      {card.value}
-                    </span>
+                    <span className={`text-3xl font-black tracking-tight ${card.valueColor || 'text-slate-900 dark:text-white'} hover:opacity-80 transition-opacity`}>{card.value}</span>
                   </Link>
+                </div>
+
+                {/* Active filter pills on card */}
+                <div className="px-4 pb-3 flex flex-wrap gap-1.5">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-500">
+                    <Zap className="h-2 w-2" />{activePeriodLabel}
+                  </span>
+                  {selectedCatFilter !== 'All' && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
+                      <Tag className="h-2 w-2" />{selectedCatFilter}
+                    </span>
+                  )}
+                  {/* Recovery rate bar for revenue card */}
+                  {i === 1 && (
+                    <div className="w-full mt-1">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-[9px] text-slate-400">Recovery Rate</span>
+                        <span className={`text-[9px] font-black ${recoveryRate >= 80 ? 'text-emerald-500' : recoveryRate >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>{recoveryRate}%</span>
+                      </div>
+                      <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full transition-all duration-700 ${recoveryRate >= 80 ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : recoveryRate >= 50 ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gradient-to-r from-rose-500 to-red-500'}`} style={{ width: `${Math.min(recoveryRate, 100)}%` }}></div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Divider */}
                 <div className="mx-4 border-t border-slate-100 dark:border-slate-800"></div>
 
-                {/* Breakdown list */}
-                <div className="p-4 pt-3 space-y-1.5">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Breakdown</p>
+                {/* Breakdown */}
+                <div className="p-4 pt-3 space-y-1 flex-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Breakdown</p>
                   {card.breakdown.map((item, idx) => (
-                    <Link
-                      key={idx}
-                      to={item.link}
-                      className="flex justify-between items-center py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
-                    >
+                    <Link key={idx} to={item.link} className="flex justify-between items-center py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors group/item">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className={`h-1.5 w-1.5 rounded-full ${item.dotColor || 'bg-slate-400'} shrink-0`}></span>
-                        <span className="text-xs text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white truncate">{item.label}</span>
+                        <span className="text-[11px] text-slate-600 dark:text-slate-300 group-hover/item:text-slate-900 dark:group-hover/item:text-white truncate">{item.label}</span>
                       </div>
-                      <span className={`text-xs font-bold font-mono shrink-0 ml-2 ${item.textColor || 'text-slate-800 dark:text-slate-100'}`}>{item.value}</span>
+                      <span className={`text-[11px] font-black font-mono shrink-0 ml-2 ${item.textColor || 'text-slate-800 dark:text-slate-100'}`}>{item.value}</span>
                     </Link>
                   ))}
                 </div>
@@ -901,10 +922,10 @@ export default function DashboardHome() {
           <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col min-h-[320px] relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-emerald-500"></div>
 
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">Billing & Collections Trend</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Billed vs Paid comparison</p>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">Billing &amp; Collections Trend</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Billed vs Paid · {activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''}</p>
               </div>
               <div className="flex items-center gap-4 text-xs font-medium select-none">
                 <div className="flex items-center gap-1.5">
@@ -1049,7 +1070,7 @@ export default function DashboardHome() {
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wide">Total Panels</p>
-                  <p className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0">{stats?.counts?.totalPanels || 0} Clients</p>
+                  <p className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0">{processedPerfPanels.length} Clients</p>
                 </div>
               </Link>
 
@@ -1089,25 +1110,32 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
-          <div>
-            <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-              <Award className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-              Client Performance Leaderboards
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Top clients by revenue, billing, licenses and maintenance</p>
+        {/* ── Leaderboard Section Header ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center">
+              <Award className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-slate-900 dark:text-white">Client Performance Leaderboards</h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Top clients · {activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''}</p>
+            </div>
           </div>
-
-          {inactivePanels.length > 0 && (
-            <button
-              onClick={() => setShowInactive(!showInactive)}
-              className="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 hover:border-red-400 dark:hover:border-red-500/40 text-red-600 dark:text-red-400 transition-colors"
-            >
-              <AlertCircle className="h-3.5 w-3.5" />
-              <span>{showInactive ? 'Hide' : 'Show'} Inactive ({inactivePanels.length})</span>
-            </button>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
+              <Zap className="h-2.5 w-2.5" />{activePeriodLabel}
+            </span>
+            {selectedCatFilter !== 'All' && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                <Tag className="h-2.5 w-2.5" />{selectedCatFilter}
+              </span>
+            )}
+            {inactivePanels.length > 0 && (
+              <button onClick={() => setShowInactive(!showInactive)} className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 hover:border-red-400 text-red-600 dark:text-red-400 transition-colors">
+                <AlertCircle className="h-3.5 w-3.5" />{showInactive ? 'Hide' : 'Show'} Inactive ({inactivePanels.length})
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Inactive Panels Expandable drawer */}
@@ -1306,17 +1334,22 @@ export default function DashboardHome() {
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-rose-500 p-4 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200 dark:border-rose-500/20">
+                  <div className="h-8 w-8 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200 dark:border-rose-500/20">
                     <AlertCircle className="h-4 w-4" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-sm text-slate-900 dark:text-white">Performance Alerts</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Clients with lowest recovery rates</p>
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">Performance Alerts</h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Lowest recovery clients · {activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''}</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400">
-                  ⚠️ Inactive: {inactivePanels.length} Panels
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
+                    <Zap className="h-2.5 w-2.5" />{activePeriodLabel}
+                  </span>
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400">
+                    ⚠️ Inactive: {inactivePanels.length}
+                  </span>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -1357,23 +1390,35 @@ export default function DashboardHome() {
             {/* Table Header */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 p-4 border-b border-slate-200 dark:border-slate-800">
               <div>
-                <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Client Performance Table</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Click column headers to sort</p>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-indigo-500" />Client Performance Table
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''} · {processedPerfPanels.length} clients shown</p>
               </div>
 
-              {/* Grid Filters */}
               <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs">
-                  <span className="font-semibold uppercase tracking-wider text-[10px] text-slate-500 dark:text-slate-400">Status:</span>
-                  <select
-                    value={selectedStatusFilter}
-                    onChange={(e) => setSelectedStatusFilter(e.target.value)}
-                    className="bg-transparent text-slate-900 dark:text-white font-semibold cursor-pointer outline-none text-xs"
-                  >
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
+                  <Zap className="h-2.5 w-2.5" />{activePeriodLabel}
+                </span>
+                {selectedCatFilter !== 'All' && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                    <Tag className="h-2.5 w-2.5" />{selectedCatFilter}
+                  </span>
+                )}
+                {/* Search */}
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus-within:border-indigo-400 transition-colors">
+                  <Search className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                  <input type="text" value={tableSearch} onChange={(e) => setTableSearch(e.target.value)} placeholder="Search client..." className="bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none w-28" />
+                  {tableSearch && <button onClick={() => setTableSearch('')} className="text-slate-400 hover:text-slate-600"><X className="h-3 w-3" /></button>}
+                </div>
+                {/* Status Filter */}
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Status:</span>
+                  <select value={selectedStatusFilter} onChange={(e) => setSelectedStatusFilter(e.target.value)} className="bg-transparent text-slate-900 dark:text-white font-semibold cursor-pointer outline-none text-xs">
                     <option value="All" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">All</option>
-                    <option value="Excellent" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Excellent (≥90%)</option>
+                    <option value="Excellent" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Excellent (90%+)</option>
                     <option value="Healthy" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Healthy (50-89%)</option>
-                    <option value="Needs Attention" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Needs Attention (&lt;50%)</option>
+                    <option value="Needs Attention" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Needs Attention</option>
                     <option value="Critically Inactive" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Inactive</option>
                   </select>
                 </div>
@@ -1415,10 +1460,10 @@ export default function DashboardHome() {
                   ) : (
                     processedPerfPanels.map((p, idx) => {
                       const statusCfg = {
-                        Excellent: { bg: 'bg-emerald-100 dark:bg-emerald-500/15', text: 'text-emerald-700 dark:text-emerald-400', border: 'border-emerald-300 dark:border-emerald-500/30' },
-                        Healthy: { bg: 'bg-indigo-100 dark:bg-indigo-500/15', text: 'text-indigo-700 dark:text-indigo-400', border: 'border-indigo-300 dark:border-indigo-500/30' },
-                        'Needs Attention': { bg: 'bg-amber-100 dark:bg-amber-500/15', text: 'text-amber-700 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-500/30' },
-                        'Critically Inactive': { bg: 'bg-red-100 dark:bg-red-500/15', text: 'text-red-700 dark:text-red-400', border: 'border-red-300 dark:border-red-500/30' },
+                        Excellent: { bg: 'bg-emerald-100 dark:bg-emerald-500/15', text: 'text-emerald-700 dark:text-emerald-400', border: 'border-emerald-300 dark:border-emerald-500/30', dot: 'bg-emerald-500' },
+                        Healthy: { bg: 'bg-indigo-100 dark:bg-indigo-500/15', text: 'text-indigo-700 dark:text-indigo-400', border: 'border-indigo-300 dark:border-indigo-500/30', dot: 'bg-indigo-500' },
+                        'Needs Attention': { bg: 'bg-amber-100 dark:bg-amber-500/15', text: 'text-amber-700 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-500/30', dot: 'bg-amber-500' },
+                        'Critically Inactive': { bg: 'bg-red-100 dark:bg-red-500/15', text: 'text-red-700 dark:text-red-400', border: 'border-red-300 dark:border-red-500/30', dot: 'bg-red-500' },
                       };
                       const catCfg = {
                         Algo: 'bg-indigo-100 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-500/20',
@@ -1451,8 +1496,8 @@ export default function DashboardHome() {
                             </div>
                           </td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`text-[11px] px-2.5 py-1 rounded-lg font-semibold border ${s.bg} ${s.text} ${s.border}`}>
-                              {p.status}
+                            <span className={`inline-flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full font-bold border ${s.bg} ${s.text} ${s.border}`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`}></span>{p.status}
                             </span>
                           </td>
                         </tr>
@@ -1462,6 +1507,17 @@ export default function DashboardHome() {
                 </tbody>
               </table>
             </div>
+            {/* Table Footer */}
+            {processedPerfPanels.length > 0 && (
+              <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">Showing {processedPerfPanels.length} of {panelStatsArray.length} total clients</span>
+                <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold">
+                  <span className="text-slate-400">Billed: <span className="text-slate-900 dark:text-white font-mono">₹{processedPerfPanels.reduce((s, p) => s + p.totalBilled, 0).toLocaleString()}</span></span>
+                  <span className="text-slate-400">Collected: <span className="text-emerald-600 dark:text-emerald-400 font-mono">₹{processedPerfPanels.reduce((s, p) => s + p.totalPaid, 0).toLocaleString()}</span></span>
+                  <span className="text-slate-400">Outstanding: <span className="text-rose-600 dark:text-rose-400 font-mono">₹{processedPerfPanels.reduce((s, p) => s + p.outstanding, 0).toLocaleString()}</span></span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

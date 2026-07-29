@@ -520,6 +520,35 @@ main table:not(.receipt-table) tbody td .font-bold {
   color: var(--foreground) !important;
 }
 
+/* ==========================================================================
+   DASHBOARD CARD HEADINGS — SAME COLOR AS TABLE HEADERS (LIGHT THEME)
+   ========================================================================== */
+
+/* Card title labels (small uppercase labels like "Sales & Billing Overview") */
+:root .text-slate-500,
+:root p.text-slate-500 {
+  color: #4b5563 !important;
+}
+
+/* Section-level card headings (h3/h4 inside main content, light theme only) */
+:root main h3,
+:root main h4 {
+  color: var(--table-header-bg) !important;
+}
+
+/* Dark theme — revert to light text */
+.dark main h3,
+.dark main h4 {
+  color: #f1f5f9 !important;
+}
+
+/* Dashboard card "title" label — the small uppercase text on cards */
+:root .dashboard-card-title,
+:root .card-title {
+  color: var(--table-header-bg) !important;
+  font-weight: 700 !important;
+}
+
 /* Autofill override for dark theme compatibility */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
