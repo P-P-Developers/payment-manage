@@ -126,7 +126,6 @@ const PayCard = ({ gradient, holderName, cardNum, expiry, brand, style, animClas
   </div>
 );
 
-/* ─── OTP Input ─── */
 const OtpInput = ({ otp, onChange, onKeyDown, onPaste }) => (
   <div className="flex justify-center gap-2" onPaste={onPaste}>
     {otp.map((digit, idx) => (
@@ -138,13 +137,10 @@ const OtpInput = ({ otp, onChange, onKeyDown, onPaste }) => (
         value={digit}
         onChange={(e) => onChange(idx, e.target.value)}
         onKeyDown={(e) => onKeyDown(idx, e)}
-        className="w-11 h-12 text-center text-lg font-bold rounded-xl border outline-none transition-all"
-        style={{
-          background: 'rgba(255,255,255,0.06)',
-          border: digit ? '1.5px solid #6366f1' : '1px solid rgba(255,255,255,0.12)',
-          color: '#fff',
-          boxShadow: digit ? '0 0 0 3px rgba(99,102,241,0.18)' : 'none',
-        }}
+        className={`w-11 h-12 text-center text-lg font-bold rounded-xl outline-none transition-all bg-transparent dark:bg-white/5 text-slate-900 dark:text-white ${digit
+            ? 'border-2 border-indigo-500 shadow-[0_0_0_3px_rgba(99,102,241,0.18)]'
+            : 'border border-slate-300 dark:border-white/10'
+          }`}
       />
     ))}
   </div>
@@ -569,9 +565,7 @@ export default function Login() {
                 )}
               </div>
 
-              <div className="flex justify-end">
-                <a href="#" className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">Forgot password?</a>
-              </div>
+
 
               <button type="submit" disabled={loading}
                 className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"

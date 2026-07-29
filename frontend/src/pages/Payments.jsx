@@ -109,7 +109,7 @@ export default function Payments() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalPaymentsCount, setTotalPaymentsCount] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);

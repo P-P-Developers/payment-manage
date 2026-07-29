@@ -175,13 +175,18 @@ export default function PanelLedger() {
   const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);
 
   const [filterType, setFilterType] = useState('all'); // 'all', 'bill', 'received'
+  const [chargeTypeFilter, setChargeTypeFilter] = useState('all'); // 'all', 'License', 'IP Charges', 'Maintenance', 'Setup Cost'
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'timestamp', direction: 'desc' });
 
   const filteredPayments = payments.filter((p) => {
     // Filter by Type
     if (filterType === 'bill' && !(p.billAmount > 0)) return false;
     if (filterType === 'received' && !(p.amountReceived > 0)) return false;
+
+    // Filter by Charge Type
+    if (chargeTypeFilter !== 'all' && p.paymentType !== chargeTypeFilter) return false;
 
     // Filter by Date
     if (startDate) {
@@ -201,6 +206,32 @@ export default function PanelLedger() {
 
     return true;
   });
+
+  const sortedAndFilteredPayments = [...filteredPayments].sort((a, b) => {
+    if (sortConfig.key === 'timestamp') {
+      const dateA = new Date(a.timestamp).getTime();
+      const dateB = new Date(b.timestamp).getTime();
+      return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+    }
+    if (sortConfig.key === 'billed') {
+      const valA = a.billAmount || 0;
+      const valB = b.billAmount || 0;
+      return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
+    }
+    if (sortConfig.key === 'paid') {
+      const valA = a.amountReceived || 0;
+      const valB = b.amountReceived || 0;
+      return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
+    }
+    return 0;
+  });
+
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc',
+    }));
+  };
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -297,24 +328,19 @@ export default function PanelLedger() {
             <ArrowLeft className="h-3.5 w-3.5" />
             <span>Back to Panels</span>
           </button>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white font-display tracking-tight flex flex-wrap items-center gap-2.5 mt-1">
-            <span>Client Ledger Account</span>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-bold">
-              ID: #{panel?._id?.substring(18).toUpperCase()}
-            </span>
-          </h1>
+
         </div>
       </div>
 
       {/* Top Balances & Client Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {/* Card 1: Client Info */}
-        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-slate-400 p-4 sm:p-5 shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300">
-          <div className="absolute top-0 right-0 h-20 w-20 rounded-full bg-indigo-500/5 blur-xl"></div>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="h-9 w-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-150 dark:border-indigo-900/50 shrink-0">
-                <Layers className="h-4.5 w-4.5" />
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-slate-400 p-3 shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300">
+          <div className="absolute top-0 right-0 h-16 w-16 rounded-full bg-indigo-500/5 blur-xl"></div>
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+              <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-150 dark:border-indigo-900/50 shrink-0">
+                <Layers className="h-4 w-4" />
               </div>
               <div className="min-w-0">
                 <h3 className="font-bold text-slate-900 dark:text-white text-sm leading-tight truncate">{panel?.panelName}</h3>
@@ -337,7 +363,7 @@ export default function PanelLedger() {
             </div>
           </div>
           {panel?.openingBalance > 0 && (
-            <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[10px]">
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px]">
               <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Opening Bal:</span>
               <span className="font-extrabold text-amber-700 dark:text-amber-500 font-mono">₹{panel?.openingBalance?.toLocaleString()}</span>
             </div>
@@ -345,39 +371,39 @@ export default function PanelLedger() {
         </div>
 
         {/* Card 2: Total Generated Bills */}
-        <div className="rounded-2xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 border-l-4 border-l-indigo-500 p-4 sm:p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300">
-          <div className="absolute top-0 right-0 h-20 w-20 rounded-full bg-indigo-500/5 blur-xl"></div>
+        <div className="rounded-2xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 border-l-4 border-l-indigo-500 p-3 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300">
+          <div className="absolute top-0 right-0 h-16 w-16 rounded-full bg-indigo-500/5 blur-xl"></div>
           <div>
-            <span className="text-xs uppercase tracking-wider font-extrabold text-indigo-700 dark:text-indigo-400">Total Bill Amount</span>
-            <p className="text-[10px] text-indigo-500/80 dark:text-indigo-400/80 mt-0.5 font-medium leading-normal">Sum of all bills generated for this client</p>
+            <span className="text-[10px] uppercase tracking-wider font-extrabold text-indigo-700 dark:text-indigo-400">Total Bill Amount</span>
+            <p className="text-[9px] text-indigo-500/80 dark:text-indigo-400/80 mt-0.5 font-medium leading-normal">Sum of all bills generated for this client</p>
           </div>
-          <div className="mt-4 sm:mt-5">
-            <span className="text-2xl sm:text-3xl font-extrabold text-indigo-700 dark:text-indigo-400 font-display tracking-tight">₹{calculatedTotalBill?.toLocaleString()}</span>
+          <div className="mt-2">
+            <span className="text-xl sm:text-2xl font-extrabold text-indigo-700 dark:text-indigo-400 font-display tracking-tight">₹{calculatedTotalBill?.toLocaleString()}</span>
           </div>
         </div>
 
         {/* Card 3: Total Received */}
-        <div className="rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 border-l-4 border-l-emerald-500 p-4 sm:p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300">
-          <div className="absolute top-0 right-0 h-20 w-20 rounded-full bg-emerald-500/5 blur-xl"></div>
+        <div className="rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 border-l-4 border-l-emerald-500 p-3 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300">
+          <div className="absolute top-0 right-0 h-16 w-16 rounded-full bg-emerald-500/5 blur-xl"></div>
           <div>
-            <span className="text-xs uppercase tracking-wider font-extrabold text-emerald-700 dark:text-emerald-400">Total Amount Received</span>
-            <p className="text-[10px] text-emerald-500/80 dark:text-emerald-400/80 mt-0.5 font-medium leading-normal">Total payments successfully collected</p>
+            <span className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 dark:text-emerald-400">Total Amount Received</span>
+            <p className="text-[9px] text-emerald-500/80 dark:text-emerald-400/80 mt-0.5 font-medium leading-normal">Total payments successfully collected</p>
           </div>
-          <div className="mt-4 sm:mt-5">
-            <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 dark:text-emerald-400 font-display tracking-tight">₹{panel?.totalPaid?.toLocaleString()}</span>
+          <div className="mt-2">
+            <span className="text-xl sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 font-display tracking-tight">₹{panel?.totalPaid?.toLocaleString()}</span>
           </div>
         </div>
 
         {/* Card 4: Remaining Balance */}
-        <div className={`rounded-2xl border p-4 sm:p-5 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300 ${(panel?.outstanding || 0) > 0
+        <div className={`rounded-2xl border p-3 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300 ${(panel?.outstanding || 0) > 0
           ? 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/50 border-l-4 border-l-rose-500'
           : (panel?.outstanding || 0) < 0
             ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/50 border-l-4 border-l-emerald-500'
             : 'bg-slate-50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 border-l-4 border-l-slate-400'
           }`}>
-          <div className="absolute top-0 right-0 h-20 w-20 rounded-full bg-slate-500/5 blur-xl"></div>
+          <div className="absolute top-0 right-0 h-16 w-16 rounded-full bg-slate-500/5 blur-xl"></div>
           <div>
-            <span className={`text-xs uppercase tracking-wider font-extrabold ${(panel?.outstanding || 0) > 0
+            <span className={`text-[10px] uppercase tracking-wider font-extrabold ${(panel?.outstanding || 0) > 0
               ? 'text-rose-700 dark:text-rose-400'
               : (panel?.outstanding || 0) < 0
                 ? 'text-emerald-700 dark:text-emerald-400'
@@ -385,7 +411,7 @@ export default function PanelLedger() {
               }`}>
               {(panel?.outstanding || 0) < 0 ? 'Advance Credit Balance' : 'Remaining Balance Due'}
             </span>
-            <p className={`text-[10px] mt-0.5 font-medium leading-normal ${(panel?.outstanding || 0) > 0
+            <p className={`text-[9px] mt-0.5 font-medium leading-normal ${(panel?.outstanding || 0) > 0
               ? 'text-rose-500 dark:text-rose-450'
               : (panel?.outstanding || 0) < 0
                 ? 'text-emerald-500 dark:text-emerald-400'
@@ -394,8 +420,8 @@ export default function PanelLedger() {
               {(panel?.outstanding || 0) < 0 ? 'Extra amount paid by client in advance' : 'Remaining outstanding dues pending collection'}
             </p>
           </div>
-          <div className="mt-4 sm:mt-5">
-            <span className={`text-2xl sm:text-3xl font-extrabold font-display tracking-tight ${(panel?.outstanding || 0) > 0
+          <div className="mt-2">
+            <span className={`text-xl sm:text-2xl font-extrabold font-display tracking-tight ${(panel?.outstanding || 0) > 0
               ? 'text-rose-600 dark:text-rose-400'
               : (panel?.outstanding || 0) < 0
                 ? 'text-emerald-600 dark:text-emerald-400'
@@ -459,6 +485,22 @@ export default function PanelLedger() {
                   </select>
                 </div>
 
+                {/* Charges Type Dropdown Filter */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Charge:</span>
+                  <select
+                    value={chargeTypeFilter}
+                    onChange={(e) => setChargeTypeFilter(e.target.value)}
+                    className="premium-input bg-white dark:bg-slate-950 px-3 py-1.5 text-xs font-semibold cursor-pointer border-slate-200 dark:border-slate-800 rounded-lg focus:ring-indigo-500 text-slate-900 dark:text-white"
+                  >
+                    <option value="all">All Charges</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="License">License</option>
+                    <option value="IP Charges">IP Charges</option>
+                    <option value="Setup Cost">Setup Cost</option>
+                  </select>
+                </div>
+
                 {/* Date Range Inputs */}
                 <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shrink-0 shadow-sm">
                   <input
@@ -477,10 +519,11 @@ export default function PanelLedger() {
                 </div>
 
                 {/* Reset Filters Button */}
-                {(startDate || endDate || filterType !== 'all') && (
+                {(startDate || endDate || filterType !== 'all' || chargeTypeFilter !== 'all') && (
                   <button
                     onClick={() => {
                       setFilterType('all');
+                      setChargeTypeFilter('all');
                       setStartDate('');
                       setEndDate('');
                     }}
@@ -511,16 +554,28 @@ export default function PanelLedger() {
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-[10px] sm:text-xs uppercase font-bold tracking-wider">
                   <th className="px-2 sm:px-4 py-3 sm:py-4 text-center w-10 sm:w-14">S.No</th>
-                  <th className="px-3 sm:px-6 py-3 sm:py-4">Transaction Date</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200" onClick={() => handleSort('timestamp')}>
+                    Transaction Date {sortConfig.key === 'timestamp' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                  </th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4">Charges Type</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4">Mode</th>
-                  <th className="px-3 sm:px-6 py-3 sm:py-4">Billing & Payment</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4">
+                    <div className="flex items-center gap-3">
+                      <span className="cursor-pointer hover:text-slate-700 dark:hover:text-slate-200 flex items-center gap-1" onClick={() => handleSort('billed')}>
+                        Billed {sortConfig.key === 'billed' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                      </span>
+                      <span>&amp;</span>
+                      <span className="cursor-pointer hover:text-slate-700 dark:hover:text-slate-200 flex items-center gap-1" onClick={() => handleSort('paid')}>
+                        Paid {sortConfig.key === 'paid' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                      </span>
+                    </div>
+                  </th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4">Received By</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs sm:text-sm">
-                {filteredPayments.map((p, index) => (
+                {sortedAndFilteredPayments.map((p, index) => (
                   <tr key={p._id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                     <td className="px-2 sm:px-4 py-3 sm:py-4 text-center font-bold text-slate-400 dark:text-slate-500 text-xs">
                       {index + 1}
