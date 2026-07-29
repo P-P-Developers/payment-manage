@@ -770,7 +770,7 @@ export default function DashboardHome() {
                 <Filter className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">Dashboard Filters</h3>
+                <h3 className="font-extrabold text-[15px] tracking-tight text-slate-900 dark:text-slate-100">Dashboard Filters</h3>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">Applies to ALL cards, charts &amp; tables below</p>
               </div>
             </div>
@@ -827,7 +827,7 @@ export default function DashboardHome() {
         {/* ── Section Label ── */}
         <div className="flex items-center gap-3">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 flex items-center gap-1.5">
             <BarChart3 className="h-3 w-3" /> Financial Overview · {activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''}
           </span>
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
@@ -851,11 +851,11 @@ export default function DashboardHome() {
                 {/* Header */}
                 <div className="flex items-start justify-between p-4 pb-2">
                   <div className="flex items-center gap-3">
-                    <div className={`h-10 w-10 rounded-xl ${a.iconCls} border flex items-center justify-center shrink-0`}>
+                    <div className={`h-11 w-11 rounded-2xl ${a.iconCls} border flex items-center justify-center shrink-0 shadow-sm`}>
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">{card.title}</p>
+                      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.08em]">{card.title}</p>
                       <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">{card.desc}</p>
                     </div>
                   </div>
@@ -867,7 +867,7 @@ export default function DashboardHome() {
                 {/* Value */}
                 <div className="px-4 pb-1">
                   <Link to={card.link}>
-                    <span className={`text-3xl font-black tracking-tight ${card.valueColor || 'text-slate-900 dark:text-white'} hover:opacity-80 transition-opacity`}>{card.value}</span>
+                    <span className={`text-[32px] leading-none font-extrabold tracking-tight tabular-nums ${card.valueColor || 'text-slate-900 dark:text-white'} hover:opacity-80 transition-opacity`}>{card.value}</span>
                   </Link>
                 </div>
 
@@ -900,7 +900,7 @@ export default function DashboardHome() {
 
                 {/* Breakdown */}
                 <div className="p-4 pt-3 space-y-1 flex-1">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Breakdown</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500 mb-2.5">Breakdown</p>
                   {card.breakdown.map((item, idx) => (
                     <Link key={idx} to={item.link} className="flex justify-between items-center py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors group/item">
                       <div className="flex items-center gap-2 min-w-0">
@@ -924,7 +924,7 @@ export default function DashboardHome() {
 
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">Billing &amp; Collections Trend</h3>
+                <h3 className="font-extrabold text-[15px] tracking-tight text-slate-900 dark:text-slate-100">Billing &amp; Collections Trend</h3>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Billed vs Paid · {activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''}</p>
               </div>
               <div className="flex items-center gap-4 text-xs font-medium select-none">
@@ -1059,7 +1059,7 @@ export default function DashboardHome() {
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 to-purple-500"></div>
 
             <div>
-              <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 mb-0.5">Ledger Overview</h3>
+              <h3 className="font-extrabold text-[15px] tracking-tight text-slate-900 dark:text-slate-100 mb-0.5">Ledger Overview</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">Clients and transactions in this period</p>
             </div>
 
@@ -1117,7 +1117,7 @@ export default function DashboardHome() {
               <Award className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-slate-900 dark:text-white">Client Performance Leaderboards</h3>
+              <h3 className="font-extrabold text-[17px] tracking-tight text-slate-900 dark:text-white">Client Performance Leaderboards</h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Top clients · {activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''}</p>
             </div>
           </div>
@@ -1160,14 +1160,14 @@ export default function DashboardHome() {
         {/* Leaderboard Rankings Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* 1. Revenue Leaders */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-emerald-500 p-4 shadow-sm flex flex-col">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-emerald-500 p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col">
             <div className="flex items-center gap-2.5 mb-4">
               <div className="h-8 w-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-500/20">
                 <CircleDollarSign className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="font-semibold text-sm text-slate-900 dark:text-white">Revenue Leaders</h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-medium">Most Paid</p>
+                <h4 className="font-bold text-[13px] text-slate-900 dark:text-white tracking-tight">Revenue Leaders</h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Most Paid</p>
               </div>
             </div>
 
@@ -1201,14 +1201,14 @@ export default function DashboardHome() {
           </div>
 
           {/* 2. Billing Leaders */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-indigo-500 p-4 shadow-sm flex flex-col">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-indigo-500 p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col">
             <div className="flex items-center gap-2.5 mb-4">
               <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-500/20">
                 <FileSpreadsheet className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="font-semibold text-sm text-slate-900 dark:text-white">Sales Invoiced</h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-medium">Top Billed</p>
+                <h4 className="font-bold text-[13px] text-slate-900 dark:text-white tracking-tight">Sales Invoiced</h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Top Billed</p>
               </div>
             </div>
 
@@ -1242,14 +1242,14 @@ export default function DashboardHome() {
           </div>
 
           {/* 3. License Leaders */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-cyan-500 p-4 shadow-sm flex flex-col">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-cyan-500 p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col">
             <div className="flex items-center gap-2.5 mb-4">
               <div className="h-8 w-8 rounded-lg bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center border border-cyan-200 dark:border-cyan-500/20">
                 <Layers className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="font-semibold text-sm text-slate-900 dark:text-white">License Intake</h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-medium">Most Licenses</p>
+                <h4 className="font-bold text-[13px] text-slate-900 dark:text-white tracking-tight">License Intake</h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Most Licenses</p>
               </div>
             </div>
 
@@ -1284,14 +1284,14 @@ export default function DashboardHome() {
           </div>
 
           {/* 4. Maintenance SLA Tracker */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-amber-500 p-4 shadow-sm flex flex-col">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-amber-500 p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col">
             <div className="flex items-center gap-2.5 mb-4">
               <div className="h-8 w-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-200 dark:border-amber-500/20">
                 <Wrench className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="font-semibold text-sm text-slate-900 dark:text-white">Maintenance Dues</h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-medium">SLA Payments</p>
+                <h4 className="font-bold text-[13px] text-slate-900 dark:text-white tracking-tight">Maintenance Dues</h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">SLA Payments</p>
               </div>
             </div>
 
@@ -1338,7 +1338,7 @@ export default function DashboardHome() {
                     <AlertCircle className="h-4 w-4" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">Performance Alerts</h4>
+                    <h4 className="font-extrabold text-[15px] tracking-tight text-slate-900 dark:text-white">Performance Alerts</h4>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">Lowest recovery clients · {activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''}</p>
                   </div>
                 </div>
@@ -1390,7 +1390,7 @@ export default function DashboardHome() {
             {/* Table Header */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 p-4 border-b border-slate-200 dark:border-slate-800">
               <div>
-                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                <h3 className="font-extrabold text-[15px] tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-indigo-500" />Client Performance Table
                 </h3>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''} · {processedPerfPanels.length} clients shown</p>
@@ -1429,7 +1429,7 @@ export default function DashboardHome() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs min-w-[850px]">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wider text-[11px] sticky top-0">
+                  <tr className="bg-slate-100/80 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 uppercase font-bold tracking-[0.06em] text-[10.5px] sticky top-0">
                     <th className="px-4 py-3 text-center w-10">#</th>
                     <th onClick={() => handleSort('panelName')} className="px-4 py-3 cursor-pointer hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                       <div className="flex items-center gap-1">Client Panel {perfSortField === 'panelName' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
@@ -1540,7 +1540,7 @@ export default function DashboardHome() {
                   <Info className="h-5 w-5 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight leading-none">{modalInfo.title}</h3>
+                  <h3 className="text-[15px] font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">{modalInfo.title}</h3>
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 uppercase font-extrabold tracking-wider">Calculation Breakdown</p>
                 </div>
               </div>

@@ -40,8 +40,8 @@
   --sidebar-text: #94a3b8;
   --sidebar-text-muted: #64748b;
   --sidebar-border: #1e293b;
-  --sidebar-active-bg: rgba(99,102,241,0.2);
-  --sidebar-hover-bg: rgba(255,255,255,0.06);
+  --sidebar-active-bg: rgba(99, 102, 241, 0.2);
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
 
   /* Table Header Accent (Light Theme) */
   --table-header-bg: #0f172a;
@@ -95,8 +95,8 @@
   --sidebar-text: #94a3b8;
   --sidebar-text-muted: #64748b;
   --sidebar-border: #1e293b;
-  --sidebar-active-bg: rgba(99,102,241,0.15);
-  --sidebar-hover-bg: rgba(99,102,241,0.08);
+  --sidebar-active-bg: rgba(99, 102, 241, 0.15);
+  --sidebar-hover-bg: rgba(99, 102, 241, 0.08);
 
   /* Table Header Accent (Dark Theme) */
   --table-header-bg: #0F1A2A;

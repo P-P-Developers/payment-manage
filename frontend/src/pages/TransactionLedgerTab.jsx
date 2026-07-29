@@ -87,7 +87,7 @@ export default function TransactionLedgerTab({
   return (
     <>
       {/* Filters bar */}
-      <div className="w-full bg-surface border border-border-primary p-3 rounded-xl space-y-2.5">
+      <div className="w-full bg-surface border-border-primary p-3 rounded-xl space-y-2.5">
 
         {/* Row 1: Search + Reset */}
         <div className="flex items-center gap-2">
@@ -134,11 +134,11 @@ export default function TransactionLedgerTab({
           </select>
 
           {/* Date Range Picker */}
-          <div className="group flex items-center gap-2 bg-surface border border-border-primary hover:border-indigo-300 dark:hover:border-indigo-500/50 rounded-xl px-2.5 py-1.5 flex-1 min-w-[240px] transition-all shadow-sm" style={{ height: '36px' }}>
+          <div className="group flex items-center gap-2 bg-surface  border-border-primary hover:border-indigo-300 dark:hover:border-indigo-500/50 rounded-xl px-2.5 py-1.5 flex-1 min-w-[240px] transition-all shadow-sm" style={{ height: '36px' }}>
             <div className="p-1 rounded-md bg-indigo-50 dark:bg-indigo-500/10 shrink-0">
               <Calendar className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
             </div>
-            
+
             <div className="flex items-center flex-1 min-w-0">
               <input
                 type="date"
@@ -158,7 +158,7 @@ export default function TransactionLedgerTab({
             </div>
 
             {(startDate || endDate) && (
-              <button 
+              <button
                 onClick={() => { setStartDate(''); setEndDate(''); }}
                 className="shrink-0 p-1 rounded-md text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors ml-0.5"
                 title="Clear Dates"
@@ -211,7 +211,7 @@ export default function TransactionLedgerTab({
       </div>
 
       {/* Payments Table */}
-      <div className="rounded-xl bg-surface border border-border-primary overflow-hidden shadow-sm">
+      <div className="rounded-xl bg-surface  border-border-primary overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs min-w-[900px]">
             <thead>

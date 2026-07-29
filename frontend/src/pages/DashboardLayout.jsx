@@ -231,7 +231,7 @@ export default function DashboardLayout() {
       {/* SIDEBAR FOR DESKTOP */}
       <aside className={`relative z-10 hidden md:flex flex-col h-full bg-surface dark:bg-surface border-r border-border-primary shrink-0 transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'w-16' : 'w-52'
         }`}>
-        <div className={`h-14 shrink-0 flex items-center border-b border-border-primary transition-all duration-300 ${isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-5'
+        <div className={`h-14 shrink-0 flex items-center border-border-primary transition-all duration-300 ${isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-5'
           }`}>
           <div className="flex items-center gap-2">
             {logo ? (
@@ -261,7 +261,7 @@ export default function DashboardLayout() {
         </div>
 
         {isSidebarCollapsed && (
-          <div className="flex justify-center py-3 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex justify-center py-3  border-slate-100 dark:border-slate-800">
             <button
               onClick={() => setIsSidebarCollapsed(false)}
               className="flex items-center justify-center h-10 w-10 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all duration-200 shadow-sm"
@@ -299,7 +299,7 @@ export default function DashboardLayout() {
       {/* MAIN SECTION */}
       <div className="relative z-10 flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
         {/* HEADER */}
-        <header className="h-14 shrink-0 flex items-center justify-between px-6 bg-surface/90 backdrop-blur-md border-b border-border-primary sticky top-0 z-40 transition-all duration-300">
+        <header className="h-14 shrink-0 flex items-center justify-between px-6 bg-surface/90 backdrop-blur-md  border-border-primary sticky top-0 z-40 transition-all duration-300">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden text-text-secondary hover:text-text-primary transition-colors animate-in fade-in"
@@ -348,7 +348,7 @@ export default function DashboardLayout() {
                   ></div>
                   <div className="absolute right-0 mt-2.5 w-56 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 shadow-2xl z-50 animate-in fade-in slide-in-from-top-3 duration-200">
                     {/* User info header inside dropdown */}
-                    <div className="px-3.5 py-3 border-b border-slate-100 dark:border-slate-800 mb-1.5 md:hidden">
+                    <div className="px-3.5 py-3  border-slate-100 dark:border-slate-800 mb-1.5 md:hidden">
                       <p className="text-sm font-semibold truncate text-slate-900 dark:text-slate-100">{user?.name}</p>
                       <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase mt-0.5">{user?.role}</p>
                     </div>
@@ -501,7 +501,7 @@ export default function DashboardLayout() {
               <X className="h-5 w-5" />
             </button>
 
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-3 mb-6 pb-4  border-slate-100 dark:border-slate-800">
               <div className="h-10 w-10 rounded-xl bg-[#0A2540]/5 dark:bg-indigo-500/5 border border-[#0A2540]/10 dark:border-indigo-500/10 text-[#0A2540] dark:text-indigo-400 flex items-center justify-center">
                 <Lock className="h-5 w-5" />
               </div>

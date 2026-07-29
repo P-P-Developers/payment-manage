@@ -5,13 +5,13 @@ import { Server, RefreshCw, AlertTriangle, CheckCircle, Database } from 'lucide-
 const DataSync = () => {
   const [ipData, setIpData] = useState(null);
   const [licenseData, setLicenseData] = useState(null);
-  
+
   const [ipLoading, setIpLoading] = useState(false);
   const [licenseLoading, setLicenseLoading] = useState(false);
-  
+
   const [ipFixing, setIpFixing] = useState(false);
   const [licenseFixing, setLicenseFixing] = useState(false);
-  
+
   const [ipMessage, setIpMessage] = useState(null);
   const [licenseMessage, setLicenseMessage] = useState(null);
 
@@ -140,7 +140,7 @@ const DataSync = () => {
 
                   <div className="mt-4 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-800 p-4 max-h-52 overflow-y-auto flex flex-col gap-3">
                     <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Discrepancy Logs</h5>
-                    
+
                     {data.missingEntries?.map((item, idx) => (
                       <div key={`missing-${idx}`} className="text-sm pb-3 border-b border-slate-200 dark:border-slate-700/50 last:border-0 last:pb-0">
                         <div className="flex justify-between items-center mb-1">
@@ -152,7 +152,7 @@ const DataSync = () => {
                         </div>
                       </div>
                     ))}
-                    
+
                     {data.countMismatches?.map((item, idx) => (
                       <div key={`mismatch-${idx}`} className="text-sm pb-3 border-b border-slate-200 dark:border-slate-700/50 last:border-0 last:pb-0">
                         <div className="flex justify-between items-center mb-1">
@@ -190,7 +190,7 @@ const DataSync = () => {
             {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
             Check Now
           </button>
-          
+
           <button
             onClick={fixFn}
             disabled={!discrepanciesExist || loading || fixing}
@@ -215,13 +215,13 @@ const DataSync = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
         {renderCard(
-          "IP Billing Sync",
+          "IP Billing Sync All panels ",
           <Server className="h-6 w-6" />,
           ipData, ipLoading, ipFixing, checkIp, fixIp, ipMessage
         )}
-        
+
         {renderCard(
-          "License Billing Sync",
+          "License Billing Sync Algo panels",
           <Database className="h-6 w-6" />,
           licenseData, licenseLoading, licenseFixing, checkLicense, fixLicense, licenseMessage
         )}
