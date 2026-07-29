@@ -3,6 +3,7 @@ import {
   Calendar,
   Eye,
   Trash2,
+  X,
 } from 'lucide-react';
 
 const SkeletonRow = () => (
@@ -133,22 +134,38 @@ export default function TransactionLedgerTab({
           </select>
 
           {/* Date Range Picker */}
-          <div className="flex items-center gap-1.5 bg-surface border border-border-primary rounded-lg px-3 py-1.5 flex-1 min-w-[200px]" style={{ height: '36px' }}>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              onClick={(e) => e.target.showPicker()}
-              className="flex-1 min-w-0 bg-transparent text-text-primary focus:outline-none cursor-pointer text-xs font-semibold"
-            />
-            <span className="text-text-muted text-[9px] uppercase shrink-0">to</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              onClick={(e) => e.target.showPicker()}
-              className="flex-1 min-w-0 bg-transparent text-text-primary focus:outline-none cursor-pointer text-xs font-semibold"
-            />
+          <div className="group flex items-center gap-2 bg-surface border border-border-primary hover:border-indigo-300 dark:hover:border-indigo-500/50 rounded-xl px-2.5 py-1.5 flex-1 min-w-[240px] transition-all shadow-sm" style={{ height: '36px' }}>
+            <div className="p-1 rounded-md bg-indigo-50 dark:bg-indigo-500/10 shrink-0">
+              <Calendar className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            
+            <div className="flex items-center flex-1 min-w-0">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                onClick={(e) => e.target.showPicker()}
+                className="flex-1 min-w-0 bg-transparent text-text-primary focus:outline-none cursor-pointer text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark] hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              />
+              <span className="text-slate-300 dark:text-slate-600 text-[10px] font-bold px-1.5">-</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                onClick={(e) => e.target.showPicker()}
+                className="flex-1 min-w-0 bg-transparent text-text-primary focus:outline-none cursor-pointer text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark] hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              />
+            </div>
+
+            {(startDate || endDate) && (
+              <button 
+                onClick={() => { setStartDate(''); setEndDate(''); }}
+                className="shrink-0 p-1 rounded-md text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors ml-0.5"
+                title="Clear Dates"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
 
           {/* Panel Category Filter */}

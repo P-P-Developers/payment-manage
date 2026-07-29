@@ -22,6 +22,7 @@ import {
   PlusCircle,
   Edit,
   Calendar,
+  Search,
 } from 'lucide-react';
 
 const SkeletonRow = () => (
@@ -76,12 +77,14 @@ export default function Users() {
   const [selectedLogUser, setSelectedLogUser] = useState(null);
   const [userLogs, setUserLogs] = useState([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [logSearchQuery, setLogSearchQuery] = useState('');
 
   const handleViewUserLogs = async (userObj) => {
     try {
       setSelectedLogUser(userObj);
       setLoadingLogs(true);
       setUserLogs([]);
+      setLogSearchQuery('');
       const data = await apiRequest(`/logs?userId=${userObj._id}`);
       if (data.success) {
         setUserLogs(data.logs);
@@ -744,84 +747,133 @@ export default function Users() {
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-6 !mt-0">
           <div onClick={() => setSelectedLogUser(null)} className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
 
-          <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh] overflow-hidden bg-white dark:bg-slate-900">
+          <div className="relative w-full max-w-5xl rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh] overflow-hidden bg-white dark:bg-slate-900">
             {/* ── Modal Header ── */}
-            <div className="flex items-center gap-4 px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-indigo-500/5 to-violet-500/5 shrink-0">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold uppercase shadow-lg shrink-0">
-                {selectedLogUser.name.substring(0, 2)}
+            <div className="flex items-center gap-4 px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-indigo-500/5 to-violet-500/5 shrink-0 flex-wrap sm:flex-nowrap">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold uppercase shadow-lg shrink-0">
+                  {selectedLogUser.name.substring(0, 2)}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">Activity History</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">{selectedLogUser.name} · {selectedLogUser.email}</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">Activity History</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">{selectedLogUser.name} · {selectedLogUser.email}</p>
+              
+              <div className="flex items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={logSearchQuery}
+                    onChange={(e) => setLogSearchQuery(e.target.value)}
+                    placeholder="Search logs..."
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500/50 transition-all shadow-sm"
+                  />
+                </div>
+                <button
+                  onClick={() => setSelectedLogUser(null)}
+                  className="shrink-0 h-9 w-9 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-slate-300 dark:hover:border-slate-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setSelectedLogUser(null)}
-                className="ml-auto shrink-0 h-8 w-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
             </div>
 
             {/* ── Log List ── */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-3">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden p-5">
               {loadingLogs ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-3">
                   <div className="h-9 w-9 animate-spin rounded-full border-[3px] border-indigo-500 border-t-transparent" />
                   <p className="text-slate-500 dark:text-slate-400 text-sm">Loading activity logs…</p>
                 </div>
               ) : userLogs.length > 0 ? (
-                userLogs.map((log) => {
-                  /* ── per-action colour tokens ── */
-                  const actionMeta = {
-                    ADD: { badge: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25', dot: 'bg-emerald-400', Icon: PlusCircle },
-                    EDIT: { badge: 'bg-amber-500/10  text-amber-500  border-amber-500/25', dot: 'bg-amber-400', Icon: Edit },
-                    DELETE: { badge: 'bg-rose-500/10   text-rose-500   border-rose-500/25', dot: 'bg-rose-400', Icon: Trash2 },
-                    LOGIN: { badge: 'bg-teal-500/10   text-teal-500   border-teal-500/25', dot: 'bg-teal-400', Icon: LogIn },
-                    LOGOUT: { badge: 'bg-orange-500/10 text-orange-500 border-orange-500/25', dot: 'bg-orange-400', Icon: LogOut },
-                  };
-                  const meta = actionMeta[log.actionType] || actionMeta.EDIT;
-                  const ActionIcon = meta.Icon;
+                (() => {
+                  const filteredLogs = userLogs.filter(log => 
+                    log.details?.toLowerCase().includes(logSearchQuery.toLowerCase()) || 
+                    log.module?.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
+                    log.actionType?.toLowerCase().includes(logSearchQuery.toLowerCase())
+                  );
+
+                  if (filteredLogs.length === 0) {
+                    return (
+                      <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-400 dark:text-slate-500">
+                        <Search className="h-10 w-10 opacity-40" />
+                        <p className="text-sm font-medium">No logs matched your search.</p>
+                      </div>
+                    );
+                  }
 
                   return (
-                    <div
-                      key={log._id}
-                      className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 hover:border-indigo-300 dark:hover:border-indigo-700/50 transition-colors"
-                    >
-                      {/* top row: badge + module + timestamp */}
-                      <div className="flex flex-wrap items-center gap-2 px-4 pt-3 pb-2">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded border uppercase tracking-wider ${meta.badge}`}>
-                          <ActionIcon className="h-3 w-3" />
-                          {log.actionType}
-                        </span>
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">
-                          {log.module}
-                        </span>
-                        <span className="ml-auto flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500 font-mono whitespace-nowrap">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(log.timestamp).toLocaleString('en-IN', {
-                            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true,
-                          })}
-                        </span>
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-700/60 overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs min-w-[700px]">
+                          <thead>
+                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700/60 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">
+                              <th className="py-3 px-4 font-semibold whitespace-nowrap w-[140px]">Date & Time</th>
+                              <th className="py-3 px-4 font-semibold whitespace-nowrap w-[110px]">Action</th>
+                              <th className="py-3 px-4 font-semibold whitespace-nowrap w-[110px]">Module</th>
+                              <th className="py-3 px-4 font-semibold">Details</th>
+                              <th className="py-3 px-4 font-semibold whitespace-nowrap w-[130px]">IP Address</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                            {filteredLogs.map((log) => {
+                              const actionMeta = {
+                                ADD: { badge: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25', Icon: PlusCircle },
+                                EDIT: { badge: 'bg-amber-500/10  text-amber-500  border-amber-500/25', Icon: Edit },
+                                DELETE: { badge: 'bg-rose-500/10   text-rose-500   border-rose-500/25', Icon: Trash2 },
+                                LOGIN: { badge: 'bg-teal-500/10   text-teal-500   border-teal-500/25', Icon: LogIn },
+                                LOGOUT: { badge: 'bg-orange-500/10 text-orange-500 border-orange-500/25', Icon: LogOut },
+                              };
+                              const meta = actionMeta[log.actionType] || actionMeta.EDIT;
+                              const ActionIcon = meta.Icon;
+
+                              return (
+                                <tr key={log._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
+                                  <td className="py-3 px-4 font-mono text-[11px] text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                    <div className="flex items-center gap-1.5">
+                                      <Calendar className="h-3 w-3 opacity-70" />
+                                      {new Date(log.timestamp).toLocaleString('en-IN', {
+                                        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true,
+                                      })}
+                                    </div>
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded border uppercase tracking-wider ${meta.badge} whitespace-nowrap`}>
+                                      <ActionIcon className="h-3 w-3" />
+                                      {log.actionType}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded whitespace-nowrap">
+                                      {log.module}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 px-4 text-sm text-slate-700 dark:text-slate-200 leading-relaxed min-w-[200px]">
+                                    {log.details}
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    {log.ipAddress ? (
+                                      <div className="flex items-center gap-1.5">
+                                        <Server className="h-3 w-3 text-slate-400" />
+                                        <span className="text-[11px] font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 px-1.5 py-0.5 rounded whitespace-nowrap">
+                                          {log.ipAddress}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-slate-400 text-xs">-</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
                       </div>
-
-                      {/* details text */}
-                      <p className="px-4 pb-3 text-sm text-slate-700 dark:text-slate-200 leading-relaxed break-words">
-                        {log.details}
-                      </p>
-
-                      {/* footer: IP address */}
-                      {log.ipAddress && (
-                        <div className="flex items-center gap-1.5 px-4 py-2 border-t border-slate-200 dark:border-slate-700/60 bg-slate-100/50 dark:bg-slate-900/30 rounded-b-xl">
-                          <Server className="h-3 w-3 text-slate-400 shrink-0" />
-                          <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">IP:</span>
-                          <span className="text-[11px] font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 px-1.5 py-0.5 rounded">
-                            {log.ipAddress}
-                          </span>
-                        </div>
-                      )}
                     </div>
                   );
-                })
+                })()
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-400 dark:text-slate-500">
                   <History className="h-10 w-10 opacity-40" />
@@ -832,7 +884,14 @@ export default function Users() {
 
             {/* ── Footer ── */}
             <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 flex justify-between items-center shrink-0">
-              <span className="text-xs text-slate-400 dark:text-slate-500">{userLogs.length} event{userLogs.length !== 1 ? 's' : ''} found</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">
+                {userLogs.length} total event{userLogs.length !== 1 ? 's' : ''}
+                {logSearchQuery && ` (${userLogs.filter(log => 
+                  log.details?.toLowerCase().includes(logSearchQuery.toLowerCase()) || 
+                  log.module?.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
+                  log.actionType?.toLowerCase().includes(logSearchQuery.toLowerCase())
+                ).length} matched)`}
+              </span>
               <button
                 onClick={() => setSelectedLogUser(null)}
                 className="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors"

@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Check,
   BadgeCheck,
+  X,
 } from 'lucide-react';
 
 // Helper to format date and time beautifully
@@ -527,24 +528,39 @@ export default function Statement() {
           />
 
           <div>
-            <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+            <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 ml-0.5">
               Statement Period
             </span>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-              <Calendar className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="bg-transparent focus:outline-none text-slate-700 dark:text-slate-200 text-xs font-semibold w-[105px] scheme-dark cursor-pointer"
-              />
-              <span className="text-slate-400 text-xs font-bold px-1">to</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="bg-transparent focus:outline-none text-slate-700 dark:text-slate-200 text-xs font-semibold w-[105px] scheme-dark cursor-pointer"
-              />
+            <div className="group flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-all shadow-sm">
+              <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 shrink-0">
+                <Calendar className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="bg-transparent focus:outline-none text-slate-700 dark:text-slate-200 text-xs font-semibold w-[105px] [color-scheme:light] dark:[color-scheme:dark] cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                />
+                <span className="text-slate-300 dark:text-slate-600 text-xs font-bold px-2">-</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="bg-transparent focus:outline-none text-slate-700 dark:text-slate-200 text-xs font-semibold w-[105px] [color-scheme:light] dark:[color-scheme:dark] cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                />
+              </div>
+
+              {(startDate || endDate) && (
+                <button 
+                  onClick={() => { setStartDate(''); setEndDate(''); }}
+                  className="ml-1 p-1 rounded-md text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                  title="Clear Dates"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
           </div>
         </div>
