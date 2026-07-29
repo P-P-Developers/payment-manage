@@ -437,4 +437,129 @@ router.post('/fix-license', protect, adminOnly, async (req, res) => {
     }
 });
 
+// ==========================================
+// Helper Function: Check SOP Discrepancies
+// ==========================================
+async function getSopReport() {
+    const apiResponse = await axios.post('https://soptools.tradestreet.in/superbackend/AmmountDetailsFilter', {
+        month: null, year: null, Status: 'All'
+    }, { headers: { 'Content-Type': 'application/json' } });
+    
+    let sopApiData = apiResponse.data?.AmmountDetails;
+    if (!sopApiData) sopApiData = apiResponse.data;
+    const sopArray = Array.isArray(sopApiData) ? sopApiData : (sopApiData?.data || []);
+
+    const panels = await Panel.find({ category: { $regex: new RegExp('^sop$', 'i') } }).lean();
+    
+    const panelIds = panels.map(p => p._id);
+    const payments = await Payment.find({ 
+        panelId: { $in: panelIds }, 
+        paymentType: 'License' 
+    }).lean();
+
+    const matchedData = [];
+    const matchedPanelIds = new Set();
+    let newMissingCount = 0;
+
+    sopArray.forEach(sopItem => {
+        const url = (sopItem.Url || "").toLowerCase();
+        const matchedPanel = panels.find(p => p.panelName && url.includes(p.panelName.toLowerCase()));
+        
+        if (matchedPanel) {
+            matchedPanelIds.add(matchedPanel._id.toString());
+            
+            const panelPayments = payments.filter(pay => pay.panelId.toString() === matchedPanel._id.toString());
+            const sopAmount = parseFloat(sopItem.AmountDetails) || 0;
+            
+            const isExisting = panelPayments.some(pay => {
+                const dbAmount = parseFloat(pay.amountReceived) || parseFloat(pay.billAmount) || parseFloat(pay.unitPrice) || 0;
+                return dbAmount === sopAmount;
+            });
+            
+            if (!isExisting) newMissingCount++;
+
+            matchedData.push({
+                sopItem,
+                localPanel: matchedPanel,
+                status: isExisting ? 'Payment Found in DB' : 'Payment Missing in DB'
+            });
+        }
+    });
+
+    const unmatchedDbPanels = panels.filter(p => !matchedPanelIds.has(p._id.toString()));
+
+    return {
+        total: sopArray.length,
+        matchedData,
+        unmatchedDbPanels,
+        newMissingCount
+    };
+}
+
+// @route   GET /api/sync/check-sop
+router.get('/check-sop', protect, adminOnly, async (req, res) => {
+    try {
+        const report = await getSopReport();
+        res.status(200).json({ success: true, data: report });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message || 'Server Error' });
+    }
+});
+
+// @route   POST /api/sync/fix-sop
+router.post('/fix-sop', protect, adminOnly, async (req, res) => {
+    try {
+        const report = await getSopReport();
+        let fixedMissing = 0;
+
+        for (const match of report.matchedData) {
+            if (match.status === 'Payment Missing in DB') {
+                const amount = parseFloat(match.sopItem.AmountDetails) || 0;
+                const unitPrice = match.localPanel.licenseCharges || amount;
+                const quantity = unitPrice > 0 ? (amount / unitPrice) : 1;
+                
+                // Parse "DD/MM/YYYY HH:mm:ss"
+                let timestamp = new Date();
+                const dateStr = match.sopItem["Payment Date"];
+                if (dateStr) {
+                    const parts = dateStr.split(' ');
+                    if (parts.length === 2) {
+                        const dParts = parts[0].split('/');
+                        if (dParts.length === 3) {
+                            timestamp = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1]}Z`);
+                        }
+                    }
+                }
+
+                await Payment.create({
+                    panelId: match.localPanel._id,
+                    paymentType: 'License',
+                    amountReceived: 0, 
+                    paymentMode: 'UPI', 
+                    bankName: '',
+                    quantity: quantity, 
+                    unitPrice: unitPrice, 
+                    billAmount: amount, 
+                    billDiscount: 0, 
+                    paymentDiscount: 0,
+                    remark: `Auto-fixed: Added SOP payment from Sync (${quantity} licenses)`,
+                    addedBy: req.user._id, 
+                    timestamp
+                });
+
+                await Log.create({
+                    userId: req.user._id, actionType: 'ADD', module: 'Payment',
+                    details: `Auto-fixed: Created SOP license bill of ₹${amount} for panel "${match.localPanel.panelName}"`
+                });
+                
+                fixedMissing++;
+            }
+        }
+        
+        res.status(200).json({ success: true, fixedMissing, message: `SOP fixes applied. Added ${fixedMissing} payments.` });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message || 'Server Error' });
+    }
+});
+
 module.exports = router;

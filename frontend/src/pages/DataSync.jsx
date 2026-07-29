@@ -15,6 +15,12 @@ const DataSync = () => {
   const [ipMessage, setIpMessage] = useState(null);
   const [licenseMessage, setLicenseMessage] = useState(null);
 
+  // SOP State
+  const [sopData, setSopData] = useState(null);
+  const [sopLoading, setSopLoading] = useState(false);
+  const [sopFixing, setSopFixing] = useState(false);
+  const [sopMessage, setSopMessage] = useState(null);
+
   const checkIp = async () => {
     setIpLoading(true);
     setIpMessage(null);
@@ -66,6 +72,49 @@ const DataSync = () => {
       setLicenseMessage({ type: 'error', text: err.message || 'Failed to fix License discrepancies' });
     } finally {
       setLicenseFixing(false);
+    }
+  };
+
+  const checkSop = async () => {
+    setSopLoading(true);
+    setSopMessage(null);
+    try {
+      const response = await apiRequest('/sync/check-sop');
+      if (response.success && response.data) {
+        setSopData(response.data);
+        setSopMessage({
+          type: 'success',
+          text: `Sync Complete: ${response.data.matchedData.length} Matched, ${response.data.unmatchedDbPanels.length} missing in API.`
+        });
+      } else {
+        throw new Error(response.message || 'Failed to check SOP licenses');
+      }
+    } catch (err) {
+      setSopMessage({ type: 'error', text: err.message || 'Failed to check SOP licenses' });
+    } finally {
+      setSopLoading(false);
+    }
+  };
+
+  const fixSop = async () => {
+    setSopFixing(true);
+    setSopMessage(null);
+    try {
+      const response = await apiRequest('/sync/fix-sop', { method: 'POST' });
+      if (response.success) {
+        setSopMessage({
+          type: 'success',
+          text: response.message || `Successfully fixed ${response.fixedMissing} SOP discrepancies.`
+        });
+        // Re-check to get updated data
+        await checkSop();
+      } else {
+        throw new Error(response.message || 'Failed to fix SOP licenses');
+      }
+    } catch (err) {
+      setSopMessage({ type: 'error', text: err.message || 'Failed to fix SOP licenses' });
+    } finally {
+      setSopFixing(false);
     }
   };
 
@@ -213,7 +262,7 @@ const DataSync = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         {renderCard(
           "IP Billing Sync All panels ",
           <Server className="h-6 w-6" />,
@@ -225,6 +274,164 @@ const DataSync = () => {
           <Database className="h-6 w-6" />,
           licenseData, licenseLoading, licenseFixing, checkLicense, fixLicense, licenseMessage
         )}
+
+        {/* SOP Card */}
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col h-full">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl">
+              <Server className="h-6 w-6" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">SOP Licenses Check</h2>
+          </div>
+
+          <div className="flex-1 space-y-4">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Fetch and verify SOP license details from the external tradestreet API for all statuses.
+            </p>
+
+            {sopMessage && (
+              <div className={`p-4 rounded-xl text-sm font-medium border ${sopMessage.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20'}`}>
+                {sopMessage.text}
+              </div>
+            )}
+
+            {!sopData && !sopLoading && (
+              <div className="py-8 text-center text-slate-400 dark:text-slate-500 italic">
+                Click Check to pull data from SOP API.
+              </div>
+            )}
+
+            {sopLoading && (
+              <div className="py-8 flex justify-center items-center">
+                <RefreshCw className="h-8 w-8 animate-spin text-purple-500" />
+              </div>
+            )}
+
+            {sopData && !sopLoading && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
+                    <div className="text-sm font-medium text-emerald-700 dark:text-emerald-400 mb-1">Mapped Both Sides</div>
+                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">
+                      {sopData.matchedData.length}
+                    </div>
+                  </div>
+                  <div className="bg-rose-50 dark:bg-rose-900/10 p-4 rounded-xl border border-rose-100 dark:border-rose-800/30">
+                    <div className="text-sm font-medium text-rose-700 dark:text-rose-400 mb-1">In DB, Not in API</div>
+                    <div className="text-2xl font-bold text-rose-600 dark:text-rose-500">
+                      {sopData.unmatchedDbPanels.length}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-800 p-4 max-h-[600px] overflow-y-auto flex flex-col gap-6">
+
+                  {/* Category 1: MATCHED */}
+                  <div>
+                    <h5 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 border-b border-emerald-200 dark:border-emerald-800/50 pb-2">
+                      1. Mapped Panels (Found in Both)
+                    </h5>
+
+                    {sopData.matchedData.length > 0 ? (
+                      <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700/50 mt-3">
+                        <table className="w-full text-left text-xs whitespace-nowrap">
+                          <thead className="bg-slate-100 dark:bg-slate-800/50 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                            <tr>
+                              <th className="px-4 py-3 w-12 text-center">S.No.</th>
+                              <th className="px-4 py-3">SOP Company (API)</th>
+                              <th className="px-4 py-3">Matched Local Panel (DB)</th>
+                              <th className="px-4 py-3 text-right">API Amount</th>
+                              <th className="px-4 py-3">API Date</th>
+                              <th className="px-4 py-3 text-center">Payment Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
+                            {sopData.matchedData.map((match, idx) => (
+                              <tr key={`match-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">{idx + 1}</td>
+                                <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{match.sopItem.Companyname || '-'}</td>
+                                <td className="px-4 py-3">
+                                  <span className="font-mono text-[11px] bg-slate-200/50 dark:bg-slate-700/50 px-2 py-0.5 rounded text-slate-600 dark:text-slate-400">
+                                    {match.localPanel.panelName}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-right font-semibold">₹{match.sopItem.AmountDetails}</td>
+                                <td className="px-4 py-3">{match.sopItem["Payment Date"]}</td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className={`inline-flex items-center text-[10px] font-bold uppercase px-2 py-1 rounded-md shadow-sm ${match.status === 'Payment Found in DB' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 border border-amber-200 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400'}`}>
+                                    {match.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-slate-500 dark:text-slate-400 italic py-2">No mapped records found.</div>
+                    )}
+                  </div>
+
+                  {/* Category 2: IN DB, NOT IN API */}
+                  <div>
+                    <h5 className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider mb-2 border-b border-rose-200 dark:border-rose-800/50 pb-2">
+                      2. Unmatched DB Panels (In DB, Not in API)
+                    </h5>
+                    {sopData.unmatchedDbPanels.length > 0 ? (
+                      <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700/50 mt-3">
+                        <table className="w-full text-left text-xs whitespace-nowrap">
+                          <thead className="bg-slate-100 dark:bg-slate-800/50 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                            <tr>
+                              <th className="px-4 py-2 w-12 text-center">S.No.</th>
+                              <th className="px-4 py-2">Local DB Panel Name</th>
+                              <th className="px-4 py-2">Owner Name</th>
+                              <th className="px-4 py-2">Email</th>
+                              <th className="px-4 py-2">Phone</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-600 dark:text-slate-400">
+                            {sopData.unmatchedDbPanels.map((dbPanel, idx) => (
+                              <tr key={`undb-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                <td className="px-4 py-2 text-center text-slate-500 dark:text-slate-400">{idx + 1}</td>
+                                <td className="px-4 py-2 font-mono text-rose-600 dark:text-rose-400 font-medium">{dbPanel.panelName}</td>
+                                <td className="px-4 py-2 text-slate-900 dark:text-slate-200">{dbPanel.ownerName || '-'}</td>
+                                <td className="px-4 py-2">{dbPanel.email || '-'}</td>
+                                <td className="px-4 py-2">{dbPanel.phoneNumber || '-'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-slate-500 dark:text-slate-400 italic py-2">All DB panels found in API.</div>
+                    )}
+                  </div>
+
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-3 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+            <button
+              onClick={checkSop}
+              disabled={sopLoading || sopFixing}
+              className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+            >
+              {sopLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
+              Check Now
+            </button>
+
+            <button
+              onClick={fixSop}
+              disabled={!(sopData?.newMissingCount > 0) || sopFixing || sopLoading}
+              className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+            >
+              {sopFixing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Server className="h-4 w-4" />}
+              Fix Discrepancies
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
