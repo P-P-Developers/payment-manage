@@ -1,20 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest, setAuthToken, setLoggedUser, getAuthToken } from '@/utils/api';
 
 /* ─── Animated Background Canvas ─── */
 const AnimatedBackground = ({ isDark }) => {
+  const canvasRef = useRef(null);
+
   useEffect(() => {
-    const canvas = document.getElementById('login-bg-canvas');
+    const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let raf;
-    let w = (canvas.width = canvas.offsetWidth);
-    let h = (canvas.height = canvas.offsetHeight);
+    let w, h;
     const onResize = () => {
-      w = canvas.width = canvas.offsetWidth;
-      h = canvas.height = canvas.offsetHeight;
+      const dpr = window.devicePixelRatio || 1;
+      w = canvas.offsetWidth;
+      h = canvas.offsetHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
     };
+    onResize();
     window.addEventListener('resize', onResize);
 
     const fov = 380, zOff = 580, gridSz = 700, step = 70;
@@ -84,7 +90,7 @@ const AnimatedBackground = ({ isDark }) => {
 
   return (
     <canvas
-      id="login-bg-canvas"
+      ref={canvasRef}
       className="absolute inset-0 w-full h-full pointer-events-none"
       style={{ opacity: isDark ? 0.7 : 0.85 }}
     />
@@ -126,12 +132,12 @@ const PayCard = ({ gradient, holderName, cardNum, expiry, brand, style, animClas
   </div>
 );
 
-const OtpInput = ({ otp, onChange, onKeyDown, onPaste }) => (
+const OtpInput = ({ otp, onChange, onKeyDown, onPaste, inputRefs }) => (
   <div className="flex justify-center gap-2" onPaste={onPaste}>
     {otp.map((digit, idx) => (
       <input
+        ref={(el) => (inputRefs.current[idx] = el)}
         key={idx}
-        id={`otp-${idx}`}
         type="text"
         maxLength={1}
         value={digit}
@@ -163,6 +169,7 @@ export default function Login() {
   const [qrCode, setQrCode] = useState('');
   const [secret, setSecret] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const otpRefs = useRef([]);
 
   const [isDark, setIsDark] = useState(() => {
     const s = localStorage.getItem('app_theme');
@@ -229,14 +236,14 @@ export default function Login() {
   };
 
   const handleOtpChange = (idx, val) => {
-    if (isNaN(val)) return;
+    if (val && !/^\d$/.test(val.slice(-1))) return;
     const n = [...otp]; n[idx] = val.slice(-1); setOtp(n);
-    if (val && idx < 5) document.getElementById(`otp-${idx + 1}`)?.focus();
+    if (val && idx < 5) otpRefs.current[idx + 1]?.focus();
   };
 
   const handleOtpKeyDown = (idx, e) => {
     if (e.key === 'Backspace' && !otp[idx] && idx > 0) {
-      document.getElementById(`otp-${idx - 1}`)?.focus();
+      otpRefs.current[idx - 1]?.focus();
       const n = [...otp]; n[idx - 1] = ''; setOtp(n);
     }
   };
@@ -244,7 +251,7 @@ export default function Login() {
   const handleOtpPaste = (e) => {
     e.preventDefault();
     const d = e.clipboardData.getData('text').trim();
-    if (/^\d{6}$/.test(d)) { setOtp(d.split('')); document.getElementById('otp-5')?.focus(); }
+    if (/^\d{6}$/.test(d)) { setOtp(d.split('')); otpRefs.current[5]?.focus(); }
   };
 
   const handleSubmit = async (e) => {
@@ -565,8 +572,6 @@ export default function Login() {
                 )}
               </div>
 
-
-
               <button type="submit" disabled={loading}
                 className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: 'linear-gradient(135deg,#0A2540 0%,#1a56db 100%)', boxShadow: '0 4px 20px rgba(10,37,64,0.25)' }}>
@@ -612,7 +617,7 @@ export default function Login() {
 
               <div>
                 <label className="block text-xs font-semibold mb-3 uppercase tracking-widest text-slate-500 dark:text-slate-400 text-center">Enter 6-Digit Verification Code</label>
-                <OtpInput otp={otp} onChange={handleOtpChange} onKeyDown={handleOtpKeyDown} onPaste={handleOtpPaste} />
+                <OtpInput otp={otp} onChange={handleOtpChange} onKeyDown={handleOtpKeyDown} onPaste={handleOtpPaste} inputRefs={otpRefs} />
               </div>
 
               <button type="submit" disabled={loading || otp.some(d => !d)}
@@ -633,7 +638,7 @@ export default function Login() {
             <form onSubmit={handleVerify2FA} className="space-y-5">
               <div>
                 <label className="block text-xs font-semibold mb-3 uppercase tracking-widest text-slate-500 dark:text-slate-400 text-center">Enter 6-Digit Authenticator Code</label>
-                <OtpInput otp={otp} onChange={handleOtpChange} onKeyDown={handleOtpKeyDown} onPaste={handleOtpPaste} />
+                <OtpInput otp={otp} onChange={handleOtpChange} onKeyDown={handleOtpKeyDown} onPaste={handleOtpPaste} inputRefs={otpRefs} />
               </div>
 
               <button type="submit" disabled={loading || otp.some(d => !d)}
