@@ -450,7 +450,7 @@ export default function DashboardHome() {
       const outstandingVal = stats.billed - stats.billDiscount - (stats.paid + stats.paymentDiscount);
       if (outstandingVal !== 0 || standardTypes.includes(type)) {
         outstandingBreakdown.push({
-          label: outstandingVal < 0 ? `${type} Credit (Jama)` : `${type} Dues`,
+          label: outstandingVal < 0 ? `${type} Credit` : `${type} Dues`,
           value: outstandingVal < 0
             ? `₹${Math.abs(outstandingVal).toLocaleString()}`
             : `₹${outstandingVal.toLocaleString()}`,
@@ -467,8 +467,8 @@ export default function DashboardHome() {
     outstandingBreakdown.sort((a, b) => {
       if (a.label === 'Opening Balance Dues') return -1;
       if (b.label === 'Opening Balance Dues') return 1;
-      const aType = a.label.replace(' Dues', '').replace(' Credit (Jama)', '');
-      const bType = b.label.replace(' Dues', '').replace(' Credit (Jama)', '');
+      const aType = a.label.replace(' Dues', '').replace(' Credit', '');
+      const bType = b.label.replace(' Dues', '').replace(' Credit', '');
       const aOrd = typeOrder[aType] || 99;
       const bOrd = typeOrder[bType] || 99;
       return aOrd - bOrd;
@@ -733,7 +733,7 @@ export default function DashboardHome() {
       breakdown: revenueBreakdown,
     },
     {
-      title: outstandingBalance > 0 ? 'Outstanding Dues (Dues)' : 'Advance Balance (Jama)',
+      title: outstandingBalance > 0 ? 'Outstanding Dues (Dues)' : 'Advance Balance',
       value: outstandingBalance > 0
         ? `₹${outstandingBalance.toLocaleString()}`
         : `₹${Math.abs(outstandingBalance).toLocaleString()}`,

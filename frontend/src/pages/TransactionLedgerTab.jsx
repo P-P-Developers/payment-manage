@@ -86,128 +86,99 @@ export default function TransactionLedgerTab({
 
   return (
     <>
-      {/* Filters bar */}
-      <div className="w-full bg-surface border-border-primary p-3 rounded-xl space-y-2.5">
-
-        {/* Row 1: Search + Reset */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search panel client or category..."
-              className="w-full rounded-lg pl-9 pr-4 text-xs premium-input bg-surface border border-border-primary text-text-primary focus:outline-none"
-            />
-          </div>
-          {(startDate || endDate || transactionTypeFilter !== 'all' || typeFilter !== 'All' || modeFilter !== 'All' || categoryFilter !== 'All' || searchQuery) && (
-            <button
-              onClick={() => {
-                setStartDate('');
-                setEndDate('');
-                setTransactionTypeFilter('all');
-                setTypeFilter('All');
-                setModeFilter('All');
-                setCategoryFilter('All');
-                setSearchQuery('');
-              }}
-              className="shrink-0 text-[10px] uppercase tracking-wider text-rose-400 hover:text-rose-300 transition-all bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 px-3 py-2.5 rounded-xl whitespace-nowrap"
-            >
-              Reset
-            </button>
-          )}
+      {/* Compact Filters Bar */}
+      <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-xl flex flex-wrap items-center gap-2">
+        {/* Search */}
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search client..."
+            className="w-full rounded-lg pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500/50 transition-colors"
+          />
         </div>
 
-        {/* Row 2: Dropdowns + Date Range */}
-        <div className="flex flex-wrap items-center gap-2">
-
-          {/* Transaction Type Filter */}
-          <select
-            value={transactionTypeFilter}
-            onChange={(e) => setTransactionTypeFilter(e.target.value)}
-            className="flex-1 min-w-[130px] rounded-lg px-3 text-xs premium-input bg-surface border border-border-primary text-text-primary cursor-pointer font-semibold"
-          >
-            <option value="all">All Transactions</option>
-            <option value="bill">Bills Only</option>
-            <option value="received">Payments Only</option>
-          </select>
-
-          {/* Date Range Picker */}
-          <div className="group flex items-center gap-2 bg-surface  border-border-primary hover:border-indigo-300 dark:hover:border-indigo-500/50 rounded-xl px-2.5 py-1.5 flex-1 min-w-[240px] transition-all shadow-sm" style={{ height: '36px' }}>
-            <div className="p-1 rounded-md bg-indigo-50 dark:bg-indigo-500/10 shrink-0">
-              <Calendar className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-
-            <div className="flex items-center flex-1 min-w-0">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                onClick={(e) => e.target.showPicker()}
-                className="flex-1 min-w-0 bg-transparent text-text-primary focus:outline-none cursor-pointer text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark] hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-              />
-              <span className="text-slate-300 dark:text-slate-600 text-[10px] font-bold px-1.5">-</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                onClick={(e) => e.target.showPicker()}
-                className="flex-1 min-w-0 bg-transparent text-text-primary focus:outline-none cursor-pointer text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark] hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-              />
-            </div>
-
-            {(startDate || endDate) && (
-              <button
-                onClick={() => { setStartDate(''); setEndDate(''); }}
-                className="shrink-0 p-1 rounded-md text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors ml-0.5"
-                title="Clear Dates"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
-
-          {/* Panel Category Filter */}
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="flex-1 min-w-[120px] rounded-lg px-3 text-xs premium-input bg-surface border border-border-primary text-text-primary cursor-pointer font-medium"
-          >
-            <option value="All">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat._id} value={cat.name}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-
-          {/* Charge Type Filter */}
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="flex-1 min-w-[110px] rounded-lg px-3 text-xs premium-input bg-surface border border-border-primary text-text-primary cursor-pointer font-medium"
-          >
-            <option value="All">All Charges</option>
-            {(paymentTypes.length > 0 ? paymentTypes : FALLBACK_PAYMENT_TYPES.map(name => ({ _id: name, name }))).map((pt) => (
-              <option key={pt._id} value={pt.name}>{pt.name}</option>
-            ))}
-          </select>
-
-          {/* Payment Mode Filter */}
-          <select
-            value={modeFilter}
-            onChange={(e) => setModeFilter(e.target.value)}
-            className="flex-1 min-w-[110px] rounded-lg px-3 text-xs premium-input bg-surface border border-border-primary text-text-primary cursor-pointer font-medium"
-          >
-            <option value="All">All Modes</option>
-            <option value="UPI">UPI</option>
-            <option value="Cash">Cash</option>
-            <option value="Bank Transfer">Bank Transfer</option>
-            <option value="Online">Online</option>
-          </select>
-
+        {/* Date Range Picker */}
+        <div className="group flex items-center gap-1.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 hover:border-indigo-300 dark:hover:border-indigo-500/50 rounded-lg px-2 py-1 transition-all" style={{ height: '32px' }}>
+          <Calendar className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="w-[100px] bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark]"
+          />
+          <span className="text-slate-300 dark:text-slate-600 text-[10px] font-bold">-</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="w-[100px] bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark]"
+          />
         </div>
+
+        {/* Filters */}
+        <select
+          value={transactionTypeFilter}
+          onChange={(e) => setTransactionTypeFilter(e.target.value)}
+          className="w-[120px] rounded-lg px-2 py-1.5 text-[11px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 cursor-pointer font-semibold"
+          style={{ height: '32px' }}
+        >
+          <option value="all">All Trans.</option>
+          <option value="bill">Bills Only</option>
+          <option value="received">Payments</option>
+        </select>
+
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="w-[110px] rounded-lg px-2 py-1.5 text-[11px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 cursor-pointer font-semibold"
+          style={{ height: '32px' }}
+        >
+          <option value="All">All Categories</option>
+          {categories.map((cat) => (
+            <option key={cat._id} value={cat.name}>{cat.name}</option>
+          ))}
+        </select>
+
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          className="w-[100px] rounded-lg px-2 py-1.5 text-[11px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 cursor-pointer font-semibold"
+          style={{ height: '32px' }}
+        >
+          <option value="All">All Charges</option>
+          {(paymentTypes.length > 0 ? paymentTypes : FALLBACK_PAYMENT_TYPES.map(name => ({ _id: name, name }))).map((pt) => (
+            <option key={pt._id} value={pt.name}>{pt.name}</option>
+          ))}
+        </select>
+
+        <select
+          value={modeFilter}
+          onChange={(e) => setModeFilter(e.target.value)}
+          className="w-[90px] rounded-lg px-2 py-1.5 text-[11px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 cursor-pointer font-semibold"
+          style={{ height: '32px' }}
+        >
+          <option value="All">All Modes</option>
+          <option value="CASH">Cash</option>
+          <option value="UPI">UPI</option>
+          <option value="BANK_TRANSFER">Bank</option>
+        </select>
+
+        {/* Reset Button */}
+        {(startDate || endDate || transactionTypeFilter !== 'all' || typeFilter !== 'All' || modeFilter !== 'All' || categoryFilter !== 'All' || searchQuery) && (
+          <button
+            onClick={() => {
+              setStartDate(''); setEndDate(''); setTransactionTypeFilter('all');
+              setTypeFilter('All'); setModeFilter('All'); setCategoryFilter('All'); setSearchQuery('');
+            }}
+            className="shrink-0 text-[10px] uppercase font-bold tracking-wider text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 px-2.5 py-1.5 rounded-lg transition-colors border border-rose-200 dark:border-rose-500/20"
+            style={{ height: '32px' }}
+          >
+            Reset
+          </button>
+        )}
       </div>
 
       {/* Payments Table */}

@@ -838,139 +838,70 @@ export default function Payments() {
 
   return (
     <div className="space-y-6">
-      {/* Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-5">
-        {/* Left Section */}
-        <div className="min-w-0">
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white tracking-tight truncate">
-              Ledger Collections (Payments)
+      {/* Unified Compact Header: Title, Tabs & Actions */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-2xl shadow-sm">
+        
+        {/* Left: Title & Tabs */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 xl:gap-5 min-w-0">
+          <div className="flex items-center gap-2.5 px-1">
+            <h2 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight truncate">
+              Payments Ledger
             </h2>
             {loading && payments.length > 0 && (
-              <div className="shrink-0 h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+              <div className="shrink-0 h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent"></div>
             )}
           </div>
-          <p className="hidden sm:block mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Receive client subscription payments, issue receipt entries, and export transaction records.
-          </p>
+          
+          {/* Compact View Switcher Tabs */}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800/80">
+            <button
+              onClick={() => setActiveTab('list')}
+              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${activeTab === 'list'
+                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200 dark:border-slate-700/50'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-transparent'
+                }`}
+            >
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span>Transaction</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('consolidated')}
+              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${activeTab === 'consolidated'
+                ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm border border-slate-200 dark:border-slate-700/50'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-transparent'
+                }`}
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5 shrink-0" />
+              <span>Consolidated</span>
+            </button>
+          </div>
         </div>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Export */}
+        {/* Right: Actions */}
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           <button
             onClick={handleExportCSV}
             disabled={loading}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-lg
-      bg-white dark:bg-gray-900
-      border border-gray-200 dark:border-gray-700
-      px-3 sm:px-4 py-2.5 text-sm font-medium
-      text-gray-700 dark:text-gray-300
-      hover:bg-gray-50 dark:hover:bg-gray-800
-      transition-all duration-200
-      shadow-sm hover:shadow"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70 transition-all shadow-sm"
             title="Download CSV file for MS Excel"
           >
-            <FileSpreadsheet className="h-4 w-4 text-gray-500 shrink-0" />
-            <span>Export</span>
+            <FileSpreadsheet className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+            <span className="hidden sm:inline">Export</span>
           </button>
-
-          {/* Receive Payment (Primary CTA) */}
-          <button
-            onClick={handleOpenReceiveModal}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-lg
-      bg-blue-600 hover:bg-blue-700
-      px-3 sm:px-4 py-2.5 text-sm font-semibold
-      text-white
-      transition-all duration-200
-      shadow-md hover:shadow-lg hover:-translate-y-[1px]"
-          >
-            <Plus className="h-4 w-4 shrink-0" />
-            <span className="whitespace-nowrap">Receive Payment</span>
-          </button>
-
-          {/* Create Bill (Secondary CTA) */}
           <button
             onClick={handleOpenBillModal}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-lg
-      bg-gray-900 hover:bg-black
-      px-3 sm:px-4 py-2.5 text-sm font-semibold
-      text-white
-      transition-all duration-200
-      shadow-md hover:shadow-lg hover:-translate-y-[1px]"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-xl bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 px-3 py-1.5 text-xs font-bold text-white transition-all shadow-sm"
           >
-            <Plus className="h-4 w-4 shrink-0" />
+            <Plus className="h-3.5 w-3.5 shrink-0" />
             <span className="whitespace-nowrap">Create Bill</span>
           </button>
-        </div>
-      </div>
-
-      {/* Alerts */}
-      {success && (
-        <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100/50 dark:from-emerald-500/5 dark:to-emerald-500/10 border-l-4 border-l-emerald-500 border-y border-r border-emerald-200 dark:border-emerald-500/20 p-4 text-emerald-800 dark:text-emerald-300 flex items-start gap-3 text-sm shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="h-6 w-6 rounded-lg bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <Check className="h-4 w-4" />
-          </div>
-          <div className="flex-1 pt-0.5">
-            <span className="font-semibold">{success}</span>
-          </div>
           <button
-            onClick={() => setSuccess('')}
-            className="shrink-0 text-emerald-500/60 dark:text-emerald-400/60 hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors p-1 rounded-lg hover:bg-emerald-500/10"
-            title="Dismiss Alert"
+            onClick={handleOpenReceiveModal}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 text-xs font-bold text-white transition-all shadow-sm"
           >
-            <X className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5 shrink-0" />
+            <span className="whitespace-nowrap">Receive Payment</span>
           </button>
-        </div>
-      )}
-
-      {error && (
-        <div className="rounded-xl bg-gradient-to-r from-rose-50 to-rose-100/50 dark:from-rose-500/5 dark:to-rose-500/10 border-l-4 border-l-rose-500 border-y border-r border-rose-200 dark:border-rose-500/20 p-4 text-rose-800 dark:text-rose-300 flex items-start gap-3 text-sm shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="h-6 w-6 rounded-lg bg-rose-100 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-            <AlertCircle className="h-4 w-4" />
-          </div>
-          <div className="flex-1 pt-0.5">
-            <span className="font-semibold">{error}</span>
-          </div>
-          <button
-            onClick={() => setError('')}
-            className="shrink-0 text-rose-500/60 dark:text-rose-400/60 hover:text-rose-800 dark:hover:text-rose-200 transition-colors p-1 rounded-lg hover:bg-rose-500/10"
-            title="Dismiss Alert"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
-      {/* View Switcher Tabs */}
-      <div className="flex items-center justify-between bg-slate-100/60 dark:bg-slate-900/60 p-2 rounded-2xl border border-slate-300 dark:border-slate-800 gap-2">
-        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar">
-          <button
-            onClick={() => setActiveTab('list')}
-            className={`shrink-0 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-1.5 sm:gap-2 ${activeTab === 'list'
-              ? 'bg-indigo-600 text-white shadow-md'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-          >
-            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-            <span className="whitespace-nowrap">Transaction Ledger</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('consolidated')}
-            className={`shrink-0 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-1.5 sm:gap-2 ${activeTab === 'consolidated'
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-          >
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
-            <FileSpreadsheet className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-            <span className="whitespace-nowrap">Consolidated Ledger</span>
-          </button>
-        </div>
-        <div className="hidden md:block text-xs text-slate-500 dark:text-slate-500 font-medium shrink-0">
-          {activeTab === 'list'
-            ? 'Showing individual collections and bill issues'
-            : 'Consolidated overview across all active clients'}
         </div>
       </div>
 

@@ -393,7 +393,7 @@ export default function Statement() {
       : 'All Time';
 
     const netBalance = Math.abs(currentBal).toLocaleString();
-    const balanceSign = currentBal >= 0 ? 'Credit (Jama)' : 'Debit (Dues)';
+    const balanceSign = currentBal >= 0 ? 'Credit ' : 'Debit (Dues)';
 
     doc.open();
     doc.write(`
@@ -484,125 +484,104 @@ export default function Statement() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      {/* Page Header — matches the plain title-left / actions-right pattern used on Payments */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-500/20 shrink-0">
-            <Landmark className="h-5 w-5" />
+      {/* Compact Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-2xl shadow-sm">
+        <div className="flex items-center gap-3 px-1 min-w-0">
+          <div className="h-9 w-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-500/20 shrink-0">
+            <Landmark className="h-4 w-4" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Passbook</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Statement ledger of deposits, bills, and running balance.</p>
+          <div className="min-w-0">
+            <h1 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight truncate">Statement Passbook</h1>
+            <p className="hidden sm:block text-xs text-slate-500 dark:text-slate-400 truncate">Ledger of deposits, bills, and running balance.</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           {panelData && (
-            <span className={`hidden sm:inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold ${isOverallCredit
+            <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold ${isOverallCredit
               ? 'border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
               : 'border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400'
               }`}>
-              <BadgeCheck className="h-3.5 w-3.5" />
-              {isOverallCredit ? 'Account in Credit' : 'Dues Outstanding'}
+              <BadgeCheck className="h-3.5 w-3.5 shrink-0" />
+              <span className="hidden sm:inline">{isOverallCredit ? 'Account in Credit' : 'Dues Outstanding'}</span>
             </span>
           )}
           <button
             onClick={handlePrint}
             disabled={!panelData}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95 disabled:opacity-50"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-xl bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 border border-transparent px-3 py-1.5 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50"
           >
-            <Printer className="h-3.5 w-3.5 text-indigo-500" />
-            <span>Print Passbook</span>
+            <Printer className="h-3.5 w-3.5 shrink-0" />
+            <span>Print</span>
           </button>
         </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 flex flex-col lg:flex-row lg:items-end justify-between gap-4 shadow-sm">
-        <div className="flex flex-wrap items-end gap-3">
+      {/* Compact Toolbar */}
+      <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-xl flex flex-wrap items-center gap-2 shadow-sm">
+
+        {/* Client Selector (Compact) */}
+        <div className="flex-1 min-w-[200px] sm:min-w-[250px]">
           <ClientCombobox
             panels={panels}
             panelsLoading={panelsLoading}
             selectedPanelId={selectedPanelId}
             onSelect={setSelectedPanelId}
           />
-
-          <div>
-            <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 ml-0.5">
-              Statement Period
-            </span>
-            <div className="group flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-all shadow-sm">
-              <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 shrink-0">
-                <Calendar className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              
-              <div className="flex items-center">
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-transparent focus:outline-none text-slate-700 dark:text-slate-200 text-xs font-semibold w-[105px] [color-scheme:light] dark:[color-scheme:dark] cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                />
-                <span className="text-slate-300 dark:text-slate-600 text-xs font-bold px-2">-</span>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-transparent focus:outline-none text-slate-700 dark:text-slate-200 text-xs font-semibold w-[105px] [color-scheme:light] dark:[color-scheme:dark] cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                />
-              </div>
-
-              {(startDate || endDate) && (
-                <button 
-                  onClick={() => { setStartDate(''); setEndDate(''); }}
-                  className="ml-1 p-1 rounded-md text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
-                  title="Clear Dates"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
         </div>
 
-        <div className="flex flex-wrap items-end gap-3">
-          <div>
-            <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
-              Search Entries
-            </span>
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search particulars..."
-                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 pl-8 pr-3 py-2 text-xs font-semibold focus:border-indigo-500 focus:outline-none transition-all shadow-sm w-[190px]"
-              />
-            </div>
-          </div>
+        {/* Search */}
+        <div className="relative flex-1 min-w-[150px] sm:min-w-[180px] max-w-[250px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search entries..."
+            className="w-full rounded-lg pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500/50 transition-colors"
+          />
+        </div>
 
+        {/* Date Range Picker */}
+        <div className="group flex items-center gap-1.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 hover:border-indigo-300 dark:hover:border-indigo-500/50 rounded-lg px-2 py-1 transition-all" style={{ height: '32px' }}>
+          <Calendar className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="w-[100px] bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark]"
+          />
+          <span className="text-slate-300 dark:text-slate-600 text-[10px] font-bold">-</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="w-[100px] bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark]"
+          />
+        </div>
+
+        {/* Sort Order */}
+        <button
+          onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+          className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-sm shrink-0"
+          style={{ height: '32px' }}
+        >
+          <ArrowUpDown className="h-3.5 w-3.5 text-indigo-500" />
+          <span className="hidden sm:inline">{sortOrder === 'asc' ? 'Oldest' : 'Newest'}</span>
+        </button>
+
+        {/* Reset */}
+        {(startDate || endDate || searchQuery) && (
           <button
-            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all shadow-sm"
+            onClick={() => {
+              setStartDate(''); setEndDate(''); setSearchQuery('');
+            }}
+            className="shrink-0 text-[10px] uppercase font-bold tracking-wider text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 px-2.5 py-1.5 rounded-lg transition-colors border border-rose-200 dark:border-rose-500/20"
+            style={{ height: '32px' }}
           >
-            <ArrowUpDown className="h-3.5 w-3.5 text-indigo-500" />
-            <span>{sortOrder === 'asc' ? 'Oldest First' : 'Newest First'}</span>
+            Reset
           </button>
-
-          {(startDate || endDate || searchQuery) && (
-            <button
-              onClick={() => {
-                setStartDate('');
-                setEndDate('');
-                setSearchQuery('');
-              }}
-              className="text-xs font-bold text-rose-500 hover:text-rose-600 transition-colors px-2 py-2"
-            >
-              Reset
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       {loading ? (
@@ -627,7 +606,7 @@ export default function Statement() {
                 <TrendingUp className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Deposits (Jama)</h4>
+                <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Deposits </h4>
                 <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">₹{aggregates.totalCredit.toLocaleString()}</p>
               </div>
             </div>
@@ -679,7 +658,7 @@ export default function Statement() {
                 </div>
                 <div className="text-right">
                   <p><strong>Date Printed:</strong> {new Date().toLocaleDateString()}</p>
-                  <p><strong>Net Balance:</strong> ₹{Math.abs(currentBal).toLocaleString()} {isOverallCredit ? 'Credit (Jama)' : 'Debit (Dues)'}</p>
+                  <p><strong>Net Balance:</strong> ₹{Math.abs(currentBal).toLocaleString()} {isOverallCredit ? 'Credit ' : 'Debit (Dues)'}</p>
                 </div>
               </div>
             </div>
