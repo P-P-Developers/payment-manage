@@ -462,8 +462,24 @@ async function getSopReport() {
 
     let sopApiData = apiResponse.data?.AmmountDetails;
     if (!sopApiData) sopApiData = apiResponse.data;
-    const sopArray = Array.isArray(sopApiData) ? sopApiData : (sopApiData?.data || []);
+    let sopArray = Array.isArray(sopApiData) ? sopApiData : (sopApiData?.data || []);
 
+    const cutoffDate = new Date('2026-04-01T00:00:00.000Z');
+    sopArray = sopArray.filter(item => {
+        const dateStr = item["Payment Date"];
+        if (!dateStr) return false;
+        
+        const parts = dateStr.split(' ');
+        if (parts.length === 2) {
+            const dParts = parts[0].split('/');
+            if (dParts.length === 3) {
+                const itemDate = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1]}Z`);
+                return itemDate >= cutoffDate;
+            }
+        }
+        return false;
+    });
+    
     const panels = await Panel.find({ category: { $regex: new RegExp('^sop$', 'i') } }).lean();
 
     const panelIds = panels.map(p => p._id);

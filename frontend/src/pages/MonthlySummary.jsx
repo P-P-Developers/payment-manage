@@ -12,6 +12,7 @@ export default function MonthlySummary() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('all'); // all | dues | paid
+  const [metricFilter, setMetricFilter] = useState('All');
   const [sortBy, setSortBy] = useState('name'); // name | due_desc | due_asc | bill_desc
   const [expandedRows, setExpandedRows] = useState(new Set());
 
@@ -117,12 +118,44 @@ export default function MonthlySummary() {
 
       months.forEach((_, relativeIdx) => {
         const m = startIdx + relativeIdx + 1; // 1-indexed month
-        const mData = monthDataMap[m] || { bill: 0, received: 0, discount: 0, transactions: [] };
-        const due = Math.max(0, mData.bill - mData.received - mData.discount);
-        row[m] = { ...mData, due };
+        let mData = monthDataMap[m] || { bill: 0, received: 0, discount: 0, transactions: [] };
+        
+        if (metricFilter !== 'All') {
+          let customBill = 0;
+          let customReceived = 0;
+          let customCount = 0;
+          
+          mData.transactions.forEach(t => {
+            const pType = t.paymentType ? t.paymentType.toLowerCase() : 'other';
+            let isMatch = false;
+
+            if (metricFilter === 'IP' && pType.includes('ip')) {
+              isMatch = true;
+            } else if (metricFilter === 'License' && pType.includes('license')) {
+              isMatch = true;
+            } else if (metricFilter === 'Maintenance' && pType.includes('maintenance')) {
+              isMatch = true;
+            } else if (metricFilter === 'Other') {
+              if (!pType.includes('ip') && !pType.includes('license') && !pType.includes('maintenance')) {
+                isMatch = true;
+              }
+            }
+
+            if (isMatch) {
+              customBill += t.billAmount || 0;
+              customReceived += t.amountReceived || 0;
+              customCount += 1;
+            }
+          });
+          
+          mData = { ...mData, bill: customBill, received: customReceived, discount: 0, metricCount: customCount };
+        }
+
+        const balance = mData.bill - mData.received - mData.discount;
+        row[m] = { ...mData, due: balance };
         totalBill += mData.bill;
         totalReceived += mData.received;
-        totalDue += due;
+        totalDue += balance;
       });
 
       row.totalBill = totalBill;
@@ -146,7 +179,7 @@ export default function MonthlySummary() {
     });
 
     return rows;
-  }, [data, search, categoryFilter, statusFilter, sortBy, startIdx, months]);
+  }, [data, search, categoryFilter, statusFilter, metricFilter, sortBy, startIdx, months]);
 
   // Quick-glance totals across whatever is currently filtered/visible
   const summaryTotals = useMemo(() => {
@@ -262,13 +295,13 @@ export default function MonthlySummary() {
             <div className="text-lg font-bold text-slate-800 dark:text-white">{fmt(summaryTotals.received)}</div>
           </div>
         </div>
-        <div className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center text-rose-600 dark:text-rose-300">
-            <TrendingDown className="h-5 w-5" />
+        <div className={`bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-center gap-3 ${summaryTotals.due < 0 ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}>
+          <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${summaryTotals.due < 0 ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-300'}`}>
+            {summaryTotals.due < 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">Total Due</div>
-            <div className="text-lg font-bold text-rose-600 dark:text-rose-400">{fmt(summaryTotals.due)}</div>
+            <div className="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">{summaryTotals.due < 0 ? 'Total Advance' : 'Total Due'}</div>
+            <div className={`text-lg font-bold ${summaryTotals.due < 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`}>{fmt(Math.abs(summaryTotals.due))}</div>
           </div>
         </div>
         <div className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-center gap-3">
@@ -319,6 +352,18 @@ export default function MonthlySummary() {
             <option value="all">All Panels</option>
             <option value="dues">Has Dues</option>
             <option value="paid">Fully Paid</option>
+          </select>
+          <select
+            value={metricFilter}
+            onChange={(e) => setMetricFilter(e.target.value)}
+            className="py-2 pl-3 pr-8 bg-white dark:bg-surface border border-border-primary rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm outline-none font-semibold text-indigo-700 dark:text-indigo-400"
+            title="Filter by payment type (IP, License, Maintenance)"
+          >
+            <option value="All">Overall Totals</option>
+            <option value="IP">IP Only</option>
+            <option value="License">License Only</option>
+            <option value="Maintenance">Maintenance Only</option>
+            <option value="Other">Other</option>
           </select>
           <div className="relative">
             <select
@@ -375,11 +420,12 @@ export default function MonthlySummary() {
                 processedData.map((row, idx) => {
                   const isExpanded = expandedRows.has(row._id);
                   const hasDue = row.totalDue > 0;
+                  const hasAdv = row.totalDue < 0;
                   return (
                     <React.Fragment key={row._id}>
                       <tr
                         onClick={() => toggleRow(row._id)}
-                        className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer ${isExpanded ? 'bg-slate-50/30 dark:bg-slate-800/20' : ''} ${hasDue ? 'border-l-2 border-l-rose-400 dark:border-l-rose-500' : ''}`}
+                        className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer ${isExpanded ? 'bg-slate-50/30 dark:bg-slate-800/20' : ''} ${hasDue ? 'border-l-2 border-l-rose-400 dark:border-l-rose-500' : hasAdv ? 'border-l-2 border-l-indigo-400 dark:border-l-indigo-500' : ''}`}
                       >
                         <td className="p-4 text-sm font-medium text-slate-500 dark:text-slate-400 text-center sticky left-0 bg-white dark:bg-[#0f172a] backdrop-blur-sm shadow-[1px_0_0_0_rgba(0,0,0,0.1)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.05)]">
                           {idx + 1}
@@ -394,6 +440,10 @@ export default function MonthlySummary() {
                                 {hasDue ? (
                                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-300">
                                     Due {fmt(row.totalDue)}
+                                  </span>
+                                ) : hasAdv ? (
+                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300">
+                                    Adv {fmt(Math.abs(row.totalDue))}
                                   </span>
                                 ) : (
                                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-300">
@@ -410,18 +460,24 @@ export default function MonthlySummary() {
                           return (
                             <td key={m} className="p-3 align-top border-l border-slate-100 dark:border-slate-700/50">
                               <div className="flex flex-col gap-1 text-[11px]">
+                                {metricFilter !== 'All' && (
+                                  <div className="flex justify-between items-center px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300">
+                                    <span>Count:</span>
+                                    <span className="font-bold">{mData.metricCount || 0}</span>
+                                  </div>
+                                )}
                                 <div className="flex justify-between items-center px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
-                                  <span>Bill:</span>
+                                  <span className="truncate pr-1">{metricFilter !== 'All' ? `${metricFilter} Bill:` : 'Bill:'}</span>
                                   <span className="font-semibold">{fmt(mData.bill)}</span>
                                 </div>
                                 <div className="flex justify-between items-center px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300">
-                                  <span>Paid:</span>
+                                  <span className="truncate pr-1">{metricFilter !== 'All' ? `${metricFilter} Paid:` : 'Paid:'}</span>
                                   <span className="font-semibold">{fmt(mData.received)}</span>
                                 </div>
-                                <div className={`flex justify-between items-center px-1.5 py-0.5 rounded ${mData.due > 0 ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300' : 'text-slate-500'}`}>
-                                  <span>Due:</span>
-                                  <span className={`font-semibold ${mData.due > 0 ? '' : 'opacity-50'}`}>
-                                    {fmt(mData.due)}
+                                <div className={`flex justify-between items-center px-1.5 py-0.5 rounded ${mData.due > 0 ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300' : mData.due < 0 ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300' : 'text-slate-500'}`}>
+                                  <span className="truncate pr-1">{metricFilter !== 'All' ? `${metricFilter} ${mData.due < 0 ? 'Adv:' : 'Due:'}` : mData.due < 0 ? 'Adv:' : 'Due:'}</span>
+                                  <span className={`font-semibold ${mData.due !== 0 ? '' : 'opacity-50'}`}>
+                                    {fmt(Math.abs(mData.due))}
                                   </span>
                                 </div>
                               </div>
@@ -513,7 +569,10 @@ export default function MonthlySummary() {
                         <div className="flex flex-col gap-1">
                           <div className="flex justify-between text-blue-700 dark:text-blue-300"><span>Bill:</span><span>{fmt(colTotals.bill)}</span></div>
                           <div className="flex justify-between text-emerald-700 dark:text-emerald-300"><span>Paid:</span><span>{fmt(colTotals.received)}</span></div>
-                          <div className="flex justify-between text-rose-700 dark:text-rose-300"><span>Due:</span><span>{fmt(colTotals.due)}</span></div>
+                          <div className={`flex justify-between ${colTotals.due < 0 ? 'text-indigo-700 dark:text-indigo-300' : 'text-rose-700 dark:text-rose-300'}`}>
+                            <span>{colTotals.due < 0 ? 'Adv:' : 'Due:'}</span>
+                            <span>{fmt(Math.abs(colTotals.due))}</span>
+                          </div>
                         </div>
                       </td>
                     );
