@@ -493,26 +493,7 @@ export default function DashboardLayout() {
               })}
             </nav>
 
-            <div className="mt-auto border-t border-slate-100 dark:border-slate-800 pt-6">
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setIsChangePasswordOpen(true);
-                }}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-all shadow-sm mb-2"
-              >
-                <Key className="h-4 w-4" />
-                <span>Change Password</span>
-              </button>
 
-              <button
-                onClick={handleLogout}
-                className="flex w-full items-center justify-center gap-2 rounded-xl btn-danger py-3 text-sm font-semibold transition-all shadow-md"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Sign Out</span>
-              </button>
-            </div>
           </aside>
         </div>
       )}
