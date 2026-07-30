@@ -288,7 +288,13 @@ export default function PanelLedger() {
     );
   }
 
-  const calculatedTotalBill = payments.reduce((sum, p) => sum + (p.billAmount || 0), 0);
+  const isFiltered = filterType !== 'all' || chargeTypeFilter !== 'all' || startDate !== '' || endDate !== '';
+  
+  const calculatedTotalBill = filteredPayments.reduce((sum, p) => sum + (p.billAmount || 0), 0);
+  const calculatedTotalReceived = filteredPayments.reduce((sum, p) => sum + (p.amountReceived || 0), 0);
+  
+  const displayTotalReceived = isFiltered ? calculatedTotalReceived : (panel?.totalPaid || calculatedTotalReceived);
+  const displayOutstanding = isFiltered ? (calculatedTotalBill - calculatedTotalReceived) : (panel?.outstanding || 0);
 
   const getLast30DaysData = () => {
     const data = [];
@@ -390,46 +396,46 @@ export default function PanelLedger() {
             <p className="text-[9px] text-emerald-500/80 dark:text-emerald-400/80 mt-0.5 font-medium leading-normal">Total payments successfully collected</p>
           </div>
           <div className="mt-2">
-            <span className="text-xl sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 font-display tracking-tight">₹{panel?.totalPaid?.toLocaleString()}</span>
+            <span className="text-xl sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 font-display tracking-tight">₹{displayTotalReceived?.toLocaleString()}</span>
           </div>
         </div>
 
         {/* Card 4: Remaining Balance */}
-        <div className={`rounded-2xl border p-3 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300 ${(panel?.outstanding || 0) > 0
+        <div className={`rounded-2xl border p-3 flex flex-col justify-between shadow-sm relative overflow-hidden hover:shadow-md transition-all duration-300 ${displayOutstanding > 0
           ? 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/50 border-l-4 border-l-rose-500'
-          : (panel?.outstanding || 0) < 0
+          : displayOutstanding < 0
             ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/50 border-l-4 border-l-emerald-500'
             : 'bg-slate-50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 border-l-4 border-l-slate-400'
           }`}>
           <div className="absolute top-0 right-0 h-16 w-16 rounded-full bg-slate-500/5 blur-xl"></div>
           <div>
-            <span className={`text-[10px] uppercase tracking-wider font-extrabold ${(panel?.outstanding || 0) > 0
+            <span className={`text-[10px] uppercase tracking-wider font-extrabold ${displayOutstanding > 0
               ? 'text-rose-700 dark:text-rose-400'
-              : (panel?.outstanding || 0) < 0
+              : displayOutstanding < 0
                 ? 'text-emerald-700 dark:text-emerald-400'
                 : 'text-slate-700 dark:text-slate-300'
               }`}>
-              {(panel?.outstanding || 0) < 0 ? 'Advance Credit Balance' : 'Remaining Balance Due'}
+              {displayOutstanding < 0 ? 'Advance Credit Balance' : 'Remaining Balance Due'}
             </span>
-            <p className={`text-[9px] mt-0.5 font-medium leading-normal ${(panel?.outstanding || 0) > 0
+            <p className={`text-[9px] mt-0.5 font-medium leading-normal ${displayOutstanding > 0
               ? 'text-rose-500 dark:text-rose-450'
-              : (panel?.outstanding || 0) < 0
+              : displayOutstanding < 0
                 ? 'text-emerald-500 dark:text-emerald-400'
                 : 'text-slate-500 dark:text-slate-400'
               }`}>
-              {(panel?.outstanding || 0) < 0 ? 'Extra amount paid by client in advance' : 'Remaining outstanding dues pending collection'}
+              {displayOutstanding < 0 ? 'Extra amount paid by client in advance' : 'Remaining outstanding dues pending collection'}
             </p>
           </div>
           <div className="mt-2">
-            <span className={`text-xl sm:text-2xl font-extrabold font-display tracking-tight ${(panel?.outstanding || 0) > 0
+            <span className={`text-xl sm:text-2xl font-extrabold font-display tracking-tight ${displayOutstanding > 0
               ? 'text-rose-600 dark:text-rose-400'
-              : (panel?.outstanding || 0) < 0
+              : displayOutstanding < 0
                 ? 'text-emerald-600 dark:text-emerald-400'
                 : 'text-slate-700 dark:text-slate-300'
               }`}>
-              {(panel?.outstanding || 0) < 0
-                ? `₹${Math.abs(panel.outstanding).toLocaleString()} `
-                : `₹${(panel?.outstanding || 0).toLocaleString()}`
+              {displayOutstanding < 0
+                ? `₹${Math.abs(displayOutstanding).toLocaleString()} `
+                : `₹${displayOutstanding.toLocaleString()}`
               }
             </span>
           </div>

@@ -334,7 +334,7 @@ export default function MonthlySummary() {
               key={cat}
               onClick={() => setCategoryFilter(cat)}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors shrink-0 ${categoryFilter === cat
-                ? 'bg-primary-500 border-primary-500 text-white'
+                ? 'bg-primary-500 border-primary-500 '
                 : 'bg-white dark:bg-surface border-border-primary text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
             >
