@@ -38,12 +38,14 @@ async function getIpReport() {
     const apiAgg = {};
     for (const item of apiData) {
         const panelName = item.panel_name ? item.panel_name.toLowerCase().trim() : 'unknown';
-        const d = new Date(item.createdAt || item.date);
+        const d = new Date(item.new_start_date);
+        if (isNaN(d.getTime())) continue; // Skip if no valid start_date
         const dateStr = d.toISOString().split('T')[0];
 
         if (!apiAgg[panelName]) apiAgg[panelName] = {};
-        if (!apiAgg[panelName][dateStr]) apiAgg[panelName][dateStr] = { count: 0, originalDate: item.createdAt || item.date };
+        if (!apiAgg[panelName][dateStr]) apiAgg[panelName][dateStr] = { count: 0, originalDate: item.new_start_date, types: new Set() };
         apiAgg[panelName][dateStr].count += (item.count || 0);
+        if (item.type) apiAgg[panelName][dateStr].types.add(item.type);
     }
 
     const dbAgg = {};
@@ -83,6 +85,7 @@ async function getIpReport() {
                     date: dateStr,
                     originalDate: apiInfo.originalDate,
                     apiCount: apiInfo.count,
+                    types: Array.from(apiInfo.types).join(', '),
                     message: 'API has entry for this date but DB has none'
                 });
             } else {
@@ -95,6 +98,7 @@ async function getIpReport() {
                         apiCount: apiInfo.count,
                         dbQuantity: dbInfo.quantity,
                         difference: apiInfo.count - dbInfo.quantity,
+                        types: Array.from(apiInfo.types).join(', '),
                         message: 'Count mismatch between API and DB'
                     });
                 }
@@ -143,12 +147,12 @@ async function getLicenseReport() {
         const number = item.msg ? Number(item.msg.match(/\d+/)?.[0] || 0) : 0;
         if (number <= 0) continue;
 
-        const d = new Date(item.createdAt || item.date);
+        const d = new Date(item.createdAt);
         if (isNaN(d.getTime())) continue;
         const dateStr = d.toISOString().split('T')[0];
 
         if (!apiAgg[panelName]) apiAgg[panelName] = {};
-        if (!apiAgg[panelName][dateStr]) apiAgg[panelName][dateStr] = { count: 0, originalDate: item.createdAt || item.date };
+        if (!apiAgg[panelName][dateStr]) apiAgg[panelName][dateStr] = { count: 0, originalDate: item.createdAt };
         apiAgg[panelName][dateStr].count += number;
     }
 
@@ -282,7 +286,7 @@ router.post('/fix-ip', protect, adminOnly, async (req, res) => {
                 paymentType: 'IP Charges',
                 amountReceived: 0, paymentMode: 'UPI', bankName: '',
                 quantity, unitPrice, billAmount, billDiscount: 0, paymentDiscount: 0,
-                remark: `Auto-fixed: Synced ${quantity} missing IPs from iphub`,
+                remark: `Auto-fixed: Synced ${quantity} missing IPs from iphub. Type: ${entry.types || 'Unknown'}`,
                 addedBy: req.user._id, timestamp: dateObj
             });
             fixedMissing++;
@@ -300,18 +304,24 @@ router.post('/fix-ip', protect, adminOnly, async (req, res) => {
 
             if (diff > 0) {
                 const billAmount = diff * unitPrice;
+                const dateObj = mismatch.originalDate ? new Date(mismatch.originalDate) : new Date(dateStr + 'T12:00:00Z');
                 await Payment.create({
                     panelId: panel._id, paymentType: 'IP Charges',
                     amountReceived: 0, paymentMode: 'UPI', bankName: '',
                     quantity: diff, unitPrice, billAmount, billDiscount: 0, paymentDiscount: 0,
-                    remark: `Auto-fixed: Added ${diff} extra IPs to match API count`,
-                    addedBy: req.user._id, timestamp: new Date(dateStr + 'T12:00:00Z')
+                    remark: `Auto-fixed: Added ${diff} extra IPs to match API count. Type: ${mismatch.types || 'Unknown'}`,
+                    addedBy: req.user._id, timestamp: dateObj
                 });
                 fixedMismatch++;
             } else if (diff < 0) {
                 const excess = Math.abs(diff);
                 const payments = await Payment.find({
-                    panelId: panel._id, paymentType: 'IP Charges', timestamp: { $gte: startOfDay, $lte: endOfDay }
+                    panelId: panel._id, paymentType: 'IP Charges',
+                    $or: [
+                        { timestamp: { $gte: startOfDay, $lte: endOfDay } },
+                        { timestamp: null, createdAt: { $gte: startOfDay, $lte: endOfDay } },
+                        { timestamp: { $exists: false }, createdAt: { $gte: startOfDay, $lte: endOfDay } }
+                    ]
                 }).sort({ createdAt: -1 });
 
                 let remaining = excess;
@@ -410,7 +420,12 @@ router.post('/fix-license', protect, adminOnly, async (req, res) => {
             } else if (diff < 0) {
                 const excess = Math.abs(diff);
                 const payments = await Payment.find({
-                    panelId: panel._id, paymentType: 'License', timestamp: { $gte: startOfDay, $lte: endOfDay }
+                    panelId: panel._id, paymentType: 'License',
+                    $or: [
+                        { timestamp: { $gte: startOfDay, $lte: endOfDay } },
+                        { timestamp: null, createdAt: { $gte: startOfDay, $lte: endOfDay } },
+                        { timestamp: { $exists: false }, createdAt: { $gte: startOfDay, $lte: endOfDay } }
+                    ]
                 }).sort({ createdAt: -1 });
 
                 let remaining = excess;

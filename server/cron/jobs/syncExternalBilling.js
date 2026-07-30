@@ -132,9 +132,9 @@ module.exports = {
                             billAmount: billAmount,
                             billDiscount: 0,
                             paymentDiscount: 0,
-                            remark: `Synced ${quantity} IP charges from iphub`,
+                            remark: `Synced ${quantity} IP charges from iphub. Type: ${item.type || 'Unknown'}`,
                             addedBy: admin._id,
-                            timestamp: new Date(item.createdAt || new Date())
+                            timestamp: new Date(item.new_start_date || new Date())
                         });
 
                         await Log.create({
@@ -152,7 +152,94 @@ module.exports = {
 
         }
 
+        // ==============================================================
+        // 4. Fetch external SOP Licenses
+        // ==============================================================
+        let sopBilled = 0;
+        try {
+            const sopUrl = "https://soptools.tradestreet.in/superbackend/TodayAmountDetails";
+            // Hit the API (no specific body is needed as per example, using empty object)
+            const sopResponse = await axios.post(sopUrl, {}, { headers: { 'Content-Type': 'application/json' } });
 
-        return { success: true, licenseBilled, ipBilled };
+            if (sopResponse.data.Status === true && sopResponse.data.AmmountDetails) {
+                const sopData = sopResponse.data.AmmountDetails;
+                // Fetch SOP panels
+                const sopPanels = await Panel.find({ category: { $regex: new RegExp('^sop$', 'i') }, status: { $ne: 'Stopped' } });
+
+                for (const item of sopData) {
+                    const url = (item.Url || "").toLowerCase();
+                    // Match panel from url using same logic as manual sync
+                    const matchedPanel = sopPanels.find(p => p.panelName && url.includes(p.panelName.toLowerCase()));
+
+                    if (matchedPanel) {
+                        const amount = parseFloat(item.AmountDetails) || 0;
+                        if (amount <= 0) continue;
+
+                        let finalBillAmount = amount;
+                        let gstAmount = 0;
+
+                        if (matchedPanel.takeSopDiscount) {
+                            gstAmount = amount * 0.18;
+                            finalBillAmount = amount + gstAmount;
+                        }
+
+                        const unitPrice = matchedPanel.licenseCharges || amount;
+                        const quantity = unitPrice > 0 ? Number((amount / unitPrice).toFixed(2)) : 1;
+
+                        // Parse "DD/MM/YYYY HH:mm:ss"
+                        let timestamp = new Date();
+                        const dateStr = item["Payment Date"];
+                        if (dateStr) {
+                            const parts = dateStr.split(' ');
+                            if (parts.length === 2) {
+                                const dParts = parts[0].split('/');
+                                if (dParts.length === 3) {
+                                    timestamp = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1]}Z`);
+                                }
+                            }
+                        }
+
+                        // Basic check to prevent duplicate adding if cron runs twice in same minute for same amount
+                        const existingPayment = await Payment.findOne({
+                            panelId: matchedPanel._id,
+                            paymentType: 'License',
+                            timestamp: timestamp,
+                            billAmount: finalBillAmount
+                        });
+
+                        if (!existingPayment) {
+                            await Payment.create({
+                                panelId: matchedPanel._id,
+                                paymentType: 'License',
+                                amountReceived: 0,
+                                paymentMode: 'UPI',
+                                bankName: '',
+                                quantity: quantity,
+                                unitPrice: unitPrice,
+                                billAmount: finalBillAmount,
+                                billDiscount: 0,
+                                paymentDiscount: 0,
+                                remark: `Auto-fixed: SOP Sync (${quantity} licenses). ${matchedPanel.takeSopDiscount ? `Amount: ₹${amount} + GST: ₹${gstAmount}` : ''}`.trim(),
+                                addedBy: admin._id,
+                                timestamp: timestamp
+                            });
+
+                            await Log.create({
+                                userId: admin._id,
+                                actionType: 'ADD',
+                                module: 'Payment',
+                                details: `[System Cron] Created SOP license bill of ₹${amount} for panel "${matchedPanel.panelName}"`
+                            });
+
+                            sopBilled++;
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("SOP Billing Sync Error:", error);
+        }
+
+        return { success: true, licenseBilled, ipBilled, sopBilled };
     }
 };

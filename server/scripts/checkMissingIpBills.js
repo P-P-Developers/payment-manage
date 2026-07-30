@@ -50,7 +50,7 @@ async function checkMissingData() {
         const apiAgg = {};
         for (const item of apiData) {
             const panelName = item.panel_name ? item.panel_name.toLowerCase().trim() : 'unknown';
-            const d = new Date(item.createdAt || item.date);
+            const d = new Date(item.new_start_date || item.date);
             const dateStr = d.toISOString().split('T')[0];
 
             if (!apiAgg[panelName]) apiAgg[panelName] = {};

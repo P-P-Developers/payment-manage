@@ -12,6 +12,7 @@ import SmtpSettings from './pages/SmtpSettings';
 import Settings from './pages/Settings';
 import Statement from './pages/Statement';
 import DataSync from './pages/DataSync';
+import MonthlySummary from './pages/MonthlySummary';
 
 export default function App() {
   useEffect(() => {
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="statement" element={<Statement />} />
           <Route path="sync" element={<DataSync />} />
+          <Route path="monthly-summary" element={<MonthlySummary />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

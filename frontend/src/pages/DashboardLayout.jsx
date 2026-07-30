@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
 import { getAuthToken, getLoggedUser, clearAuth, apiRequest } from '@/utils/api';
 import {
   LayoutDashboard,
-  Users,
-  Layers,
-  CircleDollarSign,
-  ClipboardList,
+  UsersRound,
+  MonitorCheck,
+  IndianRupee,
+  Landmark,
+  CalendarDays,
+  ScrollText,
+  RefreshCw,
   LogOut,
   Menu,
   X,
@@ -15,10 +18,8 @@ import {
   Lock,
   Mail,
   Settings,
-  BookOpen,
   Sun,
   Moon,
-  RefreshCw,
 } from 'lucide-react';
 
 export default function DashboardLayout() {
@@ -36,6 +37,22 @@ export default function DashboardLayout() {
     if (savedTheme) return savedTheme === 'dark';
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
+
+  const profileDropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    }
+    if (isProfileOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isProfileOpen]);
 
   useEffect(() => {
     if (isDark) {
@@ -185,38 +202,32 @@ export default function DashboardLayout() {
     {
       name: 'Users',
       href: '/dashboard/users',
-      icon: Users,
+      icon: UsersRound,
       isAdminOnly: true,
     },
     {
       name: 'Panels (Clients)',
       href: '/dashboard/panels',
-      icon: Layers,
+      icon: MonitorCheck,
       permission: 'view_panels',
     },
     {
       name: 'Payments',
       href: '/dashboard/payments',
-      icon: CircleDollarSign,
+      icon: IndianRupee,
       permission: 'add_payments',
     },
     {
       name: 'Passbook',
       href: '/dashboard/statement',
-      icon: BookOpen,
+      icon: Landmark,
       permission: 'view_panels',
     },
     {
-      name: 'Logs',
-      href: '/dashboard/logs',
-      icon: ClipboardList,
-      isAdminOnly: true,
-    },
-    {
-      name: 'Data Sync',
-      href: '/dashboard/sync',
-      icon: RefreshCw,
-      isAdminOnly: true,
+      name: 'Monthly Summary',
+      href: '/dashboard/monthly-summary',
+      icon: CalendarDays,
+      permission: 'view_panels',
     },
   ];
 
@@ -326,7 +337,7 @@ export default function DashboardLayout() {
             </button>
 
             {/* User Profile Dropdown Button */}
-            <div className="relative">
+            <div className="relative" ref={profileDropdownRef}>
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center gap-2.5 p-1.5 transition-all shadow-sm"
@@ -342,60 +353,82 @@ export default function DashboardLayout() {
               {/* Profile Dropdown Menu */}
               {isProfileOpen && (
                 <>
-                  <div
-                    onClick={() => setIsProfileOpen(false)}
-                    className="fixed inset-0 z-40 cursor-default"
-                  ></div>
-                  <div className="absolute right-0 mt-2.5 w-56 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 shadow-2xl z-50 animate-in fade-in slide-in-from-top-3 duration-200">
-                    {/* User info header inside dropdown */}
-                    <div className="px-3.5 py-3  border-slate-100 dark:border-slate-800 mb-1.5 md:hidden">
-                      <p className="text-sm font-semibold truncate text-slate-900 dark:text-slate-100">{user?.name}</p>
-                      <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase mt-0.5">{user?.role}</p>
+                  <div className="absolute right-0 mt-2.5 w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-3 duration-200">
+                    {/* Enhanced User Info Header */}
+                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 mb-2 flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-inner uppercase shrink-0">
+                        {user?.name?.substring(0, 2)}
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-sm font-bold truncate text-slate-900 dark:text-slate-100">{user?.name}</p>
+                        <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase mt-0.5 tracking-wider">{user?.role}</p>
+                      </div>
                     </div>
 
-                    <button
-                      onClick={() => {
-                        setIsProfileOpen(false);
-                        setIsChangePasswordOpen(true);
-                      }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#4F46E5] dark:hover:text-indigo-400 hover:bg-[#4F46E5]/5 dark:hover:bg-indigo-500/10 border border-transparent hover:border-[#4F46E5]/10 dark:hover:border-indigo-500/20 transition-all"
-                    >
-                      <Key className="h-4 w-4 text-slate-400" />
-                      <span>Change Password</span>
-                    </button>
+                    <div className="px-1 space-y-1">
+                      <button
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          setIsChangePasswordOpen(true);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all"
+                      >
+                        <Key className="h-4 w-4 text-slate-400" />
+                        <span>Change Password</span>
+                      </button>
 
-                    {user?.role === 'Admin' && (
-                      <>
-                        <Link
-                          to="/dashboard/settings"
-                          onClick={() => setIsProfileOpen(false)}
-                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#4F46E5] dark:hover:text-indigo-400 hover:bg-[#4F46E5]/5 dark:hover:bg-indigo-500/10 border border-transparent hover:border-[#4F46E5]/10 dark:hover:border-indigo-500/20 transition-all mt-1"
-                        >
-                          <Settings className="h-4 w-4 text-slate-400" />
-                          <span>System Settings</span>
-                        </Link>
-                        <Link
-                          to="/dashboard/smtp"
-                          onClick={() => setIsProfileOpen(false)}
-                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#4F46E5] dark:hover:text-indigo-400 hover:bg-[#4F46E5]/5 dark:hover:bg-indigo-500/10 border border-transparent hover:border-[#4F46E5]/10 dark:hover:border-indigo-500/20 transition-all mt-1"
-                        >
-                          <Mail className="h-4 w-4 text-slate-400" />
-                          <span>SMTP Settings</span>
-                        </Link>
-                      </>
-                    )}
+                      {user?.role === 'Admin' && (
+                        <div className="px-1 space-y-1 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                          <Link
+                            to="/dashboard/sync"
+                            onClick={() => setIsProfileOpen(false)}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all"
+                          >
+                            <RefreshCw className="h-4 w-4 text-slate-400" />
+                            <span>Data Sync</span>
+                          </Link>
+                          <Link
+                            to="/dashboard/logs"
+                            onClick={() => setIsProfileOpen(false)}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all"
+                          >
+                            <ScrollText className="h-4 w-4 text-slate-400" />
+                            <span>System Logs</span>
+                          </Link>
+                          <Link
+                            to="/dashboard/settings"
+                            onClick={() => setIsProfileOpen(false)}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all"
+                          >
+                            <Settings className="h-4 w-4 text-slate-400" />
+                            <span>System Settings</span>
+                          </Link>
+                          <Link
+                            to="/dashboard/smtp"
+                            onClick={() => setIsProfileOpen(false)}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all"
+                          >
+                            <Mail className="h-4 w-4 text-slate-400" />
+                            <span>SMTP Settings</span>
+                          </Link>
+                        </div>
+                      )}
 
-                    <button
-                      onClick={() => {
-                        setIsProfileOpen(false);
-                        handleLogout();
-                      }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 border border-transparent hover:border-rose-100 dark:hover:border-rose-900/20 transition-all mt-1"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>Sign Out</span>
-                    </button>
+                      <div className="px-1 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <button
+                          onClick={() => {
+                            setIsProfileOpen(false);
+                            handleLogout();
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
+
                 </>
               )}
             </div>

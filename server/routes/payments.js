@@ -29,6 +29,91 @@ router.get('/unpaid/:panelId', protect, hasPermission('view_panels'), async (req
   }
 });
 
+// @desc    Get monthly billing summary
+// @route   GET /api/payments/monthly-summary
+// @access  Private (view_panels permission)
+router.get('/monthly-summary', protect, hasPermission('view_panels'), async (req, res) => {
+  try {
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+    const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+    const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+
+    const summary = await Payment.aggregate([
+      {
+        $match: {
+          $or: [
+            { timestamp: { $gte: startDate, $lte: endDate } },
+            { timestamp: { $exists: false }, createdAt: { $gte: startDate, $lte: endDate } },
+            { timestamp: null, createdAt: { $gte: startDate, $lte: endDate } }
+          ]
+        }
+      },
+      {
+        $addFields: {
+          computedDate: { $ifNull: ["$timestamp", "$createdAt"] }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            panelId: '$panelId',
+            month: { $month: { date: "$computedDate", timezone: "Asia/Kolkata" } }
+          },
+          totalBill: { $sum: '$billAmount' },
+          totalReceived: { $sum: '$amountReceived' },
+          totalDiscount: { $sum: { $add: [{ $ifNull: ['$billDiscount', 0] }, { $ifNull: ['$paymentDiscount', 0] }] } },
+          transactions: {
+            $push: {
+              paymentType: '$paymentType',
+              billAmount: '$billAmount',
+              amountReceived: '$amountReceived',
+              paymentMode: '$paymentMode',
+              remark: '$remark',
+              date: '$computedDate'
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$_id.panelId',
+          months: {
+            $push: {
+              month: '$_id.month',
+              bill: '$totalBill',
+              received: '$totalReceived',
+              discount: '$totalDiscount',
+              transactions: '$transactions'
+            }
+          }
+        }
+      }
+    ]);
+
+    const allPanels = await Panel.find({}).select('panelName category').lean();
+    
+    const summaryMap = {};
+    summary.forEach(item => {
+      if (item._id) {
+        summaryMap[item._id.toString()] = item.months;
+      }
+    });
+
+    const finalData = allPanels.map(panel => ({
+      _id: {
+        _id: panel._id,
+        panelName: panel.panelName,
+        category: panel.category
+      },
+      months: summaryMap[panel._id.toString()] || []
+    }));
+
+    res.json({ success: true, year, data: finalData });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // @desc    Get all payments (with pagination support)
 // @route   GET /api/payments
 // @access  Private (view_panels permission)

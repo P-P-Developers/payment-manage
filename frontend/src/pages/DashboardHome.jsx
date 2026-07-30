@@ -1426,25 +1426,25 @@ export default function DashboardHome() {
             </div>
 
             {/* Performance Table */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto overflow-y-auto max-h-[1100px] custom-scrollbar relative">
               <table className="w-full text-left border-collapse text-xs min-w-[850px]">
-                <thead>
-                  <tr className="bg-slate-100/80 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 uppercase font-bold tracking-[0.06em] text-[10.5px] sticky top-0">
+                <thead className="sticky top-0 z-20">
+                  <tr className="bg-slate-100/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 uppercase font-bold tracking-[0.06em] text-[10.5px]">
                     <th className="px-4 py-3 text-center w-10">#</th>
-                    <th onClick={() => handleSort('panelName')} className="px-4 py-3 cursor-pointer hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                    <th onClick={() => handleSort('panelName')} className="px-4 py-3 cursor-pointer transition-colors">
                       <div className="flex items-center gap-1">Client Panel {perfSortField === 'panelName' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
                     </th>
                     <th className="px-4 py-3">Category</th>
-                    <th onClick={() => handleSort('totalBilled')} className="px-4 py-3 cursor-pointer hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-right">
+                    <th onClick={() => handleSort('totalBilled')} className="px-4 py-3 cursor-pointer transition-colors text-right">
                       <div className="flex items-center justify-end gap-1">Sales Billed {perfSortField === 'totalBilled' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
                     </th>
-                    <th onClick={() => handleSort('totalPaid')} className="px-4 py-3 cursor-pointer hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-right">
+                    <th onClick={() => handleSort('totalPaid')} className="px-4 py-3 cursor-pointer transition-colors text-right">
                       <div className="flex items-center justify-end gap-1">Paid {perfSortField === 'totalPaid' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
                     </th>
-                    <th onClick={() => handleSort('outstanding')} className="px-4 py-3 cursor-pointer hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-right">
+                    <th onClick={() => handleSort('outstanding')} className="px-4 py-3 cursor-pointer transition-colors text-right">
                       <div className="flex items-center justify-end gap-1">Outstanding {perfSortField === 'outstanding' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
                     </th>
-                    <th onClick={() => handleSort('recoveryRate')} className="px-4 py-3 cursor-pointer hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-center">
+                    <th onClick={() => handleSort('recoveryRate')} className="px-4 py-3 cursor-pointer transition-colors text-center">
                       <div className="flex items-center justify-center gap-1">Recovery {perfSortField === 'recoveryRate' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
                     </th>
                     <th className="px-4 py-3 text-center">Status</th>
