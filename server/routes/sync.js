@@ -39,7 +39,7 @@ async function getIpReport() {
     for (const item of apiData) {
         const panelName = item.panel_name ? item.panel_name.toLowerCase().trim() : 'unknown';
         const d = new Date(item.new_start_date);
-        if (isNaN(d.getTime())) continue; // Skip if no valid start_date
+        if (isNaN(d.getTime())) continue;
         const dateStr = d.toISOString().split('T')[0];
 
         if (!apiAgg[panelName]) apiAgg[panelName] = {};
@@ -468,7 +468,7 @@ async function getSopReport() {
     sopArray = sopArray.filter(item => {
         const dateStr = item["Payment Date"];
         if (!dateStr) return false;
-        
+
         const parts = dateStr.split(' ');
         if (parts.length === 2) {
             const dParts = parts[0].split('/');
@@ -479,7 +479,7 @@ async function getSopReport() {
         }
         return false;
     });
-    
+
     const panels = await Panel.find({ category: { $regex: new RegExp('^sop$', 'i') } }).lean();
 
     const panelIds = panels.map(p => p._id);

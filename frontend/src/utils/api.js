@@ -136,9 +136,44 @@ export const apiRequest = async (endpoint, options = {}) => {
       if (typeof window !== 'undefined') {
         const msg = data?.message || '';
         if (msg.includes('another device') || msg.includes('Session expired')) {
-          alert('⚠️ Your session has ended.\n\nThis account was logged in from another device. Please login again.');
+          // Check if modal already exists to prevent duplicates
+          if (!document.getElementById('session-expired-modal')) {
+            const overlay = document.createElement('div');
+            overlay.id = 'session-expired-modal';
+            overlay.className = 'fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300';
+            
+            const modal = document.createElement('div');
+            modal.className = 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center mx-4 transform transition-all duration-300 scale-100 animate-in fade-in zoom-in-95';
+            
+            modal.innerHTML = `
+              <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-rose-50 dark:bg-rose-900/20 mb-5 border border-rose-100 dark:border-rose-800">
+                <svg class="h-7 w-7 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">Session Expired</h3>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">This account was logged in from another device. For your security, your current session has been ended.</p>
+              <button id="session-expired-btn" class="w-full bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white font-semibold py-2.5 px-4 rounded-xl transition-all shadow-sm hover:shadow-md outline-none focus:ring-2 focus:ring-rose-500/50">
+                Login Again
+              </button>
+            `;
+            
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+
+            document.getElementById('session-expired-btn').addEventListener('click', () => {
+              overlay.style.opacity = '0';
+              setTimeout(() => {
+                if (document.body.contains(overlay)) {
+                  document.body.removeChild(overlay);
+                }
+                window.location.href = '#/login';
+              }, 200);
+            });
+          }
+        } else {
+          window.location.href = '#/login';
         }
-        window.location.href = '#/login';
       }
     }
     throw new Error(data.message || 'Something went wrong');
