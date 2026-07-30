@@ -331,7 +331,7 @@ export default function Users() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr>
-                <th className="px-6 py-4 w-16">S. No.</th>
+                <th className="px-6 py-4 w-16">No.</th>
                 <th className="px-6 py-4">User Info</th>
                 <th className="px-6 py-4">System Role</th>
                 <th className="px-6 py-4">2FA Protection</th>
@@ -759,7 +759,7 @@ export default function Users() {
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">{selectedLogUser.name} · {selectedLogUser.email}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
                 <div className="relative w-full sm:w-64">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -789,8 +789,8 @@ export default function Users() {
                 </div>
               ) : userLogs.length > 0 ? (
                 (() => {
-                  const filteredLogs = userLogs.filter(log => 
-                    log.details?.toLowerCase().includes(logSearchQuery.toLowerCase()) || 
+                  const filteredLogs = userLogs.filter(log =>
+                    log.details?.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
                     log.module?.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
                     log.actionType?.toLowerCase().includes(logSearchQuery.toLowerCase())
                   );
@@ -886,8 +886,8 @@ export default function Users() {
             <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 flex justify-between items-center shrink-0">
               <span className="text-xs text-slate-400 dark:text-slate-500">
                 {userLogs.length} total event{userLogs.length !== 1 ? 's' : ''}
-                {logSearchQuery && ` (${userLogs.filter(log => 
-                  log.details?.toLowerCase().includes(logSearchQuery.toLowerCase()) || 
+                {logSearchQuery && ` (${userLogs.filter(log =>
+                  log.details?.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
                   log.module?.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
                   log.actionType?.toLowerCase().includes(logSearchQuery.toLowerCase())
                 ).length} matched)`}
