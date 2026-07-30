@@ -444,17 +444,17 @@ async function getSopReport() {
     const apiResponse = await axios.post('https://soptools.tradestreet.in/superbackend/AmmountDetailsFilter', {
         month: null, year: null, Status: 'All'
     }, { headers: { 'Content-Type': 'application/json' } });
-    
+
     let sopApiData = apiResponse.data?.AmmountDetails;
     if (!sopApiData) sopApiData = apiResponse.data;
     const sopArray = Array.isArray(sopApiData) ? sopApiData : (sopApiData?.data || []);
 
     const panels = await Panel.find({ category: { $regex: new RegExp('^sop$', 'i') } }).lean();
-    
+
     const panelIds = panels.map(p => p._id);
-    const payments = await Payment.find({ 
-        panelId: { $in: panelIds }, 
-        paymentType: 'License' 
+    const payments = await Payment.find({
+        panelId: { $in: panelIds },
+        paymentType: 'License'
     }).lean();
 
     const matchedData = [];
@@ -464,25 +464,43 @@ async function getSopReport() {
     sopArray.forEach(sopItem => {
         const url = (sopItem.Url || "").toLowerCase();
         const matchedPanel = panels.find(p => p.panelName && url.includes(p.panelName.toLowerCase()));
-        
+
+
         if (matchedPanel) {
             matchedPanelIds.add(matchedPanel._id.toString());
-            
+
             const panelPayments = payments.filter(pay => pay.panelId.toString() === matchedPanel._id.toString());
             const sopAmount = parseFloat(sopItem.AmountDetails) || 0;
-            
-            const isExisting = panelPayments.some(pay => {
-                const dbAmount = parseFloat(pay.amountReceived) || parseFloat(pay.billAmount) || parseFloat(pay.unitPrice) || 0;
-                return dbAmount === sopAmount;
-            });
-            
-            if (!isExisting) newMissingCount++;
 
-            matchedData.push({
-                sopItem,
-                localPanel: matchedPanel,
-                status: isExisting ? 'Payment Found in DB' : 'Payment Missing in DB'
-            });
+            if (panelPayments.length === 0) {
+                newMissingCount++;
+                matchedData.push({
+                    sopItem,
+                    localPanel: matchedPanel,
+                    status: 'Missing in DB'
+                });
+            } else {
+                const isExisting = panelPayments.some(pay => {
+                    const amtRecv = parseFloat(pay.amountReceived) || 0;
+                    const bAmt = parseFloat(pay.billAmount) || 0;
+                    const uPrice = parseFloat(pay.unitPrice) || 0;
+                    const amtWithGst = parseFloat((sopAmount + (sopAmount * 0.18)).toFixed(2));
+
+                    return bAmt === sopAmount || bAmt === amtWithGst ||
+                        amtRecv === sopAmount || amtRecv === amtWithGst ||
+                        uPrice === sopAmount || uPrice === amtWithGst;
+                });
+
+                if (!isExisting) {
+                    newMissingCount++;
+                    matchedData.push({
+                        sopItem,
+                        localPanel: matchedPanel,
+                        status: 'Mismatch Amount'
+                    });
+                }
+                // If isExisting is true, it is perfectly matched, so we don't add it to matchedData
+            }
         }
     });
 
@@ -513,20 +531,20 @@ router.post('/fix-sop', protect, adminOnly, async (req, res) => {
         let fixedMissing = 0;
 
         for (const match of report.matchedData) {
-            if (match.status === 'Payment Missing in DB') {
+            if (match.status === 'Missing in DB' || match.status === 'Mismatch Amount') {
                 const amount = parseFloat(match.sopItem.AmountDetails) || 0;
                 let finalBillAmount = amount;
-                
+
                 let gstAmount = 0;
-                
+
                 if (match.localPanel.takeSopDiscount) {
                     gstAmount = amount * 0.18;
                     finalBillAmount = amount + gstAmount;
                 }
-                
+
                 const unitPrice = match.localPanel.licenseCharges || amount;
                 const quantity = unitPrice > 0 ? Number((amount / unitPrice).toFixed(2)) : 1;
-                
+
                 // Parse "DD/MM/YYYY HH:mm:ss"
                 let timestamp = new Date();
                 const dateStr = match.sopItem["Payment Date"];
@@ -543,16 +561,16 @@ router.post('/fix-sop', protect, adminOnly, async (req, res) => {
                 await Payment.create({
                     panelId: match.localPanel._id,
                     paymentType: 'License',
-                    amountReceived: 0, 
-                    paymentMode: 'UPI', 
+                    amountReceived: 0,
+                    paymentMode: 'UPI',
                     bankName: '',
-                    quantity: quantity, 
-                    unitPrice: unitPrice, 
-                    billAmount: finalBillAmount, 
-                    billDiscount: 0, 
+                    quantity: quantity,
+                    unitPrice: unitPrice,
+                    billAmount: finalBillAmount,
+                    billDiscount: 0,
                     paymentDiscount: 0,
                     remark: `Auto-fixed: SOP Sync (${quantity} licenses). ${match.localPanel.takeSopDiscount ? `Amount: ₹${amount} + GST: ₹${gstAmount}` : ''}`.trim(),
-                    addedBy: req.user._id, 
+                    addedBy: req.user._id,
                     timestamp
                 });
 
@@ -560,11 +578,11 @@ router.post('/fix-sop', protect, adminOnly, async (req, res) => {
                     userId: req.user._id, actionType: 'ADD', module: 'Payment',
                     details: `Auto-fixed: Created SOP license bill of ₹${amount} for panel "${match.localPanel.panelName}"`
                 });
-                
+
                 fixedMissing++;
             }
         }
-        
+
         res.status(200).json({ success: true, fixedMissing, message: `SOP fixes applied. Added ${fixedMissing} payments.` });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message || 'Server Error' });

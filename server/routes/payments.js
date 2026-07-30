@@ -119,12 +119,70 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
       }
     }
 
+    // Filter by Duplicates
+    if (req.query.duplicates === 'true') {
+      const duplicatesByBillAmount = await Payment.aggregate([
+        {
+          $match: { billAmount: { $gt: 0 } }
+        },
+        {
+          $group: {
+            _id: {
+              panelId: '$panelId',
+              paymentType: '$paymentType',
+              billAmount: '$billAmount',
+              date: { $dateToString: { format: '%Y-%m-%d %H:%M', date: '$timestamp', timezone: 'Asia/Kolkata' } }
+            },
+            count: { $sum: 1 },
+            ids: { $push: '$_id' }
+          }
+        },
+        {
+          $match: { count: { $gt: 1 } }
+        }
+      ]);
+
+      const duplicatesByAmountReceived = await Payment.aggregate([
+        {
+          $match: { amountReceived: { $gt: 0 } }
+        },
+        {
+          $group: {
+            _id: {
+              panelId: '$panelId',
+              paymentType: '$paymentType',
+              amountReceived: '$amountReceived',
+              date: { $dateToString: { format: '%Y-%m-%d %H:%M', date: '$timestamp', timezone: 'Asia/Kolkata' } }
+            },
+            count: { $sum: 1 },
+            ids: { $push: '$_id' }
+          }
+        },
+        {
+          $match: { count: { $gt: 1 } }
+        }
+      ]);
+
+      const duplicateIdsByBill = duplicatesByBillAmount.reduce((acc, group) => acc.concat(group.ids), []);
+      const duplicateIdsByReceived = duplicatesByAmountReceived.reduce((acc, group) => acc.concat(group.ids), []);
+      
+      // Merge and remove duplicates from the ids list
+      const allDuplicateIds = [...new Set([...duplicateIdsByBill, ...duplicateIdsByReceived].map(id => id.toString()))];
+      filterQuery._id = { $in: allDuplicateIds };
+    }
+
+    let sortQuery = { timestamp: -1 };
+    if (req.query.duplicates === 'true') {
+      // Sort by panelId to group duplicates of the same panel together, then by timestamp
+      sortQuery = { panelId: 1, timestamp: -1 };
+    }
+
     const total = await Payment.countDocuments(filterQuery);
     const payments = await Payment.find(filterQuery)
       .populate('panelId', 'panelName ownerName ownerEmail phoneNumber status')
       .populate('addedBy', 'name email')
       .populate('editHistory.editedBy', 'name email')
-      .sort({ timestamp: -1 })
+      .sort(sortQuery)
       .skip(skip)
       .limit(limit)
       .lean();

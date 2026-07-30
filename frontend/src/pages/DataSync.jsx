@@ -326,10 +326,10 @@ const DataSync = () => {
 
                 <div className="mt-4 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-800 p-4 max-h-[600px] overflow-y-auto flex flex-col gap-6">
 
-                  {/* Category 1: MATCHED */}
+                  {/* Category 1: DISCREPANCIES */}
                   <div>
-                    <h5 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 border-b border-emerald-200 dark:border-emerald-800/50 pb-2">
-                      1. Mapped Panels (Found in Both)
+                    <h5 className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2 border-b border-amber-200 dark:border-amber-800/50 pb-2">
+                      1. Discrepancies (Missing / Mismatch in DB)
                     </h5>
 
                     {sopData.matchedData.length > 0 ? (
@@ -358,7 +358,7 @@ const DataSync = () => {
                                 <td className="px-4 py-3 text-right font-semibold">₹{match.sopItem.AmountDetails}</td>
                                 <td className="px-4 py-3">{match.sopItem["Payment Date"]}</td>
                                 <td className="px-4 py-3 text-center">
-                                  <span className={`inline-flex items-center text-[10px] font-bold uppercase px-2 py-1 rounded-md shadow-sm ${match.status === 'Payment Found in DB' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 border border-amber-200 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400'}`}>
+                                  <span className={`inline-flex items-center text-[10px] font-bold uppercase px-2 py-1 rounded-md shadow-sm ${match.status === 'Mismatch Amount' ? 'bg-amber-100 text-amber-700 border border-amber-200 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400' : 'bg-rose-100 text-rose-700 border border-rose-200 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400'}`}>
                                     {match.status}
                                   </span>
                                 </td>

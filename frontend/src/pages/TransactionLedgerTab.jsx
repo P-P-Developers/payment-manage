@@ -61,6 +61,8 @@ export default function TransactionLedgerTab({
   setSearchQuery,
   transactionTypeFilter,
   setTransactionTypeFilter,
+  showDuplicates,
+  setShowDuplicates,
   startDate,
   setStartDate,
   endDate,
@@ -119,6 +121,16 @@ export default function TransactionLedgerTab({
         </div>
 
         {/* Filters */}
+        <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300">
+          <input
+            type="checkbox"
+            checked={showDuplicates}
+            onChange={(e) => setShowDuplicates(e.target.checked)}
+            className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-600 dark:focus:ring-indigo-500 bg-white dark:bg-slate-800"
+          />
+          <span className="text-[11px] font-semibold whitespace-nowrap">Duplicates</span>
+        </label>
+        
         <select
           value={transactionTypeFilter}
           onChange={(e) => setTransactionTypeFilter(e.target.value)}

@@ -95,6 +95,7 @@ export default function Payments() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [transactionTypeFilter, setTransactionTypeFilter] = useState('all'); // 'all', 'bill', 'received'
+  const [showDuplicates, setShowDuplicates] = useState(false);
 
   // Debouncing Search Query
   useEffect(() => {
@@ -352,6 +353,7 @@ export default function Payments() {
       if (modeFilter && modeFilter !== 'All') url += `&paymentMode=${encodeURIComponent(modeFilter)}`;
       if (categoryFilter && categoryFilter !== 'All') url += `&category=${encodeURIComponent(categoryFilter)}`;
       if (transactionTypeFilter && transactionTypeFilter !== 'all') url += `&transactionType=${encodeURIComponent(transactionTypeFilter)}`;
+      if (showDuplicates) url += `&duplicates=true`;
       if (startDate) url += `&startDate=${encodeURIComponent(startDate)}`;
       if (endDate) url += `&endDate=${encodeURIComponent(endDate)}`;
 
@@ -375,7 +377,7 @@ export default function Payments() {
 
   useEffect(() => {
     fetchPaymentsAndPanels(currentPage);
-  }, [currentPage, debouncedSearchQuery, typeFilter, modeFilter, categoryFilter, transactionTypeFilter, startDate, endDate, pageSize]);
+  }, [currentPage, debouncedSearchQuery, typeFilter, modeFilter, categoryFilter, transactionTypeFilter, showDuplicates, startDate, endDate, pageSize]);
 
   const handleOpenReceiveModal = () => {
     setModalMode('receive');
@@ -918,6 +920,8 @@ export default function Payments() {
           setSearchQuery={setSearchQuery}
           transactionTypeFilter={transactionTypeFilter}
           setTransactionTypeFilter={setTransactionTypeFilter}
+          showDuplicates={showDuplicates}
+          setShowDuplicates={setShowDuplicates}
           startDate={startDate}
           setStartDate={setStartDate}
           endDate={endDate}
