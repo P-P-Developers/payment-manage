@@ -464,7 +464,7 @@ async function getSopReport() {
     if (!sopApiData) sopApiData = apiResponse.data;
     let sopArray = Array.isArray(sopApiData) ? sopApiData : (sopApiData?.data || []);
 
-    const cutoffDate = new Date('2026-04-01T00:00:00.000Z');
+    const cutoffDate = new Date('2026-03-31T18:30:00.000Z'); // 1 April 2026 00:00:00 IST
     sopArray = sopArray.filter(item => {
         const dateStr = item["Payment Date"];
         if (!dateStr) return false;
@@ -473,7 +473,8 @@ async function getSopReport() {
         if (parts.length === 2) {
             const dParts = parts[0].split('/');
             if (dParts.length === 3) {
-                const itemDate = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1]}Z`);
+                // Parse as IST (+05:30)
+                const itemDate = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1]}+05:30`);
                 return itemDate >= cutoffDate;
             }
         }
@@ -512,14 +513,38 @@ async function getSopReport() {
                 });
             } else {
                 const isExisting = panelPayments.some(pay => {
-                    const amtRecv = parseFloat(pay.amountReceived) || 0;
                     const bAmt = parseFloat(pay.billAmount) || 0;
                     const uPrice = parseFloat(pay.unitPrice) || 0;
                     const amtWithGst = parseFloat((sopAmount + (sopAmount * 0.18)).toFixed(2));
 
-                    return bAmt === sopAmount || bAmt === amtWithGst ||
-                        amtRecv === sopAmount || amtRecv === amtWithGst ||
-                        uPrice === sopAmount || uPrice === amtWithGst;
+                    const amtMatches = bAmt === sopAmount || bAmt === amtWithGst;
+
+                    let dateMatches = false;
+                    const dateStr = sopItem["Payment Date"];
+                    if (dateStr) {
+                        const parts = dateStr.split(' ');
+                        if (parts.length >= 1) {
+                            const dParts = parts[0].split('/');
+                            if (dParts.length === 3) {
+                                const sopDateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`; // YYYY-MM-DD
+                                const payDateObj = new Date(pay.timestamp || pay.createdAt || pay.date);
+                                if (!isNaN(payDateObj.getTime())) {
+                                    // Convert to IST to compare the date part correctly
+                                    const offsetMs = 5.5 * 60 * 60 * 1000;
+                                    const istDateObj = new Date(payDateObj.getTime() + offsetMs);
+                                    const payDateStr = istDateObj.toISOString().split('T')[0];
+                                    
+                                    if (payDateStr === sopDateStr) {
+                                        dateMatches = true;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        dateMatches = true; // Fallback if no date in sopItem
+                    }
+
+                    return amtMatches && dateMatches;
                 });
 
                 if (!isExisting) {
@@ -584,7 +609,8 @@ router.post('/fix-sop', protect, adminOnly, async (req, res) => {
                     if (parts.length === 2) {
                         const dParts = parts[0].split('/');
                         if (dParts.length === 3) {
-                            timestamp = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1]}Z`);
+                            // Save as correct UTC time by parsing it as IST (+05:30)
+                            timestamp = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1]}+05:30`);
                         }
                     }
                 }

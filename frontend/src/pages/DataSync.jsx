@@ -316,12 +316,8 @@ const DataSync = () => {
                       {sopData.matchedData.length}
                     </div>
                   </div>
-                  <div className="bg-rose-50 dark:bg-rose-900/10 p-4 rounded-xl border border-rose-100 dark:border-rose-800/30">
-                    <div className="text-sm font-medium text-rose-700 dark:text-rose-400 mb-1">In DB, Not in API</div>
-                    <div className="text-2xl font-bold text-rose-600 dark:text-rose-500">
-                      {sopData.unmatchedDbPanels.length}
-                    </div>
-                  </div>
+
+
                 </div>
 
                 <div className="mt-4 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-800 p-4 max-h-[600px] overflow-y-auto flex flex-col gap-6">
@@ -372,40 +368,7 @@ const DataSync = () => {
                     )}
                   </div>
 
-                  {/* Category 2: IN DB, NOT IN API */}
-                  <div>
-                    <h5 className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider mb-2 border-b border-rose-200 dark:border-rose-800/50 pb-2">
-                      2. Unmatched DB Panels (In DB, Not in API)
-                    </h5>
-                    {sopData.unmatchedDbPanels.length > 0 ? (
-                      <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700/50 mt-3">
-                        <table className="w-full text-left text-xs whitespace-nowrap">
-                          <thead className="bg-slate-100 dark:bg-slate-800/50 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
-                            <tr>
-                              <th className="px-4 py-2 w-12 text-center">S.No.</th>
-                              <th className="px-4 py-2">Local DB Panel Name</th>
-                              <th className="px-4 py-2">Owner Name</th>
-                              <th className="px-4 py-2">Email</th>
-                              <th className="px-4 py-2">Phone</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-600 dark:text-slate-400">
-                            {sopData.unmatchedDbPanels.map((dbPanel, idx) => (
-                              <tr key={`undb-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                <td className="px-4 py-2 text-center text-slate-500 dark:text-slate-400">{idx + 1}</td>
-                                <td className="px-4 py-2 font-mono text-rose-600 dark:text-rose-400 font-medium">{dbPanel.panelName}</td>
-                                <td className="px-4 py-2 text-slate-900 dark:text-slate-200">{dbPanel.ownerName || '-'}</td>
-                                <td className="px-4 py-2">{dbPanel.email || '-'}</td>
-                                <td className="px-4 py-2">{dbPanel.phoneNumber || '-'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <div className="text-sm text-slate-500 dark:text-slate-400 italic py-2">All DB panels found in API.</div>
-                    )}
-                  </div>
+
 
                 </div>
               </div>
