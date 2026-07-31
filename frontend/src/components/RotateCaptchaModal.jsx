@@ -6,6 +6,12 @@ const IMAGES = [
   'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=400&q=80', // Classic car
   'https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=400&q=80', // Sports car
   'https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=400&q=80', // Dog
+  'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=400&q=80', // Beagle dog
+  'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80', // Cat
+  'https://images.unsplash.com/photo-1520315342629-6ea920342047?auto=format&fit=crop&w=400&q=80', // Modern House
+  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=400&q=80', // Mountain Peak
+  'https://images.unsplash.com/photo-1580202313706-5a2a6b22eb82?auto=format&fit=crop&w=400&q=80', // Coffee Cup
+  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80', // House exterior
 ];
 
 export default function RotateCaptchaModal({ isOpen, onClose, onSuccess }) {

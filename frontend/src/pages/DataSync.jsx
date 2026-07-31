@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { apiRequest } from '@/utils/api';
 import { Server, RefreshCw, AlertTriangle, CheckCircle, Database } from 'lucide-react';
+import RotateCaptchaModal from '@/components/RotateCaptchaModal';
 
 const DataSync = () => {
   const [ipData, setIpData] = useState(null);
@@ -20,6 +21,21 @@ const DataSync = () => {
   const [sopLoading, setSopLoading] = useState(false);
   const [sopFixing, setSopFixing] = useState(false);
   const [sopMessage, setSopMessage] = useState(null);
+
+  const [isCaptchaOpen, setIsCaptchaOpen] = useState(false);
+  const [pendingFixFn, setPendingFixFn] = useState(null);
+
+  const handleCaptchaSuccess = () => {
+    setIsCaptchaOpen(false);
+    if (pendingFixFn === 'ip') fixIp();
+    else if (pendingFixFn === 'license') fixLicense();
+    else if (pendingFixFn === 'sop') fixSop();
+  };
+
+  const openCaptchaFor = (type) => {
+    setPendingFixFn(type);
+    setIsCaptchaOpen(true);
+  };
 
   const checkIp = async () => {
     setIpLoading(true);
@@ -266,13 +282,13 @@ const DataSync = () => {
         {renderCard(
           "IP Billing Sync All panels ",
           <Server className="h-6 w-6" />,
-          ipData, ipLoading, ipFixing, checkIp, fixIp, ipMessage
+          ipData, ipLoading, ipFixing, checkIp, () => openCaptchaFor('ip'), ipMessage
         )}
 
         {renderCard(
           "License Billing Sync Algo panels",
           <Database className="h-6 w-6" />,
-          licenseData, licenseLoading, licenseFixing, checkLicense, fixLicense, licenseMessage
+          licenseData, licenseLoading, licenseFixing, checkLicense, () => openCaptchaFor('license'), licenseMessage
         )}
 
         {/* SOP Card */}
@@ -386,7 +402,7 @@ const DataSync = () => {
             </button>
 
             <button
-              onClick={fixSop}
+              onClick={() => openCaptchaFor('sop')}
               disabled={!(sopData?.newMissingCount > 0) || sopFixing || sopLoading}
               className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
             >
@@ -396,6 +412,12 @@ const DataSync = () => {
           </div>
         </div>
       </div>
+
+      <RotateCaptchaModal
+        isOpen={isCaptchaOpen}
+        onClose={() => setIsCaptchaOpen(false)}
+        onSuccess={handleCaptchaSuccess}
+      />
     </div>
   );
 };
