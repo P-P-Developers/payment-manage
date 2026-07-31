@@ -69,7 +69,7 @@ export default function ConsolidatedLedgerTab({
   };
 
   return (
-    <div className={`overflow-x-auto p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-300 dark:border-slate-800 shadow-xl transition-all duration-300 ${isFullscreen ? 'fixed inset-0 z-[100] p-6 overflow-auto bg-slate-50 dark:bg-slate-950' : ''}`}>
+    <div className={`overflow-x-auto p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl  border-slate-300 dark:border-slate-800 shadow-xl transition-all duration-300 ${isFullscreen ? 'fixed inset-0 z-[100] p-6 overflow-auto bg-slate-50 dark:bg-slate-950' : ''}`}>
       {/* Header bar */}
       <div className="flex items-center justify-between mb-4 text-xs font-mono border-b border-slate-300 dark:border-slate-800 pb-3">
         <div className="flex items-center gap-3">
@@ -181,7 +181,7 @@ export default function ConsolidatedLedgerTab({
                     ↳
                   </td>
                   <td colSpan="9" className="p-4 bg-slate-50/10 dark:bg-slate-950/10">
-                    <div className="space-y-4 rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-5 shadow-2xl animate-in slide-in-from-top-2 duration-200">
+                    <div className="space-y-4 rounded-2xl  border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-5 shadow-2xl animate-in slide-in-from-top-2 duration-200">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
                         <div className="flex items-center gap-2">
                           <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>

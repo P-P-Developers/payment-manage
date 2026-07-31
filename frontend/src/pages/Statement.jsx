@@ -585,9 +585,40 @@ export default function Statement() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"></div>
-          <p className="text-slate-600 dark:text-slate-400 font-semibold animate-pulse">Syncing Bank Statement...</p>
+        <div className="space-y-6 animate-pulse">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 p-4 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-slate-200 dark:bg-slate-700 shrink-0"></div>
+                <div className="space-y-2 flex-1">
+                  <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded w-24"></div>
+                  <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-32 mt-1"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 p-4 flex gap-4">
+              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-14"></div>
+              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-44"></div>
+              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded flex-1"></div>
+              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-36"></div>
+              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-36"></div>
+              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-44"></div>
+            </div>
+            <div className="p-4 space-y-5">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="flex gap-4 items-center">
+                  <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-14"></div>
+                  <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-44"></div>
+                  <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded flex-1"></div>
+                  <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-36"></div>
+                  <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-36"></div>
+                  <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-44"></div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       ) : error ? (
         <div className="rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 p-6 text-rose-600 dark:text-rose-400 flex items-start gap-4 shadow-sm">
