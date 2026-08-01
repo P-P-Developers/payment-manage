@@ -154,10 +154,10 @@ export default function MonthlySummary() {
         _id: item._id._id
       };
 
-      // Hardcode opening balance injection to April 2026
-      const openingBalanceMonth = 4;
+      // Hardcode opening balance injection to March 2026
+      const openingBalanceMonth = 3;
       const openingBalanceYear = 2026;
-      const openingBalanceDate = '2026-04-01T09:00:00.000Z';
+      const openingBalanceDate = '2026-03-31T09:00:00.000Z';
 
       let totalBill = 0, totalReceived = 0, totalDue = 0;
       let injectedInMonth = false;
@@ -666,7 +666,7 @@ export default function MonthlySummary() {
                             key={opt}
                             onClick={() => setTxTypeFilter(opt)}
                             className={`px-2.5 py-1 rounded-full text-[10.5px] font-semibold border shrink-0 transition-colors ${txTypeFilter === opt
-                              ? 'bg-slate-800 dark:bg-slate-200 border-slate-800 dark:border-slate-200 text-white dark:text-slate-900'
+                              ? 'bg-primary-500 border-primary-500 text-white shadow-sm'
                               : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
                               }`}
                           >
@@ -920,7 +920,7 @@ export default function MonthlySummary() {
                                   key={opt}
                                   onClick={(e) => { e.stopPropagation(); setTxTypeFilter(opt); }}
                                   className={`px-2.5 py-1 rounded-full text-[10.5px] font-semibold border shrink-0 transition-colors ${txTypeFilter === opt
-                                    ? 'bg-slate-800 dark:bg-slate-200 border-slate-800 dark:border-slate-200 text-white dark:text-slate-900'
+                                    ? 'bg-primary-500 border-primary-500 text-white shadow-sm'
                                     : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                                     }`}
                                 >
