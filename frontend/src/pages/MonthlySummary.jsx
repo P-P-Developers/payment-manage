@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { apiRequest } from '@/utils/api';
 import {
   Search, Calendar, RefreshCw, ChevronDown, ChevronRight, ChevronLeft, FileText,
-  IndianRupee, TrendingUp, TrendingDown, Wallet, Download, ArrowUpDown
+  IndianRupee, TrendingUp, TrendingDown, Wallet, Download, ArrowUpDown, PieChart,
+  Layers, KeyRound, Wrench, SlidersHorizontal, CheckCircle2, CircleDollarSign, Landmark
 } from 'lucide-react';
 
 export default function MonthlySummary() {
@@ -16,6 +17,33 @@ export default function MonthlySummary() {
   const [sortBy, setSortBy] = useState('name'); // name | due_desc | due_asc | bill_desc
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [expandedMonths, setExpandedMonths] = useState(new Set()); // mobile: "<rowId>-<month>"
+  const [txTypeFilter, setTxTypeFilter] = useState('All'); // display-only filter for the transaction cards inside expanded rows
+
+  // Presentational helper: visual identity (icon/color) + display filter matching for a single
+  // transaction card. Purely cosmetic — does not touch bill/received/due calculations.
+  const getTxMeta = (t) => {
+    const pType = t.paymentType ? t.paymentType.toLowerCase() : 'other';
+    if (t.paymentType === 'Opening Balance') {
+      return { key: 'Opening', label: 'Opening Balance', icon: Landmark, color: '#64748b', bg: 'bg-slate-50 dark:bg-slate-800/40', text: 'text-slate-600 dark:text-slate-300', ring: 'border-slate-200 dark:border-slate-700' };
+    }
+    if (pType.includes('ip')) {
+      return { key: 'IP', label: t.paymentType || 'IP Charges', icon: Layers, color: '#6366f1', bg: 'bg-indigo-50 dark:bg-indigo-900/20', text: 'text-indigo-600 dark:text-indigo-300', ring: 'border-indigo-100 dark:border-indigo-900/40' };
+    }
+    if (pType.includes('license')) {
+      return { key: 'License', label: t.paymentType || 'License', icon: KeyRound, color: '#10b981', bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-600 dark:text-emerald-300', ring: 'border-emerald-100 dark:border-emerald-900/40' };
+    }
+    if (pType.includes('maintenance')) {
+      return { key: 'Maintenance', label: t.paymentType || 'Maintenance', icon: Wrench, color: '#f59e0b', bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-600 dark:text-amber-300', ring: 'border-amber-100 dark:border-amber-900/40' };
+    }
+    return { key: 'Other', label: t.paymentType || 'Payment', icon: CircleDollarSign, color: '#94a3b8', bg: 'bg-slate-50 dark:bg-slate-800/40', text: 'text-slate-600 dark:text-slate-300', ring: 'border-slate-200 dark:border-slate-700' };
+  };
+
+  const txMatchesFilter = (t) => {
+    if (txTypeFilter === 'All') return true;
+    return getTxMeta(t).key === txTypeFilter;
+  };
+
+  const TX_FILTER_OPTIONS = ['All', 'IP', 'License', 'Maintenance', 'Other'];
 
   const toggleRow = (id) => {
     setExpandedRows(prev => {
@@ -234,6 +262,61 @@ export default function MonthlySummary() {
     [processedData]
   );
 
+  // --- Presentational-only derived stats for the KPI cards (no business logic changes) ---
+
+  // Per-month bill/received trend, purely for the sparkline visual.
+  const monthlyTrend = useMemo(() => {
+    return months.map((_, relativeIdx) => {
+      const m = startIdx + relativeIdx + 1;
+      return processedData.reduce((acc, row) => {
+        const mData = row[m];
+        if (mData) {
+          acc.bill += mData.bill || 0;
+          acc.received += mData.received || 0;
+        }
+        return acc;
+      }, { bill: 0, received: 0 });
+    });
+  }, [processedData, months, startIdx]);
+
+  // Collection efficiency, purely a display ratio of totals already computed above.
+  const collectionEfficiency = summaryTotals.bill > 0
+    ? Math.round((summaryTotals.received / summaryTotals.bill) * 100)
+    : 0;
+
+  // Service-type breakdown (IP / License / Maintenance / Other) for the donut visual.
+  // Reads the same transaction records already present in processedData; does not
+  // alter due/received/bill calculations anywhere else in the app.
+  const serviceBreakdown = useMemo(() => {
+    const totals = { IP: 0, License: 0, Maintenance: 0, Other: 0 };
+    processedData.forEach((row) => {
+      months.forEach((_, relativeIdx) => {
+        const m = startIdx + relativeIdx + 1;
+        const mData = row[m];
+        if (!mData || !mData.transactions) return;
+        mData.transactions.forEach((t) => {
+          const amt = t.billAmount || 0;
+          const pType = t.paymentType ? t.paymentType.toLowerCase() : 'other';
+          if (pType.includes('ip')) totals.IP += amt;
+          else if (pType.includes('license')) totals.License += amt;
+          else if (pType.includes('maintenance')) totals.Maintenance += amt;
+          else totals.Other += amt;
+        });
+      });
+    });
+    const sum = totals.IP + totals.License + totals.Maintenance + totals.Other;
+    const pct = (v) => (sum > 0 ? Math.round((v / sum) * 100) : 0);
+    return {
+      sum,
+      segments: [
+        { label: 'IP Charges', value: totals.IP, pct: pct(totals.IP), color: '#6366f1' },      // indigo
+        { label: 'License', value: totals.License, pct: pct(totals.License), color: '#10b981' }, // emerald
+        { label: 'Maintenance', value: totals.Maintenance, pct: pct(totals.Maintenance), color: '#f59e0b' }, // amber
+        { label: 'Other', value: totals.Other, pct: pct(totals.Other), color: '#94a3b8' },      // slate
+      ]
+    };
+  }, [processedData, months, startIdx]);
+
   const years = [];
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
@@ -271,6 +354,30 @@ export default function MonthlySummary() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
+
+  // --- Sparkline path builder (pure presentation, SVG only) ---
+  const buildSparklinePath = (series, w = 100, h = 32) => {
+    if (!series || series.length === 0) return '';
+    const max = Math.max(...series, 1);
+    const min = Math.min(...series, 0);
+    const range = max - min || 1;
+    const stepX = series.length > 1 ? w / (series.length - 1) : w;
+    return series
+      .map((v, i) => {
+        const x = i * stepX;
+        const y = h - ((v - min) / range) * h;
+        return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(' ');
+  };
+
+  const billSeries = monthlyTrend.map((m) => m.bill);
+  const sparklinePath = buildSparklinePath(billSeries);
+
+  // Donut chart geometry (pure presentation)
+  const donutRadius = 34;
+  const donutCircumference = 2 * Math.PI * donutRadius;
+  let donutOffsetAcc = 0;
 
   return (
     <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto space-y-4 sm:space-y-6 animate-fadeIn">
@@ -314,42 +421,115 @@ export default function MonthlySummary() {
         </div>
       </div>
 
-      {/* Quick-glance totals: gives accounts/sales an instant read without scanning the table */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
-        <div className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-2xl p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
-          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-300 shrink-0">
-            <IndianRupee className="h-4 w-4 sm:h-5 sm:w-5" />
+      {/* Quick-glance KPI cards: redesigned visuals only — all values come from summaryTotals /
+          panelsWithDues / processedData, computed exactly as before. */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+
+        {/* Card 1 — Total Billed: dark teal gradient + sparkline */}
+        <div className="relative overflow-hidden rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-teal-700 via-teal-800 to-slate-900 shadow-lg shadow-teal-900/20">
+          <div className="flex items-start justify-between">
+            <div className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center text-teal-200">
+              <IndianRupee className="h-4.5 w-4.5" />
+            </div>
+            <svg width="96" height="32" viewBox="0 0 100 32" className="opacity-90 shrink-0" preserveAspectRatio="none">
+              <path d={sparklinePath} fill="none" stroke="#5eead4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
-          <div className="min-w-0">
-            <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-slate-400 font-semibold truncate">Total Billed</div>
-            <div className="text-sm sm:text-lg font-bold text-slate-800 dark:text-white truncate">{fmt(summaryTotals.bill)}</div>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-2xl p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
-          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-300 shrink-0">
-            <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
-          </div>
-          <div className="min-w-0">
-            <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-slate-400 font-semibold truncate">Total Received</div>
-            <div className="text-sm sm:text-lg font-bold text-slate-800 dark:text-white truncate">{fmt(summaryTotals.received)}</div>
-          </div>
-        </div>
-        <div className={`bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-2xl p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3 ${summaryTotals.due < 0 ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}>
-          <div className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center shrink-0 ${summaryTotals.due < 0 ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-300'}`}>
-            {summaryTotals.due < 0 ? <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" /> : <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5" />}
-          </div>
-          <div className="min-w-0">
-            <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-slate-400 font-semibold truncate">{summaryTotals.due < 0 ? 'Total Advance' : 'Total Due'}</div>
-            <div className={`text-sm sm:text-lg font-bold truncate ${summaryTotals.due < 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`}>{fmt(Math.abs(summaryTotals.due))}</div>
+          <div className="mt-3">
+            <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-teal-200/80 font-semibold">Total Billed</div>
+            <div className="text-xl sm:text-2xl font-bold text-white truncate mt-0.5">{fmt(summaryTotals.bill)}</div>
+            <div className="text-[10px] sm:text-[11px] text-teal-200/70 mt-1">Month-on-month billing trend</div>
           </div>
         </div>
-        <div className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-2xl p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
-          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-600 dark:text-amber-300 shrink-0">
-            <Wallet className="h-4 w-4 sm:h-5 sm:w-5" />
+
+        {/* Card 2 — Total Received: royal blue gradient + radial efficiency gauge */}
+        <div className="relative overflow-hidden rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-blue-700 via-indigo-700 to-indigo-900 shadow-lg shadow-indigo-900/20">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center text-blue-200">
+                <TrendingUp className="h-4.5 w-4.5" />
+              </div>
+              <div className="mt-3">
+                <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-blue-200/80 font-semibold">Total Received</div>
+                <div className="text-xl sm:text-2xl font-bold text-white truncate mt-0.5">{fmt(summaryTotals.received)}</div>
+                <div className="text-[10px] sm:text-[11px] text-blue-200/70 mt-1">Collection efficiency: {collectionEfficiency}%</div>
+              </div>
+            </div>
+            <svg width="52" height="52" viewBox="0 0 52 52" className="shrink-0 -rotate-90">
+              <circle cx="26" cy="26" r="21" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="5" />
+              <circle
+                cx="26" cy="26" r="21" fill="none" stroke="#93c5fd" strokeWidth="5" strokeLinecap="round"
+                strokeDasharray={2 * Math.PI * 21}
+                strokeDashoffset={2 * Math.PI * 21 * (1 - collectionEfficiency / 100)}
+              />
+            </svg>
           </div>
-          <div className="min-w-0">
-            <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-slate-400 font-semibold truncate">Panels with Dues</div>
-            <div className="text-sm sm:text-lg font-bold text-slate-800 dark:text-white truncate">{panelsWithDues} <span className="text-xs sm:text-sm font-medium text-slate-400">/ {processedData.length}</span></div>
+        </div>
+
+        {/* Card 3 — Service breakdown donut */}
+        <div className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-2xl p-4 sm:p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-9 w-9 rounded-xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center text-violet-600 dark:text-violet-300 shrink-0">
+              <PieChart className="h-4.5 w-4.5" />
+            </div>
+            <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-slate-400 font-semibold">Service Breakdown</div>
+          </div>
+          <div className="flex items-center gap-4">
+            <svg width="72" height="72" viewBox="0 0 84 84" className="-rotate-90 shrink-0">
+              <circle cx="42" cy="42" r={donutRadius} fill="none" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeWidth="12" />
+              {serviceBreakdown.segments.filter(s => s.pct > 0).map((seg) => {
+                const dash = (seg.pct / 100) * donutCircumference;
+                const el = (
+                  <circle
+                    key={seg.label}
+                    cx="42" cy="42" r={donutRadius} fill="none" stroke={seg.color} strokeWidth="12"
+                    strokeDasharray={`${dash} ${donutCircumference - dash}`}
+                    strokeDashoffset={-donutOffsetAcc}
+                  />
+                );
+                donutOffsetAcc += dash;
+                return el;
+              })}
+            </svg>
+            <div className="space-y-1 min-w-0">
+              {serviceBreakdown.segments.filter(s => s.value > 0).map((seg) => (
+                <div key={seg.label} className="flex items-center gap-1.5 text-[10.5px] sm:text-[11px]">
+                  <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: seg.color }} />
+                  <span className="text-slate-500 dark:text-slate-400 truncate">{seg.label}</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-200 ml-auto">{seg.pct}%</span>
+                </div>
+              ))}
+              {serviceBreakdown.sum === 0 && (
+                <div className="text-[11px] text-slate-400 italic">No transactions yet</div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4 — Total Due + Panels with dues */}
+        <div className="grid grid-rows-2 gap-3 sm:gap-4">
+          <div className={`bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-2.5 flex items-center gap-3 ${summaryTotals.due < 0 ? 'ring-1 ring-indigo-200 dark:ring-indigo-900/40' : ''}`}>
+            <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${summaryTotals.due < 0 ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-300'}`}>
+              {summaryTotals.due < 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold truncate">{summaryTotals.due < 0 ? 'Total Advance' : 'Total Due'}</div>
+              <div className={`text-base sm:text-lg font-bold truncate ${summaryTotals.due < 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`}>{fmt(Math.abs(summaryTotals.due))}</div>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-2.5 flex items-center gap-3">
+            <svg width="36" height="36" viewBox="0 0 36 36" className="-rotate-90 shrink-0">
+              <circle cx="18" cy="18" r="14" fill="none" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeWidth="4" />
+              <circle
+                cx="18" cy="18" r="14" fill="none" stroke="#f59e0b" strokeWidth="4" strokeLinecap="round"
+                strokeDasharray={2 * Math.PI * 14}
+                strokeDashoffset={2 * Math.PI * 14 * (1 - (processedData.length > 0 ? panelsWithDues / processedData.length : 0))}
+              />
+            </svg>
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold truncate">Panels with Dues</div>
+              <div className="text-base sm:text-lg font-bold text-slate-800 dark:text-white truncate">{panelsWithDues} <span className="text-xs font-medium text-slate-400">/ {processedData.length}</span></div>
+            </div>
           </div>
         </div>
       </div>
@@ -478,17 +658,34 @@ export default function MonthlySummary() {
 
                   {isExpanded && (
                     <div className="border-t border-slate-100 dark:border-slate-700/50 divide-y divide-slate-100 dark:divide-slate-700/50">
+                      {/* Transaction-type filter for the cards below — display only */}
+                      <div className="flex items-center gap-1.5 px-3 py-2 overflow-x-auto custom-scrollbar bg-slate-50/60 dark:bg-slate-800/20">
+                        <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        {TX_FILTER_OPTIONS.map((opt) => (
+                          <button
+                            key={opt}
+                            onClick={() => setTxTypeFilter(opt)}
+                            className={`px-2.5 py-1 rounded-full text-[10.5px] font-semibold border shrink-0 transition-colors ${txTypeFilter === opt
+                              ? 'bg-slate-800 dark:bg-slate-200 border-slate-800 dark:border-slate-200 text-white dark:text-slate-900'
+                              : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
+                              }`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
                       {months.map((monthName, relativeIdx) => {
                         const m = startIdx + relativeIdx + 1;
                         const mData = row[m];
                         const monthKey = `${row._id}-${m}`;
                         const isMonthOpen = expandedMonths.has(monthKey);
-                        const hasTx = mData.transactions && mData.transactions.length > 0;
+                        const visibleTx = (mData.transactions || []).filter(txMatchesFilter);
+                        const hasTx = visibleTx.length > 0;
                         return (
                           <div key={m}>
                             <button
                               onClick={() => hasTx && toggleMonth(monthKey)}
-                              className={`w-full flex items-center gap-2 sm:gap-3 p-3 text-left ${hasTx ? 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30 cursor-pointer' : 'cursor-default'}`}
+                              className={`w-full flex items-center gap-2 sm:gap-3 p-3 text-left ${hasTx ? 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30 cursor-pointer' : 'cursor-default opacity-60'}`}
                             >
                               <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 w-9 sm:w-10 shrink-0">{monthName}</span>
                               <div className="flex-1 grid grid-cols-3 gap-1 text-[10px] min-w-0">
@@ -511,35 +708,53 @@ export default function MonthlySummary() {
                             </button>
                             {isMonthOpen && hasTx && (
                               <div className="px-3 pb-3 space-y-2">
-                                {mData.transactions.map((t, tidx) => (
-                                  <div key={tidx} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 text-xs border border-slate-100 dark:border-slate-700/50">
-                                    <div className="flex justify-between font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                      <span>{t.paymentType || 'Payment'}</span>
-                                      <span className="text-[10px] text-slate-400">
-                                        {t.date ? new Date(t.date).toLocaleDateString('en-GB') : '-'}
-                                      </span>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-1 text-[10px]">
-                                      {t.billAmount > 0 && (
-                                        <div className="text-blue-600 dark:text-blue-400">Bill: {fmt(t.billAmount)}</div>
-                                      )}
-                                      {t.amountReceived > 0 && (
-                                        <div className="text-emerald-600 dark:text-emerald-400">Paid: {fmt(t.amountReceived)}</div>
-                                      )}
-                                      {t.paymentMode && (
-                                        <div className="text-slate-500 col-span-2">
-                                          Mode: <span className="font-medium text-slate-600 dark:text-slate-300">{t.paymentMode}</span>
+                                {visibleTx.map((t, tidx) => {
+                                  const meta = getTxMeta(t);
+                                  const Icon = meta.icon;
+                                  const isSettled = (t.billAmount || 0) > 0 && (t.amountReceived || 0) >= (t.billAmount || 0);
+                                  return (
+                                    <div key={tidx} className={`relative overflow-hidden rounded-xl bg-white dark:bg-slate-800/60 border ${meta.ring} shadow-sm`}>
+                                      <span className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: meta.color }} />
+                                      <div className="pl-3.5 pr-3 py-2.5">
+                                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                                          <div className="flex items-center gap-1.5 min-w-0">
+                                            <span className={`h-5 w-5 rounded-md flex items-center justify-center shrink-0 ${meta.bg} ${meta.text}`}>
+                                              <Icon className="h-3 w-3" />
+                                            </span>
+                                            <span className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-200 truncate">{meta.label}</span>
+                                          </div>
+                                          <span className="text-[9.5px] text-slate-400 shrink-0">
+                                            {t.date ? new Date(t.date).toLocaleDateString('en-GB') : '-'}
+                                          </span>
                                         </div>
-                                      )}
-                                      {t.remark && (
-                                        <div className="text-slate-500 col-span-2 flex items-start gap-1 mt-0.5">
-                                          <FileText className="h-3 w-3 inline shrink-0 mt-0.5" />
-                                          <span className="break-words">{t.remark}</span>
+                                        <div className="flex items-center gap-3 text-[11px] font-mono">
+                                          {t.billAmount > 0 && (
+                                            <span className="text-blue-600 dark:text-blue-400">Bill {fmt(t.billAmount)}</span>
+                                          )}
+                                          {t.amountReceived > 0 && (
+                                            <span className="text-emerald-600 dark:text-emerald-400">Paid {fmt(t.amountReceived)}</span>
+                                          )}
+                                          {isSettled && <CheckCircle2 className="h-3 w-3 text-emerald-500 ml-auto shrink-0" />}
                                         </div>
-                                      )}
+                                        {(t.paymentMode || t.remark) && (
+                                          <div className="mt-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-700/50 space-y-0.5">
+                                            {t.paymentMode && (
+                                              <div className="text-[10px] text-slate-500">
+                                                Mode: <span className="font-medium text-slate-600 dark:text-slate-300">{t.paymentMode}</span>
+                                              </div>
+                                            )}
+                                            {t.remark && (
+                                              <div className="text-[10px] text-slate-500 flex items-start gap-1">
+                                                <FileText className="h-3 w-3 inline shrink-0 mt-0.5" />
+                                                <span className="break-words">{t.remark}</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             )}
                           </div>
@@ -697,6 +912,22 @@ export default function MonthlySummary() {
                       {isExpanded && (
                         <tr className="bg-slate-50/50 dark:bg-[#151f32]">
                           <td colSpan={months.length + 2} className="p-0 border-b border-slate-200 dark:border-slate-700">
+                            {/* Transaction-type filter for the month cards below — display only */}
+                            <div className="flex items-center gap-1.5 px-4 pt-3 pb-1">
+                              <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                              {TX_FILTER_OPTIONS.map((opt) => (
+                                <button
+                                  key={opt}
+                                  onClick={(e) => { e.stopPropagation(); setTxTypeFilter(opt); }}
+                                  className={`px-2.5 py-1 rounded-full text-[10.5px] font-semibold border shrink-0 transition-colors ${txTypeFilter === opt
+                                    ? 'bg-slate-800 dark:bg-slate-200 border-slate-800 dark:border-slate-200 text-white dark:text-slate-900'
+                                    : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                    }`}
+                                >
+                                  {opt}
+                                </button>
+                              ))}
+                            </div>
                             <div className="flex relative items-center w-full">
                               <button
                                 onClick={(e) => {
@@ -715,46 +946,68 @@ export default function MonthlySummary() {
                                     const m = startIdx + relativeIdx + 1;
                                     const mData = row[m];
                                     if (!mData || (!mData.bill && !mData.received && (!mData.transactions || mData.transactions.length === 0))) return null;
+                                    const visibleTx = (mData.transactions || []).filter(txMatchesFilter);
 
                                     return (
-                                      <div key={monthName} className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-xl p-3 w-72 shadow-sm shrink-0">
-                                        <h3 className="text-sm font-semibold text-slate-800 dark:text-white mb-2 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
-                                          <Calendar className="h-4 w-4 text-primary-500" />
-                                          {monthName} {year} Breakdown
-                                        </h3>
-                                        <div className="space-y-3 mt-2 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
-                                          {(!mData.transactions || mData.transactions.length === 0) ? (
-                                            <p className="text-xs text-slate-500 italic">No detailed transactions found.</p>
+                                      <div key={monthName} className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-xl w-72 shadow-sm shrink-0 overflow-hidden">
+                                        <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
+                                          <h3 className="text-sm font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                                            <Calendar className="h-4 w-4 text-primary-500 shrink-0" />
+                                            {monthName} {year}
+                                          </h3>
+                                          <span className="text-[9.5px] font-semibold px-1.5 py-0.5 rounded-full bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600 shrink-0">
+                                            {visibleTx.length} {visibleTx.length === 1 ? 'entry' : 'entries'}
+                                          </span>
+                                        </div>
+                                        <div className="space-y-2 p-3 max-h-64 overflow-y-auto custom-scrollbar">
+                                          {visibleTx.length === 0 ? (
+                                            <p className="text-xs text-slate-500 italic py-2 text-center">
+                                              {mData.transactions && mData.transactions.length > 0 ? 'No entries match this filter.' : 'No detailed transactions found.'}
+                                            </p>
                                           ) : (
-                                            mData.transactions.map((t, tidx) => (
-                                              <div key={tidx} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 text-xs border border-slate-100 dark:border-slate-700/50">
-                                                <div className="flex justify-between font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                  <span>{t.paymentType || 'Payment'}</span>
-                                                  <span className="text-[10px] text-slate-400">
-                                                    {t.date ? new Date(t.date).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}
-                                                  </span>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-1 text-[10px]">
-                                                  {t.billAmount > 0 && (
-                                                    <div className="text-blue-600 dark:text-blue-400">Bill: {fmt(t.billAmount)}</div>
-                                                  )}
-                                                  {t.amountReceived > 0 && (
-                                                    <div className="text-emerald-600 dark:text-emerald-400">Paid: {fmt(t.amountReceived)}</div>
-                                                  )}
-                                                  {t.paymentMode && (
-                                                    <div className="text-slate-500 col-span-2 flex items-center gap-1">
-                                                      Mode: <span className="font-medium text-slate-600 dark:text-slate-300">{t.paymentMode}</span>
+                                            visibleTx.map((t, tidx) => {
+                                              const meta = getTxMeta(t);
+                                              const Icon = meta.icon;
+                                              const isSettled = (t.billAmount || 0) > 0 && (t.amountReceived || 0) >= (t.billAmount || 0);
+                                              return (
+                                                <div key={tidx} className={`relative overflow-hidden rounded-lg bg-slate-50 dark:bg-slate-800/50 border ${meta.ring}`}>
+                                                  <span className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: meta.color }} />
+                                                  <div className="pl-3 pr-2.5 py-2 text-xs">
+                                                    <div className="flex justify-between items-center gap-2 mb-1">
+                                                      <span className="flex items-center gap-1.5 min-w-0 font-medium text-slate-700 dark:text-slate-300">
+                                                        <span className={`h-4.5 w-4.5 rounded-md flex items-center justify-center shrink-0 ${meta.bg} ${meta.text}`}>
+                                                          <Icon className="h-3 w-3" />
+                                                        </span>
+                                                        <span className="truncate">{meta.label}</span>
+                                                      </span>
+                                                      {isSettled && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
                                                     </div>
-                                                  )}
-                                                  {t.remark && (
-                                                    <div className="text-slate-500 col-span-2 truncate flex items-center gap-1 mt-0.5" title={t.remark}>
-                                                      <FileText className="h-3 w-3 inline" />
-                                                      {t.remark}
+                                                    <div className="text-[10px] text-slate-400 mb-1">
+                                                      {t.date ? new Date(t.date).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}
                                                     </div>
-                                                  )}
+                                                    <div className="grid grid-cols-2 gap-1 text-[10px] font-mono">
+                                                      {t.billAmount > 0 && (
+                                                        <div className="text-blue-600 dark:text-blue-400">Bill: {fmt(t.billAmount)}</div>
+                                                      )}
+                                                      {t.amountReceived > 0 && (
+                                                        <div className="text-emerald-600 dark:text-emerald-400">Paid: {fmt(t.amountReceived)}</div>
+                                                      )}
+                                                    </div>
+                                                    {t.paymentMode && (
+                                                      <div className="text-slate-500 mt-1 text-[10px] flex items-center gap-1">
+                                                        Mode: <span className="font-medium text-slate-600 dark:text-slate-300">{t.paymentMode}</span>
+                                                      </div>
+                                                    )}
+                                                    {t.remark && (
+                                                      <div className="text-slate-500 truncate flex items-center gap-1 mt-0.5 text-[10px]" title={t.remark}>
+                                                        <FileText className="h-3 w-3 inline shrink-0" />
+                                                        <span className="truncate">{t.remark}</span>
+                                                      </div>
+                                                    )}
+                                                  </div>
                                                 </div>
-                                              </div>
-                                            ))
+                                              );
+                                            })
                                           )}
                                         </div>
                                       </div>
