@@ -90,7 +90,7 @@ router.get('/monthly-summary', protect, hasPermission('view_panels'), async (req
       }
     ]);
 
-    const allPanels = await Panel.find({}).select('panelName category').lean();
+    const allPanels = await Panel.find({}).select('panelName category openingBalance createdAt').lean();
     
     const summaryMap = {};
     summary.forEach(item => {
@@ -103,7 +103,9 @@ router.get('/monthly-summary', protect, hasPermission('view_panels'), async (req
       _id: {
         _id: panel._id,
         panelName: panel.panelName,
-        category: panel.category
+        category: panel.category,
+        openingBalance: panel.openingBalance || 0,
+        createdAt: panel.createdAt
       },
       months: summaryMap[panel._id.toString()] || []
     }));

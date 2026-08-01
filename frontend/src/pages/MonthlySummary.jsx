@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { apiRequest } from '@/utils/api';
 import {
-  Search, Calendar, RefreshCw, ChevronDown, ChevronRight, FileText,
+  Search, Calendar, RefreshCw, ChevronDown, ChevronRight, ChevronLeft, FileText,
   IndianRupee, TrendingUp, TrendingDown, Wallet, Download, ArrowUpDown
 } from 'lucide-react';
 
@@ -121,10 +121,18 @@ export default function MonthlySummary() {
       const row = {
         panelName: item._id.panelName,
         category: item._id.category || 'Uncategorized',
+        openingBalance: item._id.openingBalance || 0,
+        createdAt: item._id.createdAt,
         _id: item._id._id
       };
 
+      // Hardcode opening balance injection to April 2026
+      const openingBalanceMonth = 4;
+      const openingBalanceYear = 2026;
+      const openingBalanceDate = '2026-04-01T09:00:00.000Z';
+
       let totalBill = 0, totalReceived = 0, totalDue = 0;
+      let injectedInMonth = false;
 
       months.forEach((_, relativeIdx) => {
         const m = startIdx + relativeIdx + 1; // 1-indexed month
@@ -161,12 +169,32 @@ export default function MonthlySummary() {
           mData = { ...mData, bill: customBill, received: customReceived, discount: 0, metricCount: customCount };
         }
 
+        if (openingBalanceYear === year && openingBalanceMonth === m && row.openingBalance > 0 && metricFilter === 'All') {
+          mData = { ...mData, bill: mData.bill + row.openingBalance };
+
+          const openingTx = {
+            paymentType: 'Opening Balance',
+            billAmount: row.openingBalance,
+            amountReceived: 0,
+            date: openingBalanceDate,
+            remark: 'Initial Opening Balance'
+          };
+
+          mData.transactions = [openingTx, ...mData.transactions];
+
+          injectedInMonth = true;
+        }
+
         const balance = mData.bill - mData.received - mData.discount;
-        row[m] = { ...mData, due: balance };
         totalBill += mData.bill;
         totalReceived += mData.received;
         totalDue += balance;
+        row[m] = { ...mData, due: balance, cumulativeDue: totalDue };
       });
+
+      if (!injectedInMonth && metricFilter === 'All') {
+        totalDue += row.openingBalance;
+      }
 
       row.totalBill = totalBill;
       row.totalReceived = totalReceived;
@@ -557,14 +585,14 @@ export default function MonthlySummary() {
 
       {/* Laptop / desktop view: full table, only rendered from lg breakpoint up */}
       <div className="hidden lg:flex lg:flex-col bg-white dark:bg-[#0f172a] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1300px]">
+        <div className="overflow-x-auto custom-scrollbar pb-1">
+          <table className="w-full text-left border-collapse min-w-max">
             <thead>
               <tr className="bg-slate-100/80 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 uppercase font-bold tracking-[0.06em] text-[10.5px]">
                 <th className="p-4 text-center w-12 sticky left-0 z-20  dark:bg-[#1e293b] backdrop-blur-sm shadow-[1px_0_0_0_rgba(0,0,0,0.1)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.05)]">
                   #
                 </th>
-                <th className="p-4 sticky left-12 z-20  dark:bg-[#1e293b] backdrop-blur-sm w-56 shadow-[1px_0_0_0_rgba(0,0,0,0.1)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.05)]">
+                <th className="p-4 sticky left-12 z-20  dark:bg-[#1e293b] backdrop-blur-sm w-44 max-w-[160px] shadow-[1px_0_0_0_rgba(0,0,0,0.1)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.05)]">
                   Panel Name
                 </th>
                 {months.map((month) => (
@@ -604,7 +632,7 @@ export default function MonthlySummary() {
                         <td className="p-4 text-sm font-medium text-slate-500 dark:text-slate-400 text-center sticky left-0 z-10 bg-white dark:bg-[#0f172a] shadow-[1px_0_0_0_rgba(0,0,0,0.1)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.05)]">
                           {idx + 1}
                         </td>
-                        <td className="p-4 text-sm font-medium text-slate-900 dark:text-slate-100 sticky left-12 z-10 bg-white dark:bg-[#0f172a] shadow-[1px_0_0_0_rgba(0,0,0,0.1)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.05)]">
+                        <td className="p-4 text-sm font-medium text-slate-900 dark:text-slate-100 sticky left-12 z-10 bg-white dark:bg-[#0f172a] shadow-[1px_0_0_0_rgba(0,0,0,0.1)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.05)] w-44 max-w-[160px]">
                           <div className="flex items-center gap-2">
                             {isExpanded ? <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />}
                             <div className="min-w-0">
@@ -649,9 +677,15 @@ export default function MonthlySummary() {
                                   <span className="font-semibold">{fmt(mData.received)}</span>
                                 </div>
                                 <div className={`flex justify-between items-center px-1.5 py-0.5 rounded ${mData.due > 0 ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300' : mData.due < 0 ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300' : 'text-slate-500'}`}>
-                                  <span className="truncate pr-1">{metricFilter !== 'All' ? `${metricFilter} ${mData.due < 0 ? 'Adv:' : 'Due:'}` : mData.due < 0 ? 'Adv:' : 'Due:'}</span>
+                                  <span className="truncate pr-1">{metricFilter !== 'All' ? `${metricFilter} ${mData.due < 0 ? 'Adv:' : 'Due:'}` : mData.due < 0 ? 'Month Adv:' : 'Month Due:'}</span>
                                   <span className={`font-semibold ${mData.due !== 0 ? '' : 'opacity-50'}`}>
                                     {fmt(Math.abs(mData.due))}
+                                  </span>
+                                </div>
+                                <div className={`flex justify-between items-center px-1.5 py-1 rounded ${mData.cumulativeDue > 0 ? 'bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-200' : mData.cumulativeDue < 0 ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-200' : 'bg-slate-100 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400'} mt-1 border border-transparent ${mData.cumulativeDue !== 0 ? 'dark:border-opacity-20 shadow-sm' : ''}`}>
+                                  <span className="truncate pr-1 text-[10px] font-bold uppercase tracking-wider">{mData.cumulativeDue < 0 ? 'Total Adv:' : 'Total Due:'}</span>
+                                  <span className={`font-bold ${mData.cumulativeDue !== 0 ? '' : 'opacity-50'}`}>
+                                    {fmt(Math.abs(mData.cumulativeDue))}
                                   </span>
                                 </div>
                               </div>
@@ -663,58 +697,82 @@ export default function MonthlySummary() {
                       {isExpanded && (
                         <tr className="bg-slate-50/50 dark:bg-[#151f32]">
                           <td colSpan={months.length + 2} className="p-0 border-b border-slate-200 dark:border-slate-700">
-                            <div className="p-4 overflow-x-auto">
-                              <div className="flex gap-4 min-w-max pb-2">
-                                {months.map((monthName, relativeIdx) => {
-                                  const m = startIdx + relativeIdx + 1;
-                                  const mData = row[m];
-                                  if (!mData || (!mData.bill && !mData.received && (!mData.transactions || mData.transactions.length === 0))) return null;
+                            <div className="flex relative items-center w-full">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const el = document.getElementById(`scroll-container-${row._id}`);
+                                  if (el) el.scroll({ left: el.scrollLeft - 300, behavior: 'smooth' });
+                                }}
+                                className="sticky left-2 z-20 flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-white dark:bg-slate-700 shadow-md hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors border border-slate-200 dark:border-slate-600 focus:outline-none ml-2"
+                              >
+                                <ChevronLeft className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                              </button>
 
-                                  return (
-                                    <div key={monthName} className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-xl p-3 w-72 shadow-sm shrink-0">
-                                      <h3 className="text-sm font-semibold text-slate-800 dark:text-white mb-2 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
-                                        <Calendar className="h-4 w-4 text-primary-500" />
-                                        {monthName} {year} Breakdown
-                                      </h3>
-                                      <div className="space-y-3 mt-2 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
-                                        {(!mData.transactions || mData.transactions.length === 0) ? (
-                                          <p className="text-xs text-slate-500 italic">No detailed transactions found.</p>
-                                        ) : (
-                                          mData.transactions.map((t, tidx) => (
-                                            <div key={tidx} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 text-xs border border-slate-100 dark:border-slate-700/50">
-                                              <div className="flex justify-between font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                <span>{t.paymentType || 'Payment'}</span>
-                                                <span className="text-[10px] text-slate-400">
-                                                  {t.date ? new Date(t.date).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}
-                                                </span>
+                              <div id={`scroll-container-${row._id}`} className="p-4 overflow-x-auto custom-scrollbar scroll-smooth flex-1 w-0">
+                                <div className="flex gap-4 min-w-max pb-2">
+                                  {months.map((monthName, relativeIdx) => {
+                                    const m = startIdx + relativeIdx + 1;
+                                    const mData = row[m];
+                                    if (!mData || (!mData.bill && !mData.received && (!mData.transactions || mData.transactions.length === 0))) return null;
+
+                                    return (
+                                      <div key={monthName} className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-xl p-3 w-72 shadow-sm shrink-0">
+                                        <h3 className="text-sm font-semibold text-slate-800 dark:text-white mb-2 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+                                          <Calendar className="h-4 w-4 text-primary-500" />
+                                          {monthName} {year} Breakdown
+                                        </h3>
+                                        <div className="space-y-3 mt-2 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
+                                          {(!mData.transactions || mData.transactions.length === 0) ? (
+                                            <p className="text-xs text-slate-500 italic">No detailed transactions found.</p>
+                                          ) : (
+                                            mData.transactions.map((t, tidx) => (
+                                              <div key={tidx} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 text-xs border border-slate-100 dark:border-slate-700/50">
+                                                <div className="flex justify-between font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                                  <span>{t.paymentType || 'Payment'}</span>
+                                                  <span className="text-[10px] text-slate-400">
+                                                    {t.date ? new Date(t.date).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}
+                                                  </span>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-1 text-[10px]">
+                                                  {t.billAmount > 0 && (
+                                                    <div className="text-blue-600 dark:text-blue-400">Bill: {fmt(t.billAmount)}</div>
+                                                  )}
+                                                  {t.amountReceived > 0 && (
+                                                    <div className="text-emerald-600 dark:text-emerald-400">Paid: {fmt(t.amountReceived)}</div>
+                                                  )}
+                                                  {t.paymentMode && (
+                                                    <div className="text-slate-500 col-span-2 flex items-center gap-1">
+                                                      Mode: <span className="font-medium text-slate-600 dark:text-slate-300">{t.paymentMode}</span>
+                                                    </div>
+                                                  )}
+                                                  {t.remark && (
+                                                    <div className="text-slate-500 col-span-2 truncate flex items-center gap-1 mt-0.5" title={t.remark}>
+                                                      <FileText className="h-3 w-3 inline" />
+                                                      {t.remark}
+                                                    </div>
+                                                  )}
+                                                </div>
                                               </div>
-                                              <div className="grid grid-cols-2 gap-1 text-[10px]">
-                                                {t.billAmount > 0 && (
-                                                  <div className="text-blue-600 dark:text-blue-400">Bill: {fmt(t.billAmount)}</div>
-                                                )}
-                                                {t.amountReceived > 0 && (
-                                                  <div className="text-emerald-600 dark:text-emerald-400">Paid: {fmt(t.amountReceived)}</div>
-                                                )}
-                                                {t.paymentMode && (
-                                                  <div className="text-slate-500 col-span-2 flex items-center gap-1">
-                                                    Mode: <span className="font-medium text-slate-600 dark:text-slate-300">{t.paymentMode}</span>
-                                                  </div>
-                                                )}
-                                                {t.remark && (
-                                                  <div className="text-slate-500 col-span-2 truncate flex items-center gap-1 mt-0.5" title={t.remark}>
-                                                    <FileText className="h-3 w-3 inline" />
-                                                    {t.remark}
-                                                  </div>
-                                                )}
-                                              </div>
-                                            </div>
-                                          ))
-                                        )}
+                                            ))
+                                          )}
+                                        </div>
                                       </div>
-                                    </div>
-                                  );
-                                })}
+                                    );
+                                  })}
+                                </div>
                               </div>
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const el = document.getElementById(`scroll-container-${row._id}`);
+                                  if (el) el.scroll({ left: el.scrollLeft + 300, behavior: 'smooth' });
+                                }}
+                                className="sticky right-2 z-20 flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-white dark:bg-slate-700 shadow-md hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors border border-slate-200 dark:border-slate-600 focus:outline-none mr-2"
+                              >
+                                <ChevronRight className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                              </button>
                             </div>
                           </td>
                         </tr>
