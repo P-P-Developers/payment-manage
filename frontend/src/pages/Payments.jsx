@@ -124,6 +124,8 @@ export default function Payments() {
     quantity: '',
     unitPrice: '',
     billAmount: '',
+    billDiscount: '',
+    paymentDiscount: '',
     remark: '',
     timestamp: '',
   });
@@ -359,7 +361,7 @@ export default function Payments() {
 
       const [paymentsData, panelsData] = await Promise.all([
         apiRequest(url),
-        apiRequest('/panels'),
+        apiRequest('/panels?light=true'),
       ]);
 
       if (paymentsData.success) {
@@ -412,6 +414,8 @@ export default function Payments() {
       quantity: payment.quantity !== undefined ? payment.quantity : '',
       unitPrice: payment.unitPrice !== undefined ? payment.unitPrice : '',
       billAmount: payment.billAmount !== undefined ? payment.billAmount : '',
+      billDiscount: payment.billDiscount !== undefined ? payment.billDiscount : '',
+      paymentDiscount: payment.paymentDiscount !== undefined ? payment.paymentDiscount : '',
       remark: payment.remark || '',
       timestamp: formattedDate,
     });
@@ -445,6 +449,8 @@ export default function Payments() {
         quantity: editForm.quantity === '' ? 0 : Number(editForm.quantity),
         unitPrice: editForm.unitPrice === '' ? 0 : Number(editForm.unitPrice),
         billAmount: editForm.billAmount === '' ? 0 : Number(editForm.billAmount),
+        billDiscount: editForm.billDiscount === '' ? 0 : Number(editForm.billDiscount),
+        paymentDiscount: editForm.paymentDiscount === '' ? 0 : Number(editForm.paymentDiscount),
         remark: editForm.remark,
         timestamp: finalTimestamp.toISOString(),
       };
@@ -547,15 +553,33 @@ export default function Payments() {
       let finalBankName = bankName;
 
       if (modalMode === 'receive') {
+        const activeUser = getLoggedUser();
+        const role = activeUser?.role || 'Staff';
+        const finalPaymentDiscountLocal = paymentDiscount === '' ? 0 : Number(paymentDiscount);
+
+        if (finalPaymentDiscountLocal < 0) {
+          setError('Payment discount cannot be negative.');
+          setSubmitting(false);
+          return;
+        }
+        if (finalPaymentDiscountLocal > 0 && role !== 'Admin') {
+          setError('Only Admin users are permitted to apply payment discounts.');
+          setSubmitting(false);
+          return;
+        }
+
         finalAmountReceived = amountReceived !== '' && amountReceived !== undefined ? Number(amountReceived) : 0;
         if (finalAmountReceived < 0) {
           setError('Amount received cannot be negative.');
           setSubmitting(false);
           return;
         }
+        
         const selectedSum = Object.values(selectedAllocations).reduce((acc, cur) => acc + (Number(cur) || 0), 0);
-        if (finalAmountReceived < selectedSum) {
-          setError(`Amount received (₹${finalAmountReceived.toLocaleString()}) cannot be less than the total amount of selected bills (₹${selectedSum.toLocaleString()}).`);
+        const totalValue = finalAmountReceived + finalPaymentDiscountLocal;
+
+        if (totalValue < selectedSum) {
+          setError(`Amount received + Discount (₹${totalValue.toLocaleString()}) cannot be less than the total amount of selected bills (₹${selectedSum.toLocaleString()}).`);
           setSubmitting(false);
           return;
         }
@@ -567,9 +591,9 @@ export default function Payments() {
         }, 0);
 
         if (totalPendingDues > 0) {
-          const minRequiredAllocation = Math.min(finalAmountReceived, totalPendingDues);
+          const minRequiredAllocation = Math.min(totalValue, totalPendingDues);
           if (selectedSum < minRequiredAllocation) {
-            setError(`Please select and allocate this payment to the pending bills first. You must allocate at least ₹${minRequiredAllocation.toLocaleString()} of the received amount to the pending bills in the list below.`);
+            setError(`Please select and allocate this payment to the pending bills first. You must allocate at least ₹${minRequiredAllocation.toLocaleString()} to the pending bills in the list below.`);
             setSubmitting(false);
             return;
           }
@@ -620,18 +644,6 @@ export default function Payments() {
       }
 
       const finalPaymentDiscount = modalMode === 'receive' ? (paymentDiscount === '' ? 0 : Number(paymentDiscount)) : 0;
-      if (finalPaymentDiscount < 0) {
-        setError('Payment discount cannot be negative.');
-        setSubmitting(false);
-        return;
-      }
-      const activeUser = getLoggedUser();
-      const role = activeUser?.role || 'Staff';
-      if (finalPaymentDiscount > 0 && role !== 'Admin') {
-        setError('Only Admin users are permitted to apply payment discounts.');
-        setSubmitting(false);
-        return;
-      }
 
       const combineDateWithCurrentTime = (dateStr) => {
         if (!dateStr) return new Date();
@@ -1922,6 +1934,18 @@ export default function Payments() {
                       </div>
                     </div>
                   )}
+
+                  <div className="mt-4">
+                    <label className="block text-xs font-semibold text-slate-500 mb-1.5">Bill Discount Applied (₹)</label>
+                    <input
+                      type="number"
+                      value={editForm.billDiscount}
+                      onChange={(e) => setEditForm({ ...editForm, billDiscount: e.target.value })}
+                      className="w-full premium-input px-4 py-2.5 text-sm font-mono font-semibold text-rose-500"
+                      placeholder="Discount Amount (₹)"
+                      min="0"
+                    />
+                  </div>
                 </>
               ) : (
                 /* It's a Direct Payment Collected */
@@ -1939,7 +1963,19 @@ export default function Payments() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="mt-4">
+                    <label className="block text-xs font-semibold text-slate-500 mb-1.5">Payment Discount Given (₹)</label>
+                    <input
+                      type="number"
+                      value={editForm.paymentDiscount}
+                      onChange={(e) => setEditForm({ ...editForm, paymentDiscount: e.target.value })}
+                      className="w-full premium-input px-4 py-2.5 text-sm font-mono font-semibold text-rose-500"
+                      placeholder="Discount Amount (₹)"
+                      min="0"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mt-4">
                     <div>
                       <label className="block text-xs font-semibold text-slate-500 mb-1.5">Payment Mode</label>
                       <select

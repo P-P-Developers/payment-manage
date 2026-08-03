@@ -11,7 +11,9 @@ const getClientIp = require('../utils/getClientIp');
 // @access  Private (view_panels permission)
 router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
   try {
-    const [panels, paymentsSummary, unpaidBills] = await Promise.all([
+    const isLight = req.query.light === 'true';
+
+    const promises = [
       Panel.find({}).sort({ createdAt: -1 }).lean(),
       Payment.aggregate([
         {
@@ -31,17 +33,26 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
             totalPaymentDiscount: { $sum: '$paymentDiscount' },
           },
         },
-      ]),
-      Payment.find({
-        billAmount: { $gt: 0 },
-        $or: [
-          { status: { $in: ['Unpaid', 'Partial'] } },
-          { status: { $exists: false } },
-          { status: null }
-        ]
-      }).lean()
-    ]);
+      ])
+    ];
 
+    if (!isLight) {
+      promises.push(
+        Payment.find({
+          billAmount: { $gt: 0 },
+          $or: [
+            { status: { $in: ['Unpaid', 'Partial'] } },
+            { status: { $exists: false } },
+            { status: null }
+          ]
+        }).lean()
+      );
+    }
+
+    const results = await Promise.all(promises);
+    const panels = results[0];
+    const paymentsSummary = results[1];
+    const unpaidBills = !isLight ? results[2] : [];
 
     // Create a lookup map of totalPaid and totalBill by panel ID
     const summaryMap = {};
@@ -61,43 +72,50 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
       const summary = summaryMap[panel._id.toString()] || { totalPaid: 0, totalBill: 0, totalBillDiscount: 0, totalPaymentDiscount: 0 };
       const outstanding = (panel.openingBalance || 0) + (summary.totalBill - (summary.totalBillDiscount || 0)) - (summary.totalPaid + (summary.totalPaymentDiscount || 0));
 
-      // Calculate dues breakdown from unpaidBills
-      const panelUnpaid = unpaidBills.filter(b => b.panelId.toString() === panel._id.toString());
-      let licenseDues = 0;
-      let ipDues = 0;
-      let maintenanceDues = 0;
-      let otherDues = 0;
-      const duesBreakdown = {};
+      let extras = {};
+      if (!isLight) {
+        // Calculate dues breakdown from unpaidBills
+        const panelUnpaid = unpaidBills.filter(b => b.panelId.toString() === panel._id.toString());
+        let licenseDues = 0;
+        let ipDues = 0;
+        let maintenanceDues = 0;
+        let otherDues = 0;
+        const duesBreakdown = {};
 
-      panelUnpaid.forEach(b => {
-        const remaining = (b.billAmount - (b.billDiscount || 0)) - (b.paidAmount || 0);
-        if (remaining > 0) {
-          if (!duesBreakdown[b.paymentType]) {
-            duesBreakdown[b.paymentType] = 0;
-          }
-          duesBreakdown[b.paymentType] += remaining;
+        panelUnpaid.forEach(b => {
+          const remaining = (b.billAmount - (b.billDiscount || 0)) - (b.paidAmount || 0);
+          if (remaining > 0) {
+            if (!duesBreakdown[b.paymentType]) {
+              duesBreakdown[b.paymentType] = 0;
+            }
+            duesBreakdown[b.paymentType] += remaining;
 
-          if (b.paymentType === 'License') {
-            licenseDues += remaining;
-          } else if (b.paymentType === 'IP Charges') {
-            ipDues += remaining;
-          } else if (b.paymentType === 'Maintenance') {
-            maintenanceDues += remaining;
-          } else {
-            otherDues += remaining;
+            if (b.paymentType === 'License') {
+              licenseDues += remaining;
+            } else if (b.paymentType === 'IP Charges') {
+              ipDues += remaining;
+            } else if (b.paymentType === 'Maintenance') {
+              maintenanceDues += remaining;
+            } else {
+              otherDues += remaining;
+            }
           }
-        }
-      });
+        });
+
+        extras = {
+          licenseDues,
+          ipDues,
+          maintenanceDues,
+          otherDues,
+          duesBreakdown
+        };
+      }
 
       return {
         ...panel,
         totalPaid: summary.totalPaid,
         outstanding,
-        licenseDues,
-        ipDues,
-        maintenanceDues,
-        otherDues,
-        duesBreakdown
+        ...extras
       };
     });
 

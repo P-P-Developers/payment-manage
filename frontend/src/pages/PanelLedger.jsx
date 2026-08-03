@@ -610,51 +610,76 @@ export default function PanelLedger() {
                     <td className="px-3 sm:px-6 py-3 sm:py-4">
                       <div className="flex flex-col gap-1.5">
                         {p.billAmount > 0 ? (
-                          <>
-                            <div className="flex items-center gap-1.5 text-xs">
-                              <span className="text-slate-500 dark:text-slate-400 font-medium">Bill:</span>
-                              <span className="font-bold text-slate-800 dark:text-slate-200">₹{p.billAmount?.toLocaleString()}</span>
-                            </div>
-                            {p.amountReceived > 0 && (
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-slate-500 dark:text-slate-400 font-medium text-xs">Paid:</span>
-                                <span className={`font-extrabold text-xs sm:text-sm ${p.amountReceived < p.billAmount
-                                  ? 'text-amber-700 dark:text-amber-500'
-                                  : 'text-emerald-700 dark:text-emerald-500'
-                                  }`}>
-                                  ₹{p.amountReceived?.toLocaleString()}
-                                </span>
-                              </div>
-                            )}
-                            {p.amountReceived === 0 ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-450 border border-rose-200 dark:border-rose-900/50 w-fit whitespace-nowrap">
-                                Outstanding / Credit Only
-                              </span>
-                            ) : p.amountReceived < p.billAmount ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-500 border border-amber-200 dark:border-amber-900/50 w-fit whitespace-nowrap">
-                                Partial (₹{(p.billAmount - p.amountReceived).toLocaleString()} due)
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 border border-emerald-200 dark:border-emerald-900/50 w-fit">
-                                Fully Paid
-                              </span>
-                            )}
-                          </>
+                          (() => {
+                            const netBill = p.billAmount - (p.billDiscount || 0);
+                            const netPaid = (p.amountReceived || 0) + (p.paymentDiscount || 0);
+                            return (
+                              <>
+                                <div className="flex items-center gap-1.5 text-xs">
+                                  <span className="text-slate-500 dark:text-slate-400 font-medium">Bill:</span>
+                                  <span className="font-bold text-slate-800 dark:text-slate-200">₹{p.billAmount?.toLocaleString()}</span>
+                                </div>
+                                {p.billDiscount > 0 && (
+                                  <div className="flex items-center gap-1.5 text-[10px] -mt-1 text-orange-600 font-medium">
+                                    <span>Discount: -₹{p.billDiscount.toLocaleString()}</span>
+                                  </div>
+                                )}
+                                {p.amountReceived > 0 && (
+                                  <div className="flex items-center gap-1.5 mt-1">
+                                    <span className="text-slate-500 dark:text-slate-400 font-medium text-xs">Paid:</span>
+                                    <span className={`font-extrabold text-xs sm:text-sm ${netPaid < netBill
+                                      ? 'text-amber-700 dark:text-amber-500'
+                                      : 'text-emerald-700 dark:text-emerald-500'
+                                      }`}>
+                                      ₹{p.amountReceived?.toLocaleString()}
+                                    </span>
+                                  </div>
+                                )}
+                                {p.paymentDiscount > 0 && (
+                                  <div className="flex items-center gap-1.5 text-[10px] text-rose-500 -mt-1 font-medium">
+                                    <span>P. Discount: -₹{p.paymentDiscount.toLocaleString()}</span>
+                                  </div>
+                                )}
+                                <div className="mt-1">
+                                  {p.amountReceived === 0 && (!p.paymentDiscount) ? (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-450 border border-rose-200 dark:border-rose-900/50 w-fit whitespace-nowrap">
+                                      Outstanding / Credit Only
+                                    </span>
+                                  ) : netPaid < netBill ? (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-500 border border-amber-200 dark:border-amber-900/50 w-fit whitespace-nowrap">
+                                      Partial (₹{(netBill - netPaid).toLocaleString()} due)
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 border border-emerald-200 dark:border-emerald-900/50 w-fit">
+                                      Fully Paid
+                                    </span>
+                                  )}
+                                </div>
+                              </>
+                            );
+                          })()
                         ) : (
                           <>
                             <div className="flex items-center gap-1.5">
                               <span className="text-slate-500 dark:text-slate-400 font-medium text-xs">Paid:</span>
                               <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">₹{p.amountReceived?.toLocaleString()}</span>
                             </div>
-                            {p.amountReceived > 0 ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 border border-emerald-200 dark:border-emerald-900/50 w-fit">
-                                Direct Payment
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 w-fit">
-                                No Amount
-                              </span>
+                            {p.paymentDiscount > 0 && (
+                              <div className="flex items-center gap-1.5 text-[10px] text-rose-500 -mt-1 font-medium">
+                                <span>Discount: -₹{p.paymentDiscount.toLocaleString()}</span>
+                              </div>
                             )}
+                            <div className="mt-1">
+                              {p.amountReceived > 0 ? (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 border border-emerald-200 dark:border-emerald-900/50 w-fit">
+                                  Direct Payment
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 w-fit">
+                                  No Amount
+                                </span>
+                              )}
+                            </div>
                           </>
                         )}
                       </div>

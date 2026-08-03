@@ -33,6 +33,7 @@ const ActivePill = ({ children, color = 'indigo' }) => {
     </span>
   );
 };
+
 const DashboardSkeleton = () => (
   <div className="space-y-8 animate-pulse">
     {/* Welcome Banner Skeleton */}
@@ -92,6 +93,55 @@ const DashboardSkeleton = () => (
   </div>
 );
 
+const DonutChart = ({ data, size = 100, strokeWidth = 12 }) => {
+  const total = data.reduce((acc, curr) => acc + curr.value, 0);
+  if (total === 0) {
+    return (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={(size - strokeWidth) / 2} fill="transparent" stroke="#e2e8f0" strokeWidth={strokeWidth} />
+      </svg>
+    );
+  }
+
+  let currentOffset = 0;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        {data.map((item, i) => {
+          if (item.value === 0) return null;
+          const strokeDasharray = `${(item.value / total) * circumference} ${circumference}`;
+          const strokeDashoffset = -currentOffset;
+          currentOffset += (item.value / total) * circumference;
+
+          return (
+            <circle
+              key={i}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="transparent"
+              stroke={item.color}
+              strokeWidth={strokeWidth}
+              strokeDasharray={strokeDasharray}
+              strokeDashoffset={strokeDashoffset}
+              transform={`rotate(-90 ${size / 2} ${size / 2})`}
+              className="transition-all duration-500 ease-in-out hover:opacity-80"
+            >
+              <title>{`${item.label}: ${item.value}`}</title>
+            </circle>
+          );
+        })}
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+        <span className="text-xl font-black text-slate-800 dark:text-slate-100 leading-none">{total}</span>
+      </div>
+    </div>
+  );
+};
+
 export default function DashboardHome() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -119,13 +169,33 @@ export default function DashboardHome() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const data = await apiRequest('/stats');
-        if (data.success) {
-          setStats(data);
+        // 1. Fetch lightweight metrics first (Fastest)
+        const metricsRes = await apiRequest('/stats/metrics');
+        if (metricsRes.success) {
+          setStats({
+            metrics: metricsRes.metrics,
+            paymentBreakdown: metricsRes.paymentBreakdown,
+            paymentModeBreakdown: metricsRes.paymentModeBreakdown,
+            counts: metricsRes.counts,
+            panels: [],
+            payments: []
+          });
+          setLoading(false); // Stop loading screen immediately, show top cards
+        }
+
+        // 2. Fetch panels (Medium)
+        const panelsRes = await apiRequest('/stats/panels');
+        if (panelsRes.success) {
+          setStats(prev => ({ ...prev, panels: panelsRes.panels }));
+        }
+
+        // 3. Fetch heavy payments (Slowest)
+        const paymentsRes = await apiRequest('/stats/payments');
+        if (paymentsRes.success) {
+          setStats(prev => ({ ...prev, payments: paymentsRes.payments }));
         }
       } catch (err) {
         setError(err.message || 'Failed to load dashboard metrics');
-      } finally {
         setLoading(false);
       }
     };
@@ -506,22 +576,64 @@ export default function DashboardHome() {
       ? openingBalSum + (totalBilled - billDiscountSum) - (totalPaid + paymentDiscountSum)
       : netBal;
 
+    // --- SEQUENTIAL LOAD FALLBACK ---
+    // While heavy payments are still loading in the background, we use the fast server-calculated metrics 
+    // for the top 3 cards so they don't show "0" during the 1-2 second loading period.
+    const useServerMetrics = stats?.metrics && rawPayments.length === 0;
+
+    let finalTotalBilled = totalBilled;
+    let finalTotalPaid = totalPaid;
+    let finalBillsCount = billsCount;
+    let finalRecovery = recRate;
+    let finalOutstanding = cumulativeOutstanding;
+
+    let finalSalesBreakdown = salesBreakdown;
+    let finalRevenueBreakdown = revenueBreakdown;
+    let finalOutstandingBreakdown = outstandingBreakdown;
+
+    if (useServerMetrics) {
+      finalTotalPaid = stats.metrics.totalPaymentsReceived;
+      finalOutstanding = stats.metrics.totalOutstanding;
+      // Reverse engineer total billed from outstanding formula
+      finalTotalBilled = stats.metrics.totalOutstanding - stats.metrics.totalOpeningBalance + stats.metrics.totalPaymentsReceived + stats.metrics.totalPaymentDiscount + stats.metrics.totalBillDiscount;
+      finalRecovery = (finalTotalBilled - stats.metrics.totalBillDiscount) > 0 ? Math.round((finalTotalPaid / (finalTotalBilled - stats.metrics.totalBillDiscount)) * 100) : 0;
+      finalBillsCount = stats.counts.totalPayments; // Approximation while loading
+      
+      finalSalesBreakdown = [
+        { label: 'License Charges Billed', value: `₹${(stats.metrics.totalLicenseCharges || 0).toLocaleString()}`, dotColor: 'bg-indigo-400', link: '/dashboard/panels' },
+        { label: 'IP Charges Billed', value: `₹${(stats.metrics.totalIpCharges || 0).toLocaleString()}`, dotColor: 'bg-violet-400', link: '/dashboard/panels' },
+        { label: 'Maintenance Billed', value: `₹${(stats.metrics.totalMaintenanceCharges || 0).toLocaleString()}`, dotColor: 'bg-fuchsia-400', link: '/dashboard/panels' },
+        { label: 'Bill Discounts Given', value: `-₹${(stats.metrics.totalBillDiscount || 0).toLocaleString()}`, dotColor: 'bg-rose-500', link: '/dashboard/panels', textColor: 'text-rose-600 font-semibold' }
+      ];
+
+      finalRevenueBreakdown = [
+        ...Object.entries(stats.paymentBreakdown || {}).map(([key, val]) => ({
+          label: `${key} Collected`, value: `₹${val.toLocaleString()}`, dotColor: getDotColor(key), link: '/dashboard/payments?transactionType=received'
+        })),
+        { label: 'Payment Discounts Given', value: `-₹${(stats.metrics.totalPaymentDiscount || 0).toLocaleString()}`, dotColor: 'bg-red-500', link: '/dashboard/payments?transactionType=received', textColor: 'text-rose-600 font-semibold' }
+      ];
+
+      finalOutstandingBreakdown = [
+        { label: 'Opening Balance Dues', value: `₹${(stats.metrics.totalOpeningBalance || 0).toLocaleString()}`, dotColor: 'bg-slate-500', link: '/dashboard/panels', textColor: 'text-slate-800' }
+      ];
+    }
+
     return {
       filteredPayments: filtered,
-      totalBilledAmount: totalBilled,
-      totalPaymentsReceived: totalPaid,
-      totalBillsCount: billsCount,
+      totalBilledAmount: finalTotalBilled,
+      totalPaymentsReceived: finalTotalPaid,
+      totalBillsCount: finalBillsCount,
       cashCollections: cash,
       onlineCollections: online,
       panelStatsArray: panelStats,
-      recoveryRate: recRate,
-      outstandingBalance: cumulativeOutstanding,
+      recoveryRate: finalRecovery,
+      outstandingBalance: finalOutstanding,
       billDiscountTotal: billDiscountSum,
       paymentDiscountTotal: paymentDiscountSum,
       openingBalSum,
-      salesBreakdown,
-      revenueBreakdown,
-      outstandingBreakdown,
+      salesBreakdown: finalSalesBreakdown,
+      revenueBreakdown: finalRevenueBreakdown,
+      outstandingBreakdown: finalOutstandingBreakdown,
     };
   }, [stats, filterType, selectedMonth, selectedQuarter, selectedCatFilter]);
 
@@ -632,6 +744,8 @@ export default function DashboardHome() {
 
   // worstPerforming (recoveryRate < 50, billed > 0) or fallback to highest outstanding
   const worstPerforming = useMemo(() => {
+    if (!stats?.panels || stats.panels.length === 0) return []; // Don't show skeleton while loading, just empty
+
     const attention = [...panelStatsArray]
       .filter((p) => p.totalBilled > 0 && p.recoveryRate < 50)
       .sort((a, b) => a.recoveryRate - b.recoveryRate);
@@ -643,7 +757,7 @@ export default function DashboardHome() {
       .filter((p) => p.outstanding > 0)
       .sort((a, b) => b.outstanding - a.outstanding)
       .slice(0, 3);
-  }, [panelStatsArray]);
+  }, [panelStatsArray, stats]);
 
   if (loading) {
     return <DashboardSkeleton />;
@@ -820,7 +934,19 @@ export default function DashboardHome() {
                 <Tag className="h-2.5 w-2.5" />{selectedCatFilter}
               </span>
             )}
-            <span className="text-[10px] text-slate-400 dark:text-slate-500">— {filteredPayments.length} transactions · {panelStatsArray.length} panels</span>
+            
+            {/* Show background loading indicator if payments/panels are still downloading */}
+            {stats && (!stats.payments || stats.payments.length === 0) ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/30 text-amber-500 animate-pulse">
+                <span className="flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+                </span>
+                Syncing historical records...
+              </span>
+            ) : (
+              <span className="text-[10px] text-slate-400 dark:text-slate-500">— {filteredPayments.length} transactions · {panelStatsArray.length} panels</span>
+            )}
           </div>
         </div>
 
@@ -838,76 +964,96 @@ export default function DashboardHome() {
           {premiumCards.map((card, i) => {
             const Icon = card.icon;
             const accents = [
-              { border: 'border-l-indigo-500', glowHover: 'hover:shadow-indigo-500/15', iconCls: 'bg-indigo-500/15 border-indigo-500/30 text-indigo-500 dark:text-indigo-400', topBar: 'from-indigo-500 to-violet-500', bgGlow: 'from-indigo-600 to-violet-600' },
-              { border: 'border-l-emerald-500', glowHover: 'hover:shadow-emerald-500/15', iconCls: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-500 dark:text-emerald-400', topBar: 'from-emerald-500 to-teal-500', bgGlow: 'from-emerald-600 to-teal-600' },
-              { border: 'border-l-rose-500', glowHover: 'hover:shadow-rose-500/15', iconCls: 'bg-rose-500/15 border-rose-500/30 text-rose-500 dark:text-rose-400', topBar: 'from-rose-500 to-red-500', bgGlow: 'from-rose-600 to-red-600' },
+              { 
+                wrapper: 'from-indigo-50/80 via-white to-white dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900 border-indigo-200/60 dark:border-indigo-900/40', 
+                glow: 'bg-indigo-500/10 dark:bg-indigo-500/20', 
+                iconOuter: 'bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-500/20 dark:to-indigo-500/5 border-indigo-200/80 dark:border-indigo-500/30', 
+                iconInner: 'text-indigo-600 dark:text-indigo-400',
+                topBar: 'from-indigo-500 to-violet-500'
+              },
+              { 
+                wrapper: 'from-emerald-50/80 via-white to-white dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 border-emerald-200/60 dark:border-emerald-900/40', 
+                glow: 'bg-emerald-500/10 dark:bg-emerald-500/20', 
+                iconOuter: 'bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-500/20 dark:to-emerald-500/5 border-emerald-200/80 dark:border-emerald-500/30', 
+                iconInner: 'text-emerald-600 dark:text-emerald-400',
+                topBar: 'from-emerald-500 to-teal-500'
+              },
+              { 
+                wrapper: card.title.includes('Outstanding') && outstandingBalance > 0
+                  ? 'from-rose-50/80 via-white to-white dark:from-rose-950/30 dark:via-slate-900 dark:to-slate-900 border-rose-200/60 dark:border-rose-900/40'
+                  : 'from-teal-50/80 via-white to-white dark:from-teal-950/30 dark:via-slate-900 dark:to-slate-900 border-teal-200/60 dark:border-teal-900/40',
+                glow: card.title.includes('Outstanding') && outstandingBalance > 0 ? 'bg-rose-500/10 dark:bg-rose-500/20' : 'bg-teal-500/10 dark:bg-teal-500/20',
+                iconOuter: card.title.includes('Outstanding') && outstandingBalance > 0
+                  ? 'bg-gradient-to-br from-rose-100 to-rose-50 dark:from-rose-500/20 dark:to-rose-500/5 border-rose-200/80 dark:border-rose-500/30'
+                  : 'bg-gradient-to-br from-teal-100 to-teal-50 dark:from-teal-500/20 dark:to-teal-500/5 border-teal-200/80 dark:border-teal-500/30',
+                iconInner: card.title.includes('Outstanding') && outstandingBalance > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-teal-600 dark:text-teal-400',
+                topBar: card.title.includes('Outstanding') && outstandingBalance > 0 ? 'from-rose-500 to-red-500' : 'from-teal-500 to-emerald-500'
+              },
             ];
             const a = accents[i];
+
             return (
-              <div key={i} className={`group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 border-l-4 ${a.border} shadow-sm hover:shadow-xl ${a.glowHover} transition-all duration-300 overflow-hidden flex flex-col`}>
-                <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${a.topBar}`}></div>
-                <div className={`absolute inset-0 bg-gradient-to-br ${a.bgGlow} opacity-0 group-hover:opacity-[0.025] transition-opacity duration-300 pointer-events-none`}></div>
+              <div key={i} className={`group relative rounded-2xl border ${a.wrapper} bg-gradient-to-br shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col`}>
+                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${a.topBar}`}></div>
+                <div className={`absolute -top-20 -right-20 h-40 w-40 rounded-full ${a.glow} blur-3xl pointer-events-none transition-all duration-500 group-hover:scale-150 group-hover:opacity-70 opacity-40`}></div>
 
                 {/* Header */}
-                <div className="flex items-start justify-between p-4 pb-2">
-                  <div className="flex items-center gap-3">
-                    <div className={`h-11 w-11 rounded-2xl ${a.iconCls} border flex items-center justify-center shrink-0 shadow-sm`}>
-                      <Icon className="h-5 w-5" />
+                <div className="relative flex items-start justify-between p-5 pb-3">
+                  <div className="flex items-center gap-3.5">
+                    <div className={`h-12 w-12 rounded-xl ${a.iconOuter} flex items-center justify-center shrink-0 shadow-inner`}>
+                      <Icon className={`h-5 w-5 ${a.iconInner}`} />
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.08em]">{card.title}</p>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">{card.desc}</p>
+                      <h4 className="text-[13px] font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide leading-tight">{card.title}</h4>
+                      <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">{card.desc}</p>
                     </div>
                   </div>
-                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setModalInfo(card); }} className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 flex items-center justify-center border border-slate-200 dark:border-slate-700 transition-colors shrink-0" title="View calculation">
-                    <Info className="h-3.5 w-3.5" />
+                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setModalInfo(card); }} className="h-8 w-8 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 flex items-center justify-center border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm transition-colors shrink-0" title="View calculation">
+                    <Info className="h-4 w-4" />
                   </button>
                 </div>
 
                 {/* Value */}
-                <div className="px-4 pb-1">
-                  <Link to={card.link}>
-                    <span className={`text-[32px] leading-none font-extrabold tracking-tight tabular-nums ${card.valueColor || 'text-slate-900 dark:text-white'} hover:opacity-80 transition-opacity`}>{card.value}</span>
+                <div className="relative px-5 pb-2">
+                  <Link to={card.link} className="inline-block">
+                    <span className={`text-4xl md:text-[40px] leading-none font-black tracking-tighter tabular-nums ${card.valueColor || 'text-slate-900 dark:text-white'} hover:opacity-80 transition-opacity`}>{card.value}</span>
                   </Link>
                 </div>
 
                 {/* Active filter pills on card */}
-                <div className="px-4 pb-3 flex flex-wrap gap-1.5">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-500">
-                    <Zap className="h-2 w-2" />{activePeriodLabel}
+                <div className="relative px-5 pb-4 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white/60 dark:bg-slate-800/60 backdrop-blur border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 shadow-sm">
+                    <Zap className="h-3 w-3 text-amber-500" />{activePeriodLabel}
                   </span>
                   {selectedCatFilter !== 'All' && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
-                      <Tag className="h-2 w-2" />{selectedCatFilter}
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white/60 dark:bg-slate-800/60 backdrop-blur border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 shadow-sm">
+                      <Tag className="h-3 w-3 text-emerald-500" />{selectedCatFilter}
                     </span>
                   )}
                   {/* Recovery rate bar for revenue card */}
                   {i === 1 && (
-                    <div className="w-full mt-1">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-[9px] text-slate-400">Recovery Rate</span>
-                        <span className={`text-[9px] font-black ${recoveryRate >= 80 ? 'text-emerald-500' : recoveryRate >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>{recoveryRate}%</span>
+                    <div className="w-full mt-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Recovery Rate</span>
+                        <span className={`text-[11px] font-black ${recoveryRate >= 80 ? 'text-emerald-500' : recoveryRate >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>{recoveryRate}%</span>
                       </div>
-                      <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full transition-all duration-700 ${recoveryRate >= 80 ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : recoveryRate >= 50 ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gradient-to-r from-rose-500 to-red-500'}`} style={{ width: `${Math.min(recoveryRate, 100)}%` }}></div>
+                      <div className="h-2 bg-slate-200/60 dark:bg-slate-800/80 rounded-full overflow-hidden p-[1px] border border-slate-300/30 dark:border-slate-700/30">
+                        <div className={`h-full rounded-full transition-all duration-700 ${recoveryRate >= 80 ? 'bg-gradient-to-r from-emerald-500 to-teal-400' : recoveryRate >= 50 ? 'bg-gradient-to-r from-amber-500 to-orange-400' : 'bg-gradient-to-r from-rose-500 to-red-400'}`} style={{ width: `${Math.min(recoveryRate, 100)}%` }}></div>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Divider */}
-                <div className="mx-4 border-t border-slate-100 dark:border-slate-800"></div>
-
-                {/* Breakdown */}
-                <div className="p-4 pt-3 space-y-1 flex-1">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500 mb-2.5">Breakdown</p>
+                {/* Breakdown Section */}
+                <div className="relative flex-1 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border-t border-slate-200/50 dark:border-slate-800/50 p-4 pt-3 space-y-1.5 mt-auto">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3">Breakdown</p>
                   {card.breakdown.map((item, idx) => (
-                    <Link key={idx} to={item.link} className="flex justify-between items-center py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors group/item">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className={`h-1.5 w-1.5 rounded-full ${item.dotColor || 'bg-slate-400'} shrink-0`}></span>
-                        <span className="text-[11px] text-slate-600 dark:text-slate-300 group-hover/item:text-slate-900 dark:group-hover/item:text-white truncate">{item.label}</span>
+                    <Link key={idx} to={item.link} className="flex justify-between items-center py-1.5 px-3 rounded-lg hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors group/item">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className={`h-2 w-2 rounded-full ${item.dotColor || 'bg-slate-400'} shrink-0 shadow-sm`}></span>
+                        <span className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 group-hover/item:text-slate-900 dark:group-hover/item:text-white truncate transition-colors">{item.label}</span>
                       </div>
-                      <span className={`text-[11px] font-black font-mono shrink-0 ml-2 ${item.textColor || 'text-slate-800 dark:text-slate-100'}`}>{item.value}</span>
+                      <span className={`text-[12px] font-black font-mono shrink-0 ml-2 ${item.textColor || 'text-slate-800 dark:text-slate-100'}`}>{item.value}</span>
                     </Link>
                   ))}
                 </div>
@@ -1083,6 +1229,44 @@ export default function DashboardHome() {
                   <p className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0">{filteredPayments.length} Entries</p>
                 </div>
               </Link>
+
+              {/* Added Circle Chart for Client Status Count */}
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Client Status Split</p>
+                <div className="flex items-center gap-4">
+                  <div className="shrink-0">
+                    <DonutChart
+                      data={[
+                        { label: 'Excellent', value: processedPerfPanels.filter(p => p.status === 'Excellent').length, color: '#10b981' },
+                        { label: 'Healthy', value: processedPerfPanels.filter(p => p.status === 'Healthy').length, color: '#f59e0b' },
+                        { label: 'Attention', value: processedPerfPanels.filter(p => p.status === 'Needs Attention').length, color: '#f43f5e' },
+                        { label: 'Inactive', value: processedPerfPanels.filter(p => p.status === 'Critically Inactive').length, color: '#64748b' },
+                      ]}
+                      size={90}
+                      strokeWidth={14}
+                    />
+                  </div>
+                  <div className="flex-1 grid grid-cols-2 gap-y-2 gap-x-2">
+                    {[
+                      { label: 'Excellent', key: 'Excellent', color: 'bg-emerald-500' },
+                      { label: 'Healthy', key: 'Healthy', color: 'bg-amber-500' },
+                      { label: 'Attention', key: 'Needs Attention', color: 'bg-rose-500' },
+                      { label: 'Inactive', key: 'Critically Inactive', color: 'bg-slate-500' },
+                    ].map((st) => {
+                      const count = processedPerfPanels.filter(p => p.status === st.key).length;
+                      return (
+                        <div key={st.key} className="flex items-center gap-1.5">
+                          <span className={`h-2 w-2 rounded-full ${st.color}`}></span>
+                          <div>
+                            <p className="text-[9px] text-slate-500 dark:text-slate-400 font-bold leading-none mb-0.5">{st.label}</p>
+                            <p className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-none">{count}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
 
               <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Payment Mode Split</p>
@@ -1331,54 +1515,81 @@ export default function DashboardHome() {
 
           {/* Performance Alerts */}
           {worstPerforming.length > 0 && (
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-rose-500 p-4 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200 dark:border-rose-500/20">
-                    <AlertCircle className="h-4 w-4" />
+            <div className="relative overflow-hidden rounded-2xl border border-rose-200/60 dark:border-rose-900/40 bg-gradient-to-br from-rose-50/80 via-white to-white dark:from-rose-950/20 dark:via-slate-900 dark:to-slate-900 p-5 shadow-sm">
+              {/* Subtle background glow effect */}
+              <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-rose-500/5 dark:bg-rose-500/10 blur-3xl pointer-events-none"></div>
+
+              <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-rose-100 to-rose-50 dark:from-rose-500/20 dark:to-rose-500/5 flex items-center justify-center border border-rose-200/80 dark:border-rose-500/30 shadow-inner">
+                    <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500 border-2 border-white dark:border-slate-900"></span>
+                    </span>
                   </div>
                   <div>
-                    <h4 className="font-extrabold text-[15px] tracking-tight text-slate-900 dark:text-white">Performance Alerts</h4>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Lowest recovery clients · {activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''}</p>
+                    <h4 className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                      Performance Alerts
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Critical attention needed · {activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
-                    <Zap className="h-2.5 w-2.5" />{activePeriodLabel}
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 shadow-sm">
+                    <Zap className="h-3 w-3 text-amber-500" />{activePeriodLabel}
                   </span>
-                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400">
-                    ⚠️ Inactive: {inactivePanels.length}
-                  </span>
+                  {inactivePanels.length > 0 && (
+                    <span className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-rose-100/50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 shadow-sm flex items-center gap-1">
+                      ⚠️ Inactive: {inactivePanels.length}
+                    </span>
+                  )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="relative grid grid-cols-1 md:grid-cols-3 gap-4">
                 {worstPerforming.map((item, idx) => (
-                  <div key={item._id} className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 flex flex-col gap-2">
+                  <div key={item._id} className="group bg-white/60 dark:bg-slate-800/40 backdrop-blur-md border border-rose-100 dark:border-rose-900/30 rounded-xl p-4 flex flex-col gap-3 shadow-sm hover:shadow-md hover:border-rose-300 dark:hover:border-rose-700/50 transition-all duration-300">
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="flex-1 min-w-0 pr-2">
                         <Link
                           to={`/dashboard/panels?search=${encodeURIComponent(item.panelName)}`}
-                          className="text-slate-800 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold text-xs block truncate max-w-[150px]"
+                          className="text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 font-bold text-sm block truncate transition-colors"
+                          title={item.panelName}
                         >
                           {idx + 1}. {item.panelName}
                         </Link>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-medium">{item.category || 'Algo'}</span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wider bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded border border-slate-200/60 dark:border-slate-700/60">{item.category || 'Algo'}</span>
+                        </div>
                       </div>
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-500/10 border border-rose-300 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 shrink-0">
+                      <span className="text-[10px] font-black px-2.5 py-1 rounded-md bg-rose-100 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-400 shrink-0 shadow-sm">
                         {item.totalBilled > 0 ? `${item.recoveryRate}%` : 'No Bills'}
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-700 text-[11px] font-mono">
+                    
+                    <div className="grid grid-cols-2 gap-3 pt-3 border-t border-rose-100/50 dark:border-rose-900/30 text-xs">
                       <div>
-                        <span className="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold">Billed</span>
-                        <span className="text-slate-700 dark:text-slate-300 font-semibold">₹{item.totalBilled.toLocaleString()}</span>
+                        <span className="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold tracking-wider mb-0.5">Sales Billed</span>
+                        <span className="text-slate-800 dark:text-slate-200 font-semibold">₹{item.totalBilled.toLocaleString()}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold">Dues</span>
+                        <span className="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold tracking-wider mb-0.5">Outstanding</span>
                         <span className="text-rose-600 dark:text-rose-400 font-bold">₹{item.outstanding.toLocaleString()}</span>
                       </div>
                     </div>
+                    
+                    {/* Recovery progress bar */}
+                    {item.totalBilled > 0 && (
+                      <div className="w-full mt-1">
+                        <div className="w-full bg-slate-100 dark:bg-slate-900/80 rounded-full h-1.5 p-[1px] border border-slate-200 dark:border-slate-800">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-rose-500 to-red-500"
+                            style={{ width: `${Math.max(Math.min(item.recoveryRate, 100), 2)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
