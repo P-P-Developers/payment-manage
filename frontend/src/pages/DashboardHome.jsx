@@ -260,7 +260,6 @@ export default function DashboardHome() {
     totalBilledAmount,
     totalPaymentsReceived,
     totalBillsCount,
-    cashCollections,
     onlineCollections,
     panelStatsArray,
     recoveryRate,
@@ -1689,7 +1688,7 @@ export default function DashboardHome() {
                 </div>
 
                 {/* Performance Table */}
-                <div className="overflow-x-auto overflow-y-auto max-h-[1100px] custom-scrollbar relative">
+                <div className="overflow-x-auto overflow-y-auto max-h-[750px] custom-scrollbar relative">
                   <table className="w-full text-left border-collapse text-xs min-w-[850px]">
                     <thead className="sticky top-0 z-20">
                       <tr className="bg-slate-100/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 uppercase font-bold tracking-[0.06em] text-[10.5px]">
@@ -1807,7 +1806,7 @@ export default function DashboardHome() {
                       };
                       const type = p.paymentType === 'IP' ? 'IP Charges' : (p.paymentType || 'Other');
                       const tStyle = typeStyles[type] || 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20';
-                      
+
                       return (
                         <div key={p._id} className="p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/50 transition-colors bg-white dark:bg-slate-800/40 flex flex-col gap-2 shadow-sm group">
                           <div className="flex justify-between items-start gap-2">
