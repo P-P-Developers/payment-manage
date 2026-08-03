@@ -170,7 +170,7 @@ router.get('/panels', protect, hasPermission('view_panels'), async (req, res) =>
 router.get('/payments', protect, hasPermission('view_panels'), async (req, res) => {
   try {
     const payments = await Payment.find({})
-      .select('_id timestamp amountReceived billAmount billDiscount paymentDiscount paymentType paymentMode bankName remark panelId')
+      .select('_id timestamp amountReceived billAmount billDiscount paymentDiscount paymentType paymentMode bankName remark panelId quantity')
       .populate('panelId', 'panelName category')
       .lean();
     res.json({ success: true, payments });

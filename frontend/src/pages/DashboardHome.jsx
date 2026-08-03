@@ -19,6 +19,8 @@ import {
   BarChart3,
   Users,
   Zap,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 // Active filter badge pills used throughout the page
@@ -165,6 +167,7 @@ export default function DashboardHome() {
   const [perfSortOrder, setPerfSortOrder] = useState('desc');
   const [modalInfo, setModalInfo] = useState(null);
   const [tableSearch, setTableSearch] = useState('');
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -359,7 +362,10 @@ export default function DashboardHome() {
         online += p.amountReceived || 0;
       }
 
-      const type = p.paymentType || 'Other';
+      let type = p.paymentType || 'Other';
+      if (type === 'License Charges') type = 'License';
+      if (type === 'Maintenance Charges') type = 'Maintenance';
+      if (type === 'IP') type = 'IP Charges';
       if (!typeStats[type]) {
         typeStats[type] = {
           billed: 0,
@@ -402,11 +408,11 @@ export default function DashboardHome() {
         if (p.billAmount > 0) {
           map[pId].billCount += 1;
         }
-        if (p.paymentType === 'License') {
+        if (type === 'License') {
           map[pId].licensePaid += p.amountReceived || 0;
           map[pId].licenseBilled += p.billAmount || 0;
           map[pId].licenseQty += p.quantity || 0;
-        } else if (p.paymentType === 'Maintenance') {
+        } else if (type === 'Maintenance') {
           map[pId].maintenancePaid += p.amountReceived || 0;
           map[pId].maintenanceBilled += p.billAmount || 0;
         }
@@ -476,6 +482,13 @@ export default function DashboardHome() {
       dotColor: 'bg-orange-500',
       link: '/dashboard/payments?transactionType=bill',
       textColor: 'text-orange-600'
+    });
+
+    salesBreakdown.unshift({
+      label: 'Opening Balance',
+      value: `₹${openingBalSum.toLocaleString()}`,
+      dotColor: 'bg-slate-500',
+      link: '/dashboard/panels',
     });
 
     const revenueBreakdown = [];
@@ -594,12 +607,13 @@ export default function DashboardHome() {
     if (useServerMetrics) {
       finalTotalPaid = stats.metrics.totalPaymentsReceived;
       finalOutstanding = stats.metrics.totalOutstanding;
-      // Reverse engineer total billed from outstanding formula
-      finalTotalBilled = stats.metrics.totalOutstanding - stats.metrics.totalOpeningBalance + stats.metrics.totalPaymentsReceived + stats.metrics.totalPaymentDiscount + stats.metrics.totalBillDiscount;
+      // Reverse engineer total billed from outstanding formula and INCLUDE opening balance
+      finalTotalBilled = stats.metrics.totalOutstanding + stats.metrics.totalPaymentsReceived + stats.metrics.totalPaymentDiscount + stats.metrics.totalBillDiscount;
       finalRecovery = (finalTotalBilled - stats.metrics.totalBillDiscount) > 0 ? Math.round((finalTotalPaid / (finalTotalBilled - stats.metrics.totalBillDiscount)) * 100) : 0;
       finalBillsCount = stats.counts.totalPayments; // Approximation while loading
-      
+
       finalSalesBreakdown = [
+        { label: 'Opening Balance', value: `₹${(stats.metrics.totalOpeningBalance || 0).toLocaleString()}`, dotColor: 'bg-slate-500', link: '/dashboard/panels' },
         { label: 'License Charges Billed', value: `₹${(stats.metrics.totalLicenseCharges || 0).toLocaleString()}`, dotColor: 'bg-indigo-400', link: '/dashboard/panels' },
         { label: 'IP Charges Billed', value: `₹${(stats.metrics.totalIpCharges || 0).toLocaleString()}`, dotColor: 'bg-violet-400', link: '/dashboard/panels' },
         { label: 'Maintenance Billed', value: `₹${(stats.metrics.totalMaintenanceCharges || 0).toLocaleString()}`, dotColor: 'bg-fuchsia-400', link: '/dashboard/panels' },
@@ -620,7 +634,7 @@ export default function DashboardHome() {
 
     return {
       filteredPayments: filtered,
-      totalBilledAmount: finalTotalBilled,
+      totalBilledAmount: useServerMetrics ? finalTotalBilled : totalBilled + openingBalSum,
       totalPaymentsReceived: finalTotalPaid,
       totalBillsCount: finalBillsCount,
       cashCollections: cash,
@@ -934,7 +948,7 @@ export default function DashboardHome() {
                 <Tag className="h-2.5 w-2.5" />{selectedCatFilter}
               </span>
             )}
-            
+
             {/* Show background loading indicator if payments/panels are still downloading */}
             {stats && (!stats.payments || stats.payments.length === 0) ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/30 text-amber-500 animate-pulse">
@@ -964,21 +978,21 @@ export default function DashboardHome() {
           {premiumCards.map((card, i) => {
             const Icon = card.icon;
             const accents = [
-              { 
-                wrapper: 'from-indigo-50/80 via-white to-white dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900 border-indigo-200/60 dark:border-indigo-900/40', 
-                glow: 'bg-indigo-500/10 dark:bg-indigo-500/20', 
-                iconOuter: 'bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-500/20 dark:to-indigo-500/5 border-indigo-200/80 dark:border-indigo-500/30', 
+              {
+                wrapper: 'from-indigo-50/80 via-white to-white dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900 border-indigo-200/60 dark:border-indigo-900/40',
+                glow: 'bg-indigo-500/10 dark:bg-indigo-500/20',
+                iconOuter: 'bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-500/20 dark:to-indigo-500/5 border-indigo-200/80 dark:border-indigo-500/30',
                 iconInner: 'text-indigo-600 dark:text-indigo-400',
                 topBar: 'from-indigo-500 to-violet-500'
               },
-              { 
-                wrapper: 'from-emerald-50/80 via-white to-white dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 border-emerald-200/60 dark:border-emerald-900/40', 
-                glow: 'bg-emerald-500/10 dark:bg-emerald-500/20', 
-                iconOuter: 'bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-500/20 dark:to-emerald-500/5 border-emerald-200/80 dark:border-emerald-500/30', 
+              {
+                wrapper: 'from-emerald-50/80 via-white to-white dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 border-emerald-200/60 dark:border-emerald-900/40',
+                glow: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+                iconOuter: 'bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-500/20 dark:to-emerald-500/5 border-emerald-200/80 dark:border-emerald-500/30',
                 iconInner: 'text-emerald-600 dark:text-emerald-400',
                 topBar: 'from-emerald-500 to-teal-500'
               },
-              { 
+              {
                 wrapper: card.title.includes('Outstanding') && outstandingBalance > 0
                   ? 'from-rose-50/80 via-white to-white dark:from-rose-950/30 dark:via-slate-900 dark:to-slate-900 border-rose-200/60 dark:border-rose-900/40'
                   : 'from-teal-50/80 via-white to-white dark:from-teal-950/30 dark:via-slate-900 dark:to-slate-900 border-teal-200/60 dark:border-teal-900/40',
@@ -1014,10 +1028,22 @@ export default function DashboardHome() {
                 </div>
 
                 {/* Value */}
-                <div className="relative px-5 pb-2">
+                <div className="relative px-5 pb-2 flex items-center justify-between">
                   <Link to={card.link} className="inline-block">
                     <span className={`text-4xl md:text-[40px] leading-none font-black tracking-tighter tabular-nums ${card.valueColor || 'text-slate-900 dark:text-white'} hover:opacity-80 transition-opacity`}>{card.value}</span>
                   </Link>
+                  {/* Recovery rate circle chart for revenue card */}
+                  {i === 1 && (
+                    <div className="relative h-14 w-14 shrink-0 flex items-center justify-center ml-4">
+                      <svg className="w-full h-full -rotate-90 transform drop-shadow-sm" viewBox="0 0 36 36">
+                        <path className="text-slate-200 dark:text-slate-700" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3.5" />
+                        <path className={`${recoveryRate >= 80 ? 'text-emerald-500' : recoveryRate >= 50 ? 'text-amber-500' : 'text-rose-500'}`} strokeDasharray={`${Math.min(Math.max(recoveryRate, 0), 100)}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+                      </svg>
+                      <div className={`absolute inset-0 flex items-center justify-center text-[10px] font-black ${recoveryRate >= 80 ? 'text-emerald-600 dark:text-emerald-400' : recoveryRate >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                        {recoveryRate}%
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Active filter pills on card */}
@@ -1030,32 +1056,33 @@ export default function DashboardHome() {
                       <Tag className="h-3 w-3 text-emerald-500" />{selectedCatFilter}
                     </span>
                   )}
-                  {/* Recovery rate bar for revenue card */}
-                  {i === 1 && (
-                    <div className="w-full mt-2">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Recovery Rate</span>
-                        <span className={`text-[11px] font-black ${recoveryRate >= 80 ? 'text-emerald-500' : recoveryRate >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>{recoveryRate}%</span>
-                      </div>
-                      <div className="h-2 bg-slate-200/60 dark:bg-slate-800/80 rounded-full overflow-hidden p-[1px] border border-slate-300/30 dark:border-slate-700/30">
-                        <div className={`h-full rounded-full transition-all duration-700 ${recoveryRate >= 80 ? 'bg-gradient-to-r from-emerald-500 to-teal-400' : recoveryRate >= 50 ? 'bg-gradient-to-r from-amber-500 to-orange-400' : 'bg-gradient-to-r from-rose-500 to-red-400'}`} style={{ width: `${Math.min(recoveryRate, 100)}%` }}></div>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Breakdown Section */}
-                <div className="relative flex-1 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border-t border-slate-200/50 dark:border-slate-800/50 p-4 pt-3 space-y-1.5 mt-auto">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3">Breakdown</p>
-                  {card.breakdown.map((item, idx) => (
-                    <Link key={idx} to={item.link} className="flex justify-between items-center py-1.5 px-3 rounded-lg hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors group/item">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span className={`h-2 w-2 rounded-full ${item.dotColor || 'bg-slate-400'} shrink-0 shadow-sm`}></span>
-                        <span className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 group-hover/item:text-slate-900 dark:group-hover/item:text-white truncate transition-colors">{item.label}</span>
-                      </div>
-                      <span className={`text-[12px] font-black font-mono shrink-0 ml-2 ${item.textColor || 'text-slate-800 dark:text-slate-100'}`}>{item.value}</span>
-                    </Link>
-                  ))}
+                <div className="relative flex-1 bg-slate-50/80 dark:bg-slate-900/60 backdrop-blur-md border-t border-slate-200/70 dark:border-slate-700/70 p-4 pt-3 space-y-1.5 mt-auto">
+                  <button
+                    onClick={(e) => { e.preventDefault(); setShowBreakdown(!showBreakdown); }}
+                    className="w-full flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 hover:text-slate-800 dark:hover:text-slate-200 transition-colors group/btn"
+                  >
+                    <span>Breakdown</span>
+                    <div className="h-5 w-5 rounded-md bg-slate-200/50 dark:bg-slate-800/50 group-hover/btn:bg-slate-300/50 dark:group-hover/btn:bg-slate-700/50 flex items-center justify-center transition-colors">
+                      {showBreakdown ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                    </div>
+                  </button>
+
+                  {showBreakdown && (
+                    <div className="space-y-1.5 animate-in slide-in-from-top-2 fade-in duration-300 pt-1">
+                      {card.breakdown.map((item, idx) => (
+                        <Link key={idx} to={item.link} className="flex justify-between items-center py-1.5 px-3 rounded-lg hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors group/item">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className={`h-2 w-2 rounded-full ${item.dotColor || 'bg-slate-400'} shrink-0 shadow-sm`}></span>
+                            <span className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 group-hover/item:text-slate-900 dark:group-hover/item:text-white truncate transition-colors">{item.label}</span>
+                          </div>
+                          <span className={`text-[12px] font-black font-mono shrink-0 ml-2 ${item.textColor || 'text-slate-800 dark:text-slate-100'}`}>{item.value}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -1065,21 +1092,26 @@ export default function DashboardHome() {
         {/* Analytics Chart & Breakdown Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Payment & Billing Trend Chart */}
-          <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col min-h-[320px] relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-emerald-500"></div>
+          <div className="lg:col-span-2 bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-900 dark:to-slate-950/80 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 p-6 sm:p-7 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col min-h-[320px] relative overflow-hidden group">
+            {/* Subtle background glow */}
+            <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/5 dark:bg-indigo-500/10 blur-3xl pointer-events-none group-hover:bg-indigo-500/10 dark:group-hover:bg-indigo-500/20 transition-all duration-700"></div>
 
-            <div className="flex items-center justify-between mb-4">
+            <div className="relative flex items-start justify-between mb-6">
               <div>
-                <h3 className="font-extrabold text-[15px] tracking-tight text-slate-900 dark:text-slate-100">Billing &amp; Collections Trend</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Billed vs Paid · {activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''}</p>
+                <h3 className="font-extrabold text-[17px] tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-indigo-500" />
+                  Billing &amp; Collections Trend
+                </h3>
+                <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400 mt-1">Billed vs Paid · {activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''}</p>
               </div>
-              <div className="flex items-center gap-4 text-xs font-medium select-none">
+              <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-wider bg-slate-100/50 dark:bg-slate-800/50 py-1.5 px-3 rounded-full border border-slate-200/50 dark:border-slate-700/50">
                 <div className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-indigo-500"></span>
+                  <span className="h-2.5 w-2.5 rounded-full bg-indigo-500 shadow-sm shadow-indigo-500/30"></span>
                   <span className="text-slate-600 dark:text-slate-300">Billed</span>
                 </div>
+                <div className="h-3 w-px bg-slate-300 dark:bg-slate-600"></div>
                 <div className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/30"></span>
                   <span className="text-slate-600 dark:text-slate-300">Collected</span>
                 </div>
               </div>
@@ -1201,40 +1233,46 @@ export default function DashboardHome() {
           </div>
 
           {/* Registry Overview */}
-          <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm relative overflow-hidden flex flex-col gap-4">
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 to-purple-500"></div>
+          <div className="lg:col-span-1 bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-900 dark:to-slate-950/80 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 p-6 shadow-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden flex flex-col gap-5 group">
+            {/* Subtle glow */}
+            <div className="absolute -bottom-32 -right-32 h-64 w-64 rounded-full bg-violet-500/5 dark:bg-violet-500/10 blur-3xl pointer-events-none group-hover:bg-violet-500/10 dark:group-hover:bg-violet-500/20 transition-all duration-700"></div>
 
             <div>
-              <h3 className="font-extrabold text-[15px] tracking-tight text-slate-900 dark:text-slate-100 mb-0.5">Ledger Overview</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Clients and transactions in this period</p>
+              <h3 className="font-extrabold text-[17px] tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                <Layers className="h-5 w-5 text-violet-500" />
+                Ledger Overview
+              </h3>
+              <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400 mt-1">Clients and transactions summary</p>
             </div>
 
-            <div className="space-y-3">
-              <Link to="/dashboard/panels" className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors">
-                <div className="h-9 w-9 rounded-lg bg-indigo-100 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-500/20 shrink-0">
-                  <Layers className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wide">Total Panels</p>
-                  <p className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0">{processedPerfPanels.length} Clients</p>
-                </div>
-              </Link>
+            <div className="space-y-4 relative">
+              <div className="grid grid-cols-2 gap-3">
+                <Link to="/dashboard/panels" className="flex flex-col gap-2 bg-gradient-to-br from-indigo-50/50 to-indigo-100/30 dark:from-indigo-500/10 dark:to-indigo-500/5 border border-indigo-100 dark:border-indigo-500/20 p-4 rounded-2xl hover:border-indigo-300 dark:hover:border-indigo-500/40 hover:shadow-md transition-all group/stat">
+                  <div className="h-8 w-8 rounded-full bg-indigo-500 text-white flex items-center justify-center shadow-sm shadow-indigo-500/30 group-hover/stat:scale-110 transition-transform">
+                    <Users className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider mb-0.5">Total Panels</p>
+                    <p className="text-xl font-black text-slate-900 dark:text-white leading-none">{processedPerfPanels.length}</p>
+                  </div>
+                </Link>
 
-              <Link to="/dashboard/payments" className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:border-emerald-200 dark:hover:border-emerald-800 transition-colors">
-                <div className="h-9 w-9 rounded-lg bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-500/20 shrink-0">
-                  <FileSpreadsheet className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wide">Transactions</p>
-                  <p className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0">{filteredPayments.length} Entries</p>
-                </div>
-              </Link>
+                <Link to="/dashboard/payments" className="flex flex-col gap-2 bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-500/10 dark:to-emerald-500/5 border border-emerald-100 dark:border-emerald-500/20 p-4 rounded-2xl hover:border-emerald-300 dark:hover:border-emerald-500/40 hover:shadow-md transition-all group/stat">
+                  <div className="h-8 w-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-sm shadow-emerald-500/30 group-hover/stat:scale-110 transition-transform">
+                    <FileSpreadsheet className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider mb-0.5">Transactions</p>
+                    <p className="text-xl font-black text-slate-900 dark:text-white leading-none">{filteredPayments.length}</p>
+                  </div>
+                </Link>
+              </div>
 
               {/* Added Circle Chart for Client Status Count */}
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Client Status Split</p>
-                <div className="flex items-center gap-4">
-                  <div className="shrink-0">
+              <div className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800 backdrop-blur-sm shadow-inner">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 text-start">Client Status Distribution</p>
+                <div className="flex items-start gap-5 justify-start">
+                  <div className="shrink-0 relative">
                     <DonutChart
                       data={[
                         { label: 'Excellent', value: processedPerfPanels.filter(p => p.status === 'Excellent').length, color: '#10b981' },
@@ -1242,11 +1280,14 @@ export default function DashboardHome() {
                         { label: 'Attention', value: processedPerfPanels.filter(p => p.status === 'Needs Attention').length, color: '#f43f5e' },
                         { label: 'Inactive', value: processedPerfPanels.filter(p => p.status === 'Critically Inactive').length, color: '#64748b' },
                       ]}
-                      size={90}
+                      size={100}
                       strokeWidth={14}
                     />
+                    <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+                      <span className="text-lg font-black text-slate-800 dark:text-white leading-none">{processedPerfPanels.length}</span>
+                    </div>
                   </div>
-                  <div className="flex-1 grid grid-cols-2 gap-y-2 gap-x-2">
+                  <div className="flex flex-col gap-2">
                     {[
                       { label: 'Excellent', key: 'Excellent', color: 'bg-emerald-500' },
                       { label: 'Healthy', key: 'Healthy', color: 'bg-amber-500' },
@@ -1255,12 +1296,12 @@ export default function DashboardHome() {
                     ].map((st) => {
                       const count = processedPerfPanels.filter(p => p.status === st.key).length;
                       return (
-                        <div key={st.key} className="flex items-center gap-1.5">
-                          <span className={`h-2 w-2 rounded-full ${st.color}`}></span>
-                          <div>
-                            <p className="text-[9px] text-slate-500 dark:text-slate-400 font-bold leading-none mb-0.5">{st.label}</p>
-                            <p className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-none">{count}</p>
+                        <div key={st.key} className="flex items-center justify-between gap-4 w-full">
+                          <div className="flex items-center gap-2">
+                            <span className={`h-2.5 w-2.5 rounded-full ${st.color} shadow-sm`}></span>
+                            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 leading-none">{st.label}</span>
                           </div>
+                          <span className="text-[11px] font-black text-slate-900 dark:text-white">{count}</span>
                         </div>
                       );
                     })}
@@ -1268,27 +1309,24 @@ export default function DashboardHome() {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Payment Mode Split</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {['Cash', 'UPI', 'Bank Transfer', 'Online'].map((mode) => {
-                    const modeAmt = filteredPayments
-                      .filter((p) => p.paymentMode === mode)
-                      .reduce((sum, p) => sum + (p.amountReceived || 0), 0);
-                    const modeColors = {
-                      Cash: 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40 text-amber-700 dark:text-amber-400',
-                      UPI: 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-400',
-                      'Bank Transfer': 'bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-900/40 text-indigo-700 dark:text-indigo-400',
-                      Online: 'bg-violet-50 dark:bg-violet-950/20 border-violet-200 dark:border-violet-900/40 text-violet-700 dark:text-violet-400',
-                    };
-                    return (
-                      <div key={mode} className={`p-2 rounded-lg border ${modeColors[mode]}`}>
-                        <span className="block text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-0.5">{mode}</span>
-                        <span className="font-bold text-sm">₹{modeAmt.toLocaleString()}</span>
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="grid grid-cols-2 gap-2">
+                {['Cash', 'UPI', 'Bank Transfer', 'Online'].map((mode) => {
+                  const modeAmt = filteredPayments
+                    .filter((p) => p.paymentMode === mode)
+                    .reduce((sum, p) => sum + (p.amountReceived || 0), 0);
+                  const modeColors = {
+                    Cash: 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-amber-200 dark:border-amber-900/30 text-amber-700 dark:text-amber-400 hover:border-amber-400',
+                    UPI: 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 border-emerald-200 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:border-emerald-400',
+                    'Bank Transfer': 'bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-500/10 dark:to-blue-500/10 border-indigo-200 dark:border-indigo-900/30 text-indigo-700 dark:text-indigo-400 hover:border-indigo-400',
+                    Online: 'bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-500/10 dark:to-purple-500/10 border-violet-200 dark:border-violet-900/30 text-violet-700 dark:text-violet-400 hover:border-violet-400',
+                  };
+                  return (
+                    <div key={mode} className={`p-2.5 rounded-xl border ${modeColors[mode]} transition-colors shadow-sm`}>
+                      <span className="block text-[9px] uppercase font-bold tracking-wider mb-1 opacity-80">{mode}</span>
+                      <span className="font-black text-sm tabular-nums">₹{modeAmt >= 100000 ? `${(modeAmt / 100000).toFixed(1)}L` : modeAmt >= 1000 ? `${(modeAmt / 1000).toFixed(1)}K` : modeAmt.toLocaleString()}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -1344,14 +1382,17 @@ export default function DashboardHome() {
         {/* Leaderboard Rankings Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* 1. Revenue Leaders */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-emerald-500 p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-500/20">
-                <CircleDollarSign className="h-4 w-4" />
+          <div className="group relative rounded-3xl border from-emerald-50/80 via-white to-white dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 border-emerald-200/60 dark:border-emerald-900/40 bg-gradient-to-br shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col p-5">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+            <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 blur-3xl pointer-events-none transition-all duration-500 group-hover:scale-150 group-hover:opacity-70 opacity-40"></div>
+
+            <div className="relative flex items-center gap-3.5 mb-5">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-500/20 dark:to-emerald-500/5 flex items-center justify-center border border-emerald-200/80 dark:border-emerald-500/30 shadow-inner shrink-0">
+                <CircleDollarSign className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <h4 className="font-bold text-[13px] text-slate-900 dark:text-white tracking-tight">Revenue Leaders</h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Most Paid</p>
+                <h4 className="font-extrabold text-[14px] text-slate-800 dark:text-slate-200 tracking-wide uppercase">Revenue Leaders</h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold tracking-wider">Most Paid</p>
               </div>
             </div>
 
@@ -1385,14 +1426,17 @@ export default function DashboardHome() {
           </div>
 
           {/* 2. Billing Leaders */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-indigo-500 p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-500/20">
-                <FileSpreadsheet className="h-4 w-4" />
+          <div className="group relative rounded-3xl border from-indigo-50/80 via-white to-white dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900 border-indigo-200/60 dark:border-indigo-900/40 bg-gradient-to-br shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col p-5">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-violet-500"></div>
+            <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 blur-3xl pointer-events-none transition-all duration-500 group-hover:scale-150 group-hover:opacity-70 opacity-40"></div>
+
+            <div className="relative flex items-center gap-3.5 mb-5">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-500/20 dark:to-indigo-500/5 flex items-center justify-center border border-indigo-200/80 dark:border-indigo-500/30 shadow-inner shrink-0">
+                <FileSpreadsheet className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
-                <h4 className="font-bold text-[13px] text-slate-900 dark:text-white tracking-tight">Sales Invoiced</h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Top Billed</p>
+                <h4 className="font-extrabold text-[14px] text-slate-800 dark:text-slate-200 tracking-wide uppercase">Sales Invoiced</h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold tracking-wider">Top Billed</p>
               </div>
             </div>
 
@@ -1426,14 +1470,17 @@ export default function DashboardHome() {
           </div>
 
           {/* 3. License Leaders */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-cyan-500 p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center border border-cyan-200 dark:border-cyan-500/20">
-                <Layers className="h-4 w-4" />
+          <div className="group relative rounded-3xl border from-cyan-50/80 via-white to-white dark:from-cyan-950/30 dark:via-slate-900 dark:to-slate-900 border-cyan-200/60 dark:border-cyan-900/40 bg-gradient-to-br shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col p-5">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500"></div>
+            <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-cyan-500/10 dark:bg-cyan-500/20 blur-3xl pointer-events-none transition-all duration-500 group-hover:scale-150 group-hover:opacity-70 opacity-40"></div>
+
+            <div className="relative flex items-center gap-3.5 mb-5">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-100 to-cyan-50 dark:from-cyan-500/20 dark:to-cyan-500/5 flex items-center justify-center border border-cyan-200/80 dark:border-cyan-500/30 shadow-inner shrink-0">
+                <Layers className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
               </div>
               <div>
-                <h4 className="font-bold text-[13px] text-slate-900 dark:text-white tracking-tight">License Intake</h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Most Licenses</p>
+                <h4 className="font-extrabold text-[14px] text-slate-800 dark:text-slate-200 tracking-wide uppercase">License Intake</h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold tracking-wider">Most Licenses</p>
               </div>
             </div>
 
@@ -1468,14 +1515,17 @@ export default function DashboardHome() {
           </div>
 
           {/* 4. Maintenance SLA Tracker */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 border-t-2 border-t-amber-500 p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-200 dark:border-amber-500/20">
-                <Wrench className="h-4 w-4" />
+          <div className="group relative rounded-3xl border from-amber-50/80 via-white to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 border-amber-200/60 dark:border-amber-900/40 bg-gradient-to-br shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col p-5">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+            <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-amber-500/10 dark:bg-amber-500/20 blur-3xl pointer-events-none transition-all duration-500 group-hover:scale-150 group-hover:opacity-70 opacity-40"></div>
+
+            <div className="relative flex items-center gap-3.5 mb-5">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-500/20 dark:to-amber-500/5 flex items-center justify-center border border-amber-200/80 dark:border-amber-500/30 shadow-inner shrink-0">
+                <Wrench className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <h4 className="font-bold text-[13px] text-slate-900 dark:text-white tracking-tight">Maintenance Dues</h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">SLA Payments</p>
+                <h4 className="font-extrabold text-[14px] text-slate-800 dark:text-slate-200 tracking-wide uppercase">Maintenance Dues</h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold tracking-wider">SLA Payments</p>
               </div>
             </div>
 
@@ -1567,7 +1617,7 @@ export default function DashboardHome() {
                         {item.totalBilled > 0 ? `${item.recoveryRate}%` : 'No Bills'}
                       </span>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-3 pt-3 border-t border-rose-100/50 dark:border-rose-900/30 text-xs">
                       <div>
                         <span className="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold tracking-wider mb-0.5">Sales Billed</span>
@@ -1578,7 +1628,7 @@ export default function DashboardHome() {
                         <span className="text-rose-600 dark:text-rose-400 font-bold">₹{item.outstanding.toLocaleString()}</span>
                       </div>
                     </div>
-                    
+
                     {/* Recovery progress bar */}
                     {item.totalBilled > 0 && (
                       <div className="w-full mt-1">
@@ -1596,209 +1646,265 @@ export default function DashboardHome() {
             </div>
           )}
 
-          {/* Row 2: Client Performance Ledger Grid Table (Full Width) */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-            {/* Table Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 p-4 border-b border-slate-200 dark:border-slate-800">
-              <div>
-                <h3 className="font-extrabold text-[15px] tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-indigo-500" />Client Performance Table
-                </h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''} · {processedPerfPanels.length} clients shown</p>
-              </div>
+          {/* Row 2: Client Performance Ledger Grid Table & Side Card */}
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+            <div className="xl:col-span-3">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden h-full flex flex-col">
+                {/* Table Header */}
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 p-4 border-b border-slate-200 dark:border-slate-800">
+                  <div>
+                    <h3 className="font-extrabold text-[15px] tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4 text-indigo-500" />Client Performance Table
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{activePeriodLabel}{selectedCatFilter !== 'All' ? ` · ${selectedCatFilter}` : ''} · {processedPerfPanels.length} clients shown</p>
+                  </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
-                  <Zap className="h-2.5 w-2.5" />{activePeriodLabel}
-                </span>
-                {selectedCatFilter !== 'All' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                    <Tag className="h-2.5 w-2.5" />{selectedCatFilter}
-                  </span>
-                )}
-                {/* Search */}
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus-within:border-indigo-400 transition-colors">
-                  <Search className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                  <input type="text" value={tableSearch} onChange={(e) => setTableSearch(e.target.value)} placeholder="Search client..." className="bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none w-28" />
-                  {tableSearch && <button onClick={() => setTableSearch('')} className="text-slate-400 hover:text-slate-600"><X className="h-3 w-3" /></button>}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
+                      <Zap className="h-2.5 w-2.5" />{activePeriodLabel}
+                    </span>
+                    {selectedCatFilter !== 'All' && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                        <Tag className="h-2.5 w-2.5" />{selectedCatFilter}
+                      </span>
+                    )}
+                    {/* Search */}
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus-within:border-indigo-400 transition-colors">
+                      <Search className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      <input type="text" value={tableSearch} onChange={(e) => setTableSearch(e.target.value)} placeholder="Search client..." className="bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none w-28" />
+                      {tableSearch && <button onClick={() => setTableSearch('')} className="text-slate-400 hover:text-slate-600"><X className="h-3 w-3" /></button>}
+                    </div>
+                    {/* Status Filter */}
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Status:</span>
+                      <select value={selectedStatusFilter} onChange={(e) => setSelectedStatusFilter(e.target.value)} className="bg-transparent text-slate-900 dark:text-white font-semibold cursor-pointer outline-none text-xs">
+                        <option value="All" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">All</option>
+                        <option value="Excellent" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Excellent (90%+)</option>
+                        <option value="Healthy" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Healthy (50-89%)</option>
+                        <option value="Needs Attention" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Needs Attention</option>
+                        <option value="Critically Inactive" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Inactive</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
-                {/* Status Filter */}
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Status:</span>
-                  <select value={selectedStatusFilter} onChange={(e) => setSelectedStatusFilter(e.target.value)} className="bg-transparent text-slate-900 dark:text-white font-semibold cursor-pointer outline-none text-xs">
-                    <option value="All" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">All</option>
-                    <option value="Excellent" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Excellent (90%+)</option>
-                    <option value="Healthy" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Healthy (50-89%)</option>
-                    <option value="Needs Attention" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Needs Attention</option>
-                    <option value="Critically Inactive" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Inactive</option>
-                  </select>
-                </div>
-              </div>
-            </div>
 
-            {/* Performance Table */}
-            <div className="overflow-x-auto overflow-y-auto max-h-[1100px] custom-scrollbar relative">
-              <table className="w-full text-left border-collapse text-xs min-w-[850px]">
-                <thead className="sticky top-0 z-20">
-                  <tr className="bg-slate-100/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 uppercase font-bold tracking-[0.06em] text-[10.5px]">
-                    <th className="px-4 py-3 text-center w-10">#</th>
-                    <th onClick={() => handleSort('panelName')} className="px-4 py-3 cursor-pointer transition-colors">
-                      <div className="flex items-center gap-1">Client Panel {perfSortField === 'panelName' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
-                    </th>
-                    <th className="px-4 py-3">Category</th>
-                    <th onClick={() => handleSort('totalBilled')} className="px-4 py-3 cursor-pointer transition-colors text-right">
-                      <div className="flex items-center justify-end gap-1">Sales Billed {perfSortField === 'totalBilled' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
-                    </th>
-                    <th onClick={() => handleSort('totalPaid')} className="px-4 py-3 cursor-pointer transition-colors text-right">
-                      <div className="flex items-center justify-end gap-1">Paid {perfSortField === 'totalPaid' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
-                    </th>
-                    <th onClick={() => handleSort('outstanding')} className="px-4 py-3 cursor-pointer transition-colors text-right">
-                      <div className="flex items-center justify-end gap-1">Outstanding {perfSortField === 'outstanding' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
-                    </th>
-                    <th onClick={() => handleSort('recoveryRate')} className="px-4 py-3 cursor-pointer transition-colors text-center">
-                      <div className="flex items-center justify-center gap-1">Recovery {perfSortField === 'recoveryRate' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
-                    </th>
-                    <th className="px-4 py-3 text-center">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {processedPerfPanels.length === 0 ? (
-                    <tr>
-                      <td colSpan="8" className="text-center py-10 text-slate-400 dark:text-slate-500 font-medium">
-                        No client records match the criteria
-                      </td>
-                    </tr>
-                  ) : (
-                    processedPerfPanels.map((p, idx) => {
-                      const statusCfg = {
-                        Excellent: { bg: 'bg-emerald-100 dark:bg-emerald-500/15', text: 'text-emerald-700 dark:text-emerald-400', border: 'border-emerald-300 dark:border-emerald-500/30', dot: 'bg-emerald-500' },
-                        Healthy: { bg: 'bg-indigo-100 dark:bg-indigo-500/15', text: 'text-indigo-700 dark:text-indigo-400', border: 'border-indigo-300 dark:border-indigo-500/30', dot: 'bg-indigo-500' },
-                        'Needs Attention': { bg: 'bg-amber-100 dark:bg-amber-500/15', text: 'text-amber-700 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-500/30', dot: 'bg-amber-500' },
-                        'Critically Inactive': { bg: 'bg-red-100 dark:bg-red-500/15', text: 'text-red-700 dark:text-red-400', border: 'border-red-300 dark:border-red-500/30', dot: 'bg-red-500' },
-                      };
-                      const catCfg = {
-                        Algo: 'bg-indigo-100 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-500/20',
-                        Sop: 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/20',
-                        crypto: 'bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-500/20',
-                      };
-                      const s = statusCfg[p.status] || statusCfg['Critically Inactive'];
-                      return (
-                        <tr key={p._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                          <td className="px-4 py-3 text-center font-mono text-slate-400 dark:text-slate-500">{idx + 1}</td>
-                          <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
-                            <Link to={`/dashboard/panels?search=${encodeURIComponent(p.panelName)}`} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                              {p.panelName}
-                            </Link>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold uppercase tracking-wide border ${catCfg[p.category || 'Algo'] || 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700'}`}>
-                              {p.category || 'Algo'}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-right font-mono font-semibold text-slate-700 dark:text-slate-300">₹{p.totalBilled.toLocaleString()}</td>
-                          <td className="px-4 py-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">₹{p.totalPaid.toLocaleString()}</td>
-                          <td className="px-4 py-3 text-right font-mono font-bold text-rose-600 dark:text-rose-400">₹{p.outstanding.toLocaleString()}</td>
-                          <td className="px-4 py-3 text-center">
-                            <div className="flex flex-col items-center gap-1">
-                              <span className="font-mono font-bold text-slate-700 dark:text-slate-200 text-xs">{p.recoveryRate}%</span>
-                              <div className="w-16 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                <div className={`h-full rounded-full transition-all ${p.recoveryRate >= 90 ? 'bg-emerald-500' : p.recoveryRate >= 50 ? 'bg-indigo-500' : 'bg-rose-500'}`} style={{ width: `${Math.min(p.recoveryRate, 100)}%` }}></div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className={`inline-flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full font-bold border ${s.bg} ${s.text} ${s.border}`}>
-                              <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`}></span>{p.status}
-                            </span>
+                {/* Performance Table */}
+                <div className="overflow-x-auto overflow-y-auto max-h-[1100px] custom-scrollbar relative">
+                  <table className="w-full text-left border-collapse text-xs min-w-[850px]">
+                    <thead className="sticky top-0 z-20">
+                      <tr className="bg-slate-100/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 uppercase font-bold tracking-[0.06em] text-[10.5px]">
+                        <th className="px-4 py-3 text-center w-10">#</th>
+                        <th onClick={() => handleSort('panelName')} className="px-4 py-3 cursor-pointer transition-colors">
+                          <div className="flex items-center gap-1">Client Panel {perfSortField === 'panelName' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
+                        </th>
+                        <th className="px-4 py-3">Category</th>
+                        <th onClick={() => handleSort('totalBilled')} className="px-4 py-3 cursor-pointer transition-colors text-right">
+                          <div className="flex items-center justify-end gap-1">Sales Billed {perfSortField === 'totalBilled' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
+                        </th>
+                        <th onClick={() => handleSort('totalPaid')} className="px-4 py-3 cursor-pointer transition-colors text-right">
+                          <div className="flex items-center justify-end gap-1">Paid {perfSortField === 'totalPaid' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
+                        </th>
+                        <th onClick={() => handleSort('outstanding')} className="px-4 py-3 cursor-pointer transition-colors text-right">
+                          <div className="flex items-center justify-end gap-1">Outstanding {perfSortField === 'outstanding' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
+                        </th>
+                        <th onClick={() => handleSort('recoveryRate')} className="px-4 py-3 cursor-pointer transition-colors text-center">
+                          <div className="flex items-center justify-center gap-1">Recovery {perfSortField === 'recoveryRate' && <span>{perfSortOrder === 'asc' ? '▲' : '▼'}</span>}</div>
+                        </th>
+                        <th className="px-4 py-3 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {processedPerfPanels.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" className="text-center py-10 text-slate-400 dark:text-slate-500 font-medium">
+                            No client records match the criteria
                           </td>
                         </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                      ) : (
+                        processedPerfPanels.map((p, idx) => {
+                          const statusCfg = {
+                            Excellent: { bg: 'bg-emerald-100 dark:bg-emerald-500/15', text: 'text-emerald-700 dark:text-emerald-400', border: 'border-emerald-300 dark:border-emerald-500/30', dot: 'bg-emerald-500' },
+                            Healthy: { bg: 'bg-indigo-100 dark:bg-indigo-500/15', text: 'text-indigo-700 dark:text-indigo-400', border: 'border-indigo-300 dark:border-indigo-500/30', dot: 'bg-indigo-500' },
+                            'Needs Attention': { bg: 'bg-amber-100 dark:bg-amber-500/15', text: 'text-amber-700 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-500/30', dot: 'bg-amber-500' },
+                            'Critically Inactive': { bg: 'bg-red-100 dark:bg-red-500/15', text: 'text-red-700 dark:text-red-400', border: 'border-red-300 dark:border-red-500/30', dot: 'bg-red-500' },
+                          };
+                          const catCfg = {
+                            Algo: 'bg-indigo-100 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-500/20',
+                            Sop: 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/20',
+                            crypto: 'bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-500/20',
+                          };
+                          const s = statusCfg[p.status] || statusCfg['Critically Inactive'];
+                          return (
+                            <tr key={p._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                              <td className="px-4 py-3 text-center font-mono text-slate-400 dark:text-slate-500">{idx + 1}</td>
+                              <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                                <Link to={`/dashboard/panels?search=${encodeURIComponent(p.panelName)}`} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                  {p.panelName}
+                                </Link>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold uppercase tracking-wide border ${catCfg[p.category || 'Algo'] || 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700'}`}>
+                                  {p.category || 'Algo'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right font-mono font-semibold text-slate-700 dark:text-slate-300">₹{p.totalBilled.toLocaleString()}</td>
+                              <td className="px-4 py-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">₹{p.totalPaid.toLocaleString()}</td>
+                              <td className="px-4 py-3 text-right font-mono font-bold text-rose-600 dark:text-rose-400">₹{p.outstanding.toLocaleString()}</td>
+                              <td className="px-4 py-3 text-center">
+                                <div className="flex flex-col items-center gap-1">
+                                  <span className="font-mono font-bold text-slate-700 dark:text-slate-200 text-xs">{p.recoveryRate}%</span>
+                                  <div className="w-16 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                    <div className={`h-full rounded-full transition-all ${p.recoveryRate >= 90 ? 'bg-emerald-500' : p.recoveryRate >= 50 ? 'bg-indigo-500' : 'bg-rose-500'}`} style={{ width: `${Math.min(p.recoveryRate, 100)}%` }}></div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <span className={`inline-flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full font-bold border ${s.bg} ${s.text} ${s.border}`}>
+                                  <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`}></span>{p.status}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Table Footer */}
+                {processedPerfPanels.length > 0 && (
+                  <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500">Showing {processedPerfPanels.length} of {panelStatsArray.length} total clients</span>
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold">
+                      <span className="text-slate-400">Billed: <span className="text-slate-900 dark:text-white font-mono">₹{processedPerfPanels.reduce((s, p) => s + p.totalBilled, 0).toLocaleString()}</span></span>
+                      <span className="text-slate-400">Collected: <span className="text-emerald-600 dark:text-emerald-400 font-mono">₹{processedPerfPanels.reduce((s, p) => s + p.totalPaid, 0).toLocaleString()}</span></span>
+                      <span className="text-slate-400">Outstanding: <span className="text-rose-600 dark:text-rose-400 font-mono">₹{processedPerfPanels.reduce((s, p) => s + p.outstanding, 0).toLocaleString()}</span></span>
+                    </div>
+                  </div>
+
+                )}
+              </div>
             </div>
-            {/* Table Footer */}
-            {processedPerfPanels.length > 0 && (
-              <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <span className="text-[11px] text-slate-400 dark:text-slate-500">Showing {processedPerfPanels.length} of {panelStatsArray.length} total clients</span>
-                <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold">
-                  <span className="text-slate-400">Billed: <span className="text-slate-900 dark:text-white font-mono">₹{processedPerfPanels.reduce((s, p) => s + p.totalBilled, 0).toLocaleString()}</span></span>
-                  <span className="text-slate-400">Collected: <span className="text-emerald-600 dark:text-emerald-400 font-mono">₹{processedPerfPanels.reduce((s, p) => s + p.totalPaid, 0).toLocaleString()}</span></span>
-                  <span className="text-slate-400">Outstanding: <span className="text-rose-600 dark:text-rose-400 font-mono">₹{processedPerfPanels.reduce((s, p) => s + p.outstanding, 0).toLocaleString()}</span></span>
+
+            {/* Side Card: Recent Transactions */}
+            <div className="xl:col-span-1">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden h-full flex flex-col max-h-[900px]">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+                  <h3 className="font-extrabold text-[14px] tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-emerald-500" /> Recent Activity
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Latest collections recorded</p>
+                </div>
+                <div className="flex-1 p-3 overflow-y-auto custom-scrollbar space-y-3">
+                  {filteredPayments
+                    .filter(p => (p.amountReceived || 0) > 0)
+                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                    .slice(0, 10)
+                    .map(p => {
+                      const typeStyles = {
+                        'License': 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20',
+                        'IP Charges': 'bg-violet-50 text-violet-600 border-violet-200 dark:bg-violet-500/10 dark:text-violet-400 dark:border-violet-500/20',
+                        'Maintenance': 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200 dark:bg-fuchsia-500/10 dark:text-fuchsia-400 dark:border-fuchsia-500/20',
+                      };
+                      const type = p.paymentType === 'IP' ? 'IP Charges' : (p.paymentType || 'Other');
+                      const tStyle = typeStyles[type] || 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20';
+                      
+                      return (
+                        <div key={p._id} className="p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/50 transition-colors bg-white dark:bg-slate-800/40 flex flex-col gap-2 shadow-sm group">
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="font-bold text-slate-800 dark:text-slate-200 text-xs group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                              {p.panelId?.panelName || 'Unknown Panel'}
+                            </div>
+                            <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs shrink-0">+₹{p.amountReceived?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className={`text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded border ${tStyle}`}>{type}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">{new Date(p.timestamp).toLocaleDateString('en-GB')}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  {filteredPayments.filter(p => (p.amountReceived || 0) > 0).length === 0 && (
+                    <div className="py-12 flex flex-col items-center justify-center text-center">
+                      <span className="text-xs text-slate-400 font-semibold">No recent transactions</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
           </div>
+
+
+
+          {/* Transparency & Mathematical Breakdown Modal */}
+          {modalInfo && createPortal(
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200 !mt-0">
+              {/* Backdrop */}
+              <div
+                onClick={() => setModalInfo(null)}
+                className="fixed inset-0 bg-black/85 backdrop-blur-md"
+              ></div>
+
+              {/* Modal Container */}
+              <div className="relative w-full max-w-md rounded-3xl glass-card border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-2xl z-10 animate-in zoom-in-95 duration-200 flex flex-col space-y-6">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                      <Info className="h-5 w-5 animate-pulse" />
+                    </div>
+                    <div>
+                      <h3 className="text-[15px] font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">{modalInfo.title}</h3>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 uppercase font-extrabold tracking-wider">Calculation Breakdown</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setModalInfo(null)}
+                    className="h-8 w-8 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-800 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {/* Formula Block */}
+                <div className="rounded-2xl bg-slate-50/90 dark:bg-slate-950/90 border border-slate-300/80 dark:border-slate-800/80 p-4 font-mono text-[10px] text-slate-700 dark:text-slate-300 space-y-2.5 shadow-inner">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-500 font-extrabold uppercase tracking-wider block">Formula Model</span>
+                  <div className="text-emerald-500 dark:text-emerald-400 font-bold text-xs select-all whitespace-pre-wrap leading-relaxed">
+                    {modalInfo.formula || 'Value = Sum of Category Invoices'}
+                  </div>
+                </div>
+
+                {/* Breakdown Content */}
+                <div className="space-y-3.5">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-500 font-extrabold uppercase tracking-wider block">Itemized Values</span>
+                  <div className="space-y-3">
+                    {modalInfo.breakdown?.map((item, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-xs border-b border-slate-200 dark:border-slate-800 pb-2.5">
+                        <span className="text-slate-600 dark:text-slate-400 font-medium">{item.label}</span>
+                        <span className={`font-mono font-bold ${item.color || 'text-slate-900 dark:text-white'}`}>
+                          {item.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="pt-2">
+                  <button
+                    onClick={() => setModalInfo(null)}
+                    className="w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold text-xs py-3.5 transition-all shadow-lg hover:shadow-indigo-500/20 active:scale-[0.98]"
+                  >
+                    Close Breakdown
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
         </div>
       </div>
 
-      {/* Transparency & Mathematical Breakdown Modal */}
-      {modalInfo && createPortal(
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200 !mt-0">
-          {/* Backdrop */}
-          <div
-            onClick={() => setModalInfo(null)}
-            className="fixed inset-0 bg-black/85 backdrop-blur-md"
-          ></div>
 
-          {/* Modal Container */}
-          <div className="relative w-full max-w-md rounded-3xl glass-card border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-2xl z-10 animate-in zoom-in-95 duration-200 flex flex-col space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
-                  <Info className="h-5 w-5 animate-pulse" />
-                </div>
-                <div>
-                  <h3 className="text-[15px] font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">{modalInfo.title}</h3>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 uppercase font-extrabold tracking-wider">Calculation Breakdown</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setModalInfo(null)}
-                className="h-8 w-8 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-800 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Formula Block */}
-            <div className="rounded-2xl bg-slate-50/90 dark:bg-slate-950/90 border border-slate-300/80 dark:border-slate-800/80 p-4 font-mono text-[10px] text-slate-700 dark:text-slate-300 space-y-2.5 shadow-inner">
-              <span className="text-[9px] text-slate-500 dark:text-slate-500 font-extrabold uppercase tracking-wider block">Formula Model</span>
-              <div className="text-emerald-500 dark:text-emerald-400 font-bold text-xs select-all whitespace-pre-wrap leading-relaxed">
-                {modalInfo.formula || 'Value = Sum of Category Invoices'}
-              </div>
-            </div>
-
-            {/* Breakdown Content */}
-            <div className="space-y-3.5">
-              <span className="text-[9px] text-slate-500 dark:text-slate-500 font-extrabold uppercase tracking-wider block">Itemized Values</span>
-              <div className="space-y-3">
-                {modalInfo.breakdown?.map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-xs border-b border-slate-200 dark:border-slate-800 pb-2.5">
-                    <span className="text-slate-600 dark:text-slate-400 font-medium">{item.label}</span>
-                    <span className={`font-mono font-bold ${item.color || 'text-slate-900 dark:text-white'}`}>
-                      {item.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="pt-2">
-              <button
-                onClick={() => setModalInfo(null)}
-                className="w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold text-xs py-3.5 transition-all shadow-lg hover:shadow-indigo-500/20 active:scale-[0.98]"
-              >
-                Close Breakdown
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
     </>
   );
 }

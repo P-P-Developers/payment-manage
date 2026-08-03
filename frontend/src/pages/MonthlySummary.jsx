@@ -43,7 +43,7 @@ export default function MonthlySummary() {
     return getTxMeta(t).key === txTypeFilter;
   };
 
-  const TX_FILTER_OPTIONS = ['All', 'IP', 'License', 'Maintenance', 'Other'];
+  const TX_FILTER_OPTIONS = ['All', 'Opening', 'IP', 'License', 'Maintenance', 'Other'];
 
   const toggleRow = (id) => {
     setExpandedRows(prev => {
@@ -197,8 +197,12 @@ export default function MonthlySummary() {
           mData = { ...mData, bill: customBill, received: customReceived, discount: 0, metricCount: customCount };
         }
 
-        if (openingBalanceYear === year && openingBalanceMonth === m && row.openingBalance > 0 && metricFilter === 'All') {
+        if (openingBalanceYear === year && openingBalanceMonth === m && row.openingBalance > 0 && (metricFilter === 'All' || metricFilter === 'Opening')) {
           mData = { ...mData, bill: mData.bill + row.openingBalance };
+
+          if (metricFilter === 'Opening') {
+            mData.metricCount = (mData.metricCount || 0) + 1;
+          }
 
           const openingTx = {
             paymentType: 'Opening Balance',
@@ -220,7 +224,7 @@ export default function MonthlySummary() {
         row[m] = { ...mData, due: balance, cumulativeDue: totalDue };
       });
 
-      if (!injectedInMonth && metricFilter === 'All') {
+      if (!injectedInMonth && (metricFilter === 'All' || metricFilter === 'Opening')) {
         totalDue += row.openingBalance;
       }
 
@@ -322,7 +326,7 @@ export default function MonthlySummary() {
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth(); // 0 = Jan, 11 = Dec
 
-  const startYear = 2026;
+  const startYear = 2025;
   const endYear = currentMonth === 11 ? currentYear + 1 : currentYear;
 
   for (let y = startYear; y <= endYear; y++) {
@@ -580,6 +584,7 @@ export default function MonthlySummary() {
               title="Filter by payment type (IP, License, Maintenance)"
             >
               <option value="All">Overall Totals</option>
+              <option value="Opening">Opening Balance Only</option>
               <option value="IP">IP Only</option>
               <option value="License">License Only</option>
               <option value="Maintenance">Maintenance</option>
