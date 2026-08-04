@@ -383,7 +383,7 @@ router.post('/fix-license', protect, adminOnly, async (req, res) => {
                 panelId: panel._id, paymentType: 'License',
                 amountReceived: 0, paymentMode: 'UPI', bankName: '',
                 quantity, unitPrice, billAmount, billDiscount: 0, paymentDiscount: 0,
-                remark: `Auto-fixed: Added ${quantity} missing licenses from SmartAlgo (${entry.date})`,
+                isGstApplied: panel.takeSopDiscount || false, remark: `Auto-fixed: Added ${quantity} missing licenses from SmartAlgo (${entry.date})`,
                 addedBy: req.user._id, timestamp: dateObj
             });
             await Log.create({
@@ -409,7 +409,7 @@ router.post('/fix-license', protect, adminOnly, async (req, res) => {
                     panelId: panel._id, paymentType: 'License',
                     amountReceived: 0, paymentMode: 'UPI', bankName: '',
                     quantity: diff, unitPrice, billAmount, billDiscount: 0, paymentDiscount: 0,
-                    remark: `Auto-fixed: Added ${diff} extra licenses to match API count (${dateStr})`,
+                    isGstApplied: panel.takeSopDiscount || false, remark: `Auto-fixed: Added ${diff} extra licenses to match API count (${dateStr})`,
                     addedBy: req.user._id, timestamp: new Date(dateStr + 'T12:00:00Z')
                 });
                 await Log.create({
@@ -628,7 +628,8 @@ router.post('/fix-sop', protect, adminOnly, async (req, res) => {
                     paymentDiscount: 0,
                     remark: `Auto-fixed: SOP Sync (${quantity} licenses). ${match.localPanel.takeSopDiscount ? `Amount: ₹${amount} + GST: ₹${gstAmount}` : ''}`.trim(),
                     addedBy: req.user._id,
-                    timestamp
+                    timestamp,
+                    isGstApplied: match.localPanel.takeSopDiscount || false
                 });
 
                 await Log.create({
@@ -647,3 +648,4 @@ router.post('/fix-sop', protect, adminOnly, async (req, res) => {
 });
 
 module.exports = router;
+

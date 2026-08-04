@@ -206,6 +206,30 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
       }
     }
 
+    // Filter by Discounts Only
+    if (req.query.discountOnly === 'true') {
+      const discountCondition = {
+        $or: [
+          { billDiscount: { $gt: 0 } },
+          { paymentDiscount: { $gt: 0 } }
+        ]
+      };
+      
+      if (filterQuery.$or) {
+        filterQuery.$and = filterQuery.$and || [];
+        filterQuery.$and.push({ $or: filterQuery.$or });
+        filterQuery.$and.push(discountCondition);
+        delete filterQuery.$or;
+      } else {
+        filterQuery.$or = discountCondition.$or;
+      }
+    }
+
+    // Filter by GST Only
+    if (req.query.gstOnly === 'true') {
+      filterQuery.isGstApplied = true;
+    }
+
     // Filter by Duplicates
     if (req.query.duplicates === 'true') {
       const duplicatesByBillAmount = await Payment.aggregate([
@@ -266,7 +290,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
 
     const total = await Payment.countDocuments(filterQuery);
     const payments = await Payment.find(filterQuery)
-      .populate('panelId', 'panelName ownerName ownerEmail phoneNumber status')
+      .populate('panelId', 'panelName category ownerName ownerEmail phoneNumber status gstNumber takeSopDiscount')
       .populate('addedBy', 'name email')
       .populate('editHistory.editedBy', 'name email')
       .sort(sortQuery)
@@ -288,7 +312,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
 });
 
 router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
-  const { panelId, paymentType, amountReceived, paymentMode, bankName, quantity, remark, unitPrice, billAmount, billDiscount, paymentDiscount, timestamp, allocations } = req.body;
+  const { panelId, paymentType, amountReceived, paymentMode, bankName, quantity, remark, unitPrice, billAmount, billDiscount, paymentDiscount, timestamp, allocations, isGstApplied } = req.body;
 
   try {
     if (!panelId || !paymentType || amountReceived === undefined || !paymentMode) {
@@ -349,6 +373,7 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
               remark: remark ? `${remark} (Payment applied to ${bill.paymentType} charge)` : `Payment applied to ${bill.paymentType} charge`,
               addedBy: req.user._id,
               timestamp: timestamp ? new Date(timestamp) : undefined,
+              isGstApplied: isGstApplied || false,
             });
 
             // If we don't have a main payment object yet, set this as the default to return in response
@@ -440,6 +465,7 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
               remark: remark ? `${remark} (Auto-applied to ${bill.paymentType} bill)` : `Auto-applied to ${bill.paymentType} bill`,
               addedBy: req.user._id,
               timestamp: timestamp ? new Date(timestamp) : undefined,
+              isGstApplied: isGstApplied || false,
             });
 
             if (!payment) {
@@ -506,6 +532,7 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
         remark: remark || '',
         addedBy: req.user._id,
         timestamp: timestamp ? new Date(timestamp) : undefined,
+        isGstApplied: isGstApplied || false,
       });
 
       // Automatically apply any existing credit to the new bill
@@ -541,10 +568,10 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
 // @route   PUT /api/payments/:id
 // @access  Private (edit_payments permission)
 router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => {
-  const { paymentType, amountReceived, paymentMode, bankName, quantity, remark, timestamp, billDiscount, paymentDiscount } = req.body;
+  const { paymentType, amountReceived, paymentMode, bankName, quantity, remark, timestamp, billDiscount, paymentDiscount, isGstApplied } = req.body;
 
   try {
-    const payment = await Payment.findById(req.params.id).populate('panelId', 'panelName');
+    const payment = await Payment.findById(req.params.id).populate('panelId', 'panelName category');
     if (!payment) {
       return res.status(404).json({ success: false, message: 'Payment not found' });
     }
@@ -568,6 +595,7 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
     const oldPaymentDiscount = payment.paymentDiscount || 0;
     const oldRemark = payment.remark;
     const oldTimestamp = payment.timestamp;
+    const oldIsGstApplied = payment.isGstApplied;
 
     payment.paymentType = paymentType || payment.paymentType;
     payment.amountReceived = amountReceived !== undefined ? Number(amountReceived) : payment.amountReceived;
@@ -581,6 +609,9 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
     payment.remark = remark !== undefined ? remark : payment.remark;
     if (timestamp) {
       payment.timestamp = new Date(timestamp);
+    }
+    if (isGstApplied !== undefined) {
+      payment.isGstApplied = isGstApplied;
     }
 
     // Validate bill discount against final bill amount
@@ -603,6 +634,9 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
     if (timestamp && new Date(oldTimestamp).getTime() !== new Date(payment.timestamp).getTime()) {
       changesArray.push(`Date: ${new Date(oldTimestamp).toLocaleDateString()} ➔ ${new Date(payment.timestamp).toLocaleDateString()}`);
     }
+    if (oldIsGstApplied !== payment.isGstApplied) {
+      changesArray.push(`GST Applied: ${oldIsGstApplied ? 'Yes' : 'No'} ➔ ${payment.isGstApplied ? 'Yes' : 'No'}`);
+    }
 
     if (changesArray.length > 0) {
       payment.editHistory.push({
@@ -616,7 +650,7 @@ router.put('/:id', protect, hasPermission('edit_payments'), async (req, res) => 
 
     // Populate the newly added editHistory's editedBy before returning
     updatedPayment = await Payment.findById(updatedPayment._id)
-      .populate('panelId', 'panelName ownerName ownerEmail phoneNumber status')
+      .populate('panelId', 'panelName category ownerName ownerEmail phoneNumber status')
       .populate('addedBy', 'name email')
       .populate('editHistory.editedBy', 'name email');
 

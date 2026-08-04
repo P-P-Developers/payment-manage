@@ -49,9 +49,9 @@ router.get('/metrics', protect, hasPermission('view_panels'), async (req, res) =
             {
               $group: {
                 _id: null,
-                totalBillAmount: { $sum: { $ifNull: ["$billAmount", 0] } },
-                totalBillDiscount: { $sum: { $ifNull: ["$billDiscount", 0] } },
-                totalPaymentDiscount: { $sum: { $ifNull: ["$paymentDiscount", 0] } },
+                totalBillAmount: { $sum: { $cond: ["$isSystemCredit", 0, { $ifNull: ["$billAmount", 0] }] } },
+                totalBillDiscount: { $sum: { $cond: ["$isSystemCredit", 0, { $ifNull: ["$billDiscount", 0] }] } },
+                totalPaymentDiscount: { $sum: { $cond: ["$isSystemCredit", 0, { $ifNull: ["$paymentDiscount", 0] }] } },
                 totalPaymentsReceived: {
                   $sum: { $cond: ["$isSystemCredit", 0, { $ifNull: ["$amountReceived", 0] }] }
                 },
@@ -170,7 +170,7 @@ router.get('/panels', protect, hasPermission('view_panels'), async (req, res) =>
 router.get('/payments', protect, hasPermission('view_panels'), async (req, res) => {
   try {
     const payments = await Payment.find({})
-      .select('_id timestamp amountReceived billAmount billDiscount paymentDiscount paymentType paymentMode bankName remark panelId quantity')
+      .select('_id timestamp amountReceived billAmount billDiscount paymentDiscount paymentType paymentMode bankName remark panelId quantity isGstApplied')
       .populate('panelId', 'panelName category')
       .lean();
     res.json({ success: true, payments });

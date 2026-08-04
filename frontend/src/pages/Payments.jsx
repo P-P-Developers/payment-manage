@@ -96,6 +96,8 @@ export default function Payments() {
   const [endDate, setEndDate] = useState('');
   const [transactionTypeFilter, setTransactionTypeFilter] = useState('all'); // 'all', 'bill', 'received'
   const [showDuplicates, setShowDuplicates] = useState(false);
+  const [discountOnly, setDiscountOnly] = useState(false);
+  const [gstOnly, setGstOnly] = useState(false);
 
   // Debouncing Search Query
   useEffect(() => {
@@ -128,6 +130,7 @@ export default function Payments() {
     paymentDiscount: '',
     remark: '',
     timestamp: '',
+    isGstApplied: false,
   });
   const [submitting, setSubmitting] = useState(false);
   const [showBillDiscount, setShowBillDiscount] = useState(false);
@@ -253,6 +256,7 @@ export default function Payments() {
   const [unitPrice, setUnitPrice] = useState(0);
   const [remark, setRemark] = useState('');
   const [paymentDate, setPaymentDate] = useState(getTodayDateString());
+  const [isGstApplied, setIsGstApplied] = useState(false);
 
   // Dual Option States
   const [modalMode, setModalMode] = useState('receive'); // 'receive' or 'bill'
@@ -356,6 +360,8 @@ export default function Payments() {
       if (categoryFilter && categoryFilter !== 'All') url += `&category=${encodeURIComponent(categoryFilter)}`;
       if (transactionTypeFilter && transactionTypeFilter !== 'all') url += `&transactionType=${encodeURIComponent(transactionTypeFilter)}`;
       if (showDuplicates) url += `&duplicates=true`;
+      if (discountOnly) url += `&discountOnly=true`;
+      if (gstOnly) url += `&gstOnly=true`;
       if (startDate) url += `&startDate=${encodeURIComponent(startDate)}`;
       if (endDate) url += `&endDate=${encodeURIComponent(endDate)}`;
 
@@ -379,7 +385,7 @@ export default function Payments() {
 
   useEffect(() => {
     fetchPaymentsAndPanels(currentPage);
-  }, [currentPage, debouncedSearchQuery, typeFilter, modeFilter, categoryFilter, transactionTypeFilter, showDuplicates, startDate, endDate, pageSize]);
+  }, [currentPage, debouncedSearchQuery, typeFilter, modeFilter, categoryFilter, transactionTypeFilter, showDuplicates, discountOnly, gstOnly, startDate, endDate, pageSize]);
 
   const handleOpenReceiveModal = () => {
     setModalMode('receive');
@@ -418,6 +424,7 @@ export default function Payments() {
       paymentDiscount: payment.paymentDiscount !== undefined ? payment.paymentDiscount : '',
       remark: payment.remark || '',
       timestamp: formattedDate,
+      isGstApplied: payment.isGstApplied || false,
     });
     setViewingPayment(null);
   };
@@ -453,10 +460,15 @@ export default function Payments() {
         paymentDiscount: editForm.paymentDiscount === '' ? 0 : Number(editForm.paymentDiscount),
         remark: editForm.remark,
         timestamp: finalTimestamp.toISOString(),
+        isGstApplied: editForm.isGstApplied,
       };
 
       if (editingPayment.billAmount > 0 && (editForm.paymentType === 'License' || editForm.paymentType === 'IP Charges')) {
         payload.billAmount = payload.quantity * payload.unitPrice;
+      }
+
+      if (editingPayment.billAmount > 0 && payload.isGstApplied) {
+        payload.billAmount = payload.billAmount * 1.18;
       }
 
       const data = await apiRequest(`/payments/${editingPayment._id}`, {
@@ -520,6 +532,7 @@ export default function Payments() {
     setPaymentDate(getTodayDateString());
     setShowBillDiscount(false);
     setShowPaymentDiscount(false);
+    setIsGstApplied(false);
     setIsModalOpen(true);
   };
 
@@ -623,6 +636,10 @@ export default function Payments() {
           finalUnitPrice = calculatedBillAmount;
         }
 
+        if (isGstApplied) {
+          calculatedBillAmount = calculatedBillAmount * 1.18;
+        }
+
         if (calculatedBillAmount <= 0) {
           setError('Bill amount must be greater than 0.');
           setSubmitting(false);
@@ -680,6 +697,7 @@ export default function Payments() {
         remark,
         timestamp: finalTimestamp.toISOString(),
         allocations: modalMode === 'receive' ? allocations : undefined,
+        isGstApplied,
       };
 
       const data = await apiRequest('/payments', {
@@ -934,6 +952,10 @@ export default function Payments() {
           setTransactionTypeFilter={setTransactionTypeFilter}
           showDuplicates={showDuplicates}
           setShowDuplicates={setShowDuplicates}
+          discountOnly={discountOnly}
+          setDiscountOnly={setDiscountOnly}
+          gstOnly={gstOnly}
+          setGstOnly={setGstOnly}
           startDate={startDate}
           setStartDate={setStartDate}
           endDate={endDate}
@@ -1484,6 +1506,27 @@ export default function Payments() {
                       </div>
                     </div>
                   )}
+                  {/* GST Applied Toggle for SOP Licenses */}
+                  {(paymentType === 'License' && selectedPanelId && panels.find(p => p._id === selectedPanelId)?.category?.toUpperCase().includes('SOP')) && (
+                    <div className="flex items-center gap-3 mt-4">
+                      <button
+                        type="button"
+                        onClick={() => setIsGstApplied(!isGstApplied)}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all text-xs font-bold shadow-sm ${isGstApplied
+                          ? 'border-indigo-300 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400'
+                          : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350'
+                          }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isGstApplied}
+                          onChange={() => { }} // handled by button click
+                          className="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5 cursor-pointer"
+                        />
+                        <span>Apply SOP GST (18%)</span>
+                      </button>
+                    </div>
+                  )}
                 </>
               )}
 
@@ -1827,10 +1870,10 @@ export default function Payments() {
 
       {/* Edit Transaction Modal */}
       {editingPayment && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 overflow-hidden">
           <div onClick={() => setEditingPayment(null)} className="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
 
-          <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-2xl z-10 text-slate-900 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-thin rounded-3xl bg-white dark:bg-slate-900 p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-2xl z-10 text-slate-900 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
             <button
               onClick={() => setEditingPayment(null)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -1851,12 +1894,12 @@ export default function Payments() {
             <form onSubmit={handleUpdatePayment} className="space-y-4">
               {/* Transaction Date Row */}
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5">Transaction Date</label>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Transaction Date</label>
                 <input
                   type="date"
                   value={editForm.timestamp}
                   onChange={(e) => setEditForm({ ...editForm, timestamp: e.target.value })}
-                  className="w-full premium-input px-4 py-2.5 text-sm cursor-pointer font-semibold"
+                  className="w-full glass-input px-4 py-2.5 text-sm cursor-pointer font-semibold"
                   required
                 />
               </div>
@@ -1867,11 +1910,11 @@ export default function Payments() {
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-500 mb-1.5">Billing Type</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Billing Type</label>
                       <select
                         value={editForm.paymentType}
                         onChange={(e) => setEditForm({ ...editForm, paymentType: e.target.value })}
-                        className="w-full premium-input px-4 py-2.5 text-sm font-semibold"
+                        className="w-full glass-input px-4 py-2.5 text-sm font-semibold"
                         required
                       >
                         <option value="License" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">License Charges</option>
@@ -1884,12 +1927,12 @@ export default function Payments() {
                     {(editForm.paymentType === 'License' || editForm.paymentType === 'IP Charges') ? (
                       <>
                         <div>
-                          <label className="block text-xs font-semibold text-slate-500 mb-1.5">Quantity</label>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Quantity</label>
                           <input
                             type="number"
                             value={editForm.quantity}
                             onChange={(e) => setEditForm({ ...editForm, quantity: e.target.value })}
-                            className="w-full premium-input px-4 py-2.5 text-sm font-mono font-semibold"
+                            className="w-full glass-input px-4 py-2.5 text-sm font-mono font-semibold"
                             placeholder="e.g. 10"
                             required
                             min="1"
@@ -1898,12 +1941,12 @@ export default function Payments() {
                       </>
                     ) : (
                       <div>
-                        <label className="block text-xs font-semibold text-slate-500 mb-1.5">Total Bill Amount (₹)</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Total Bill Amount (₹)</label>
                         <input
                           type="number"
                           value={editForm.billAmount}
                           onChange={(e) => setEditForm({ ...editForm, billAmount: e.target.value })}
-                          className="w-full premium-input px-4 py-2.5 text-sm font-mono font-semibold"
+                          className="w-full glass-input px-4 py-2.5 text-sm font-mono font-semibold"
                           placeholder="Amount in ₹"
                           required
                           min="1"
@@ -1915,19 +1958,19 @@ export default function Payments() {
                   {(editForm.paymentType === 'License' || editForm.paymentType === 'IP Charges') && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-semibold text-slate-500 mb-1.5">Unit Price (₹)</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Unit Price (₹)</label>
                         <input
                           type="number"
                           value={editForm.unitPrice}
                           onChange={(e) => setEditForm({ ...editForm, unitPrice: e.target.value })}
-                          className="w-full premium-input px-4 py-2.5 text-sm font-mono font-semibold"
+                          className="w-full glass-input px-4 py-2.5 text-sm font-mono font-semibold"
                           placeholder="Price per unit"
                           required
                           min="1"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-slate-500 mb-1.5">Auto Bill Total</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Auto Bill Total</label>
                         <div className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400">
                           ₹{((Number(editForm.quantity) || 0) * (Number(editForm.unitPrice) || 0)).toLocaleString()}
                         </div>
@@ -1936,27 +1979,48 @@ export default function Payments() {
                   )}
 
                   <div className="mt-4">
-                    <label className="block text-xs font-semibold text-slate-500 mb-1.5">Bill Discount Applied (₹)</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Bill Discount Applied (₹)</label>
                     <input
                       type="number"
                       value={editForm.billDiscount}
                       onChange={(e) => setEditForm({ ...editForm, billDiscount: e.target.value })}
-                      className="w-full premium-input px-4 py-2.5 text-sm font-mono font-semibold text-rose-500"
+                      className="w-full glass-input px-4 py-2.5 text-sm font-mono font-semibold text-rose-500"
                       placeholder="Discount Amount (₹)"
                       min="0"
                     />
                   </div>
+
+                  {(editForm.paymentType === 'License' && editingPayment.panelId?.category?.toUpperCase().includes('SOP')) && (
+                    <div className="mt-4 flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditForm({ ...editForm, isGstApplied: !editForm.isGstApplied })}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all text-xs font-bold shadow-sm ${editForm.isGstApplied
+                          ? 'border-indigo-300 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400'
+                          : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350'
+                          }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={editForm.isGstApplied}
+                          onChange={() => { }} // handled by button click
+                          className="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5 cursor-pointer"
+                        />
+                        <span>Apply SOP GST (18%)</span>
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 /* It's a Direct Payment Collected */
                 <>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-1.5">Amount Received (₹)</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Amount Received (₹)</label>
                     <input
                       type="number"
                       value={editForm.amountReceived}
                       onChange={(e) => setEditForm({ ...editForm, amountReceived: e.target.value })}
-                      className="w-full premium-input px-4 py-2.5 text-sm font-mono font-semibold"
+                      className="w-full glass-input px-4 py-2.5 text-sm font-mono font-semibold"
                       placeholder="Amount in ₹"
                       required
                       min="1"
@@ -1964,12 +2028,12 @@ export default function Payments() {
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-xs font-semibold text-slate-500 mb-1.5">Payment Discount Given (₹)</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Payment Discount Given (₹)</label>
                     <input
                       type="number"
                       value={editForm.paymentDiscount}
                       onChange={(e) => setEditForm({ ...editForm, paymentDiscount: e.target.value })}
-                      className="w-full premium-input px-4 py-2.5 text-sm font-mono font-semibold text-rose-500"
+                      className="w-full glass-input px-4 py-2.5 text-sm font-mono font-semibold text-rose-500"
                       placeholder="Discount Amount (₹)"
                       min="0"
                     />
@@ -1977,11 +2041,11 @@ export default function Payments() {
 
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-500 mb-1.5">Payment Mode</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Payment Mode</label>
                       <select
                         value={editForm.paymentMode}
                         onChange={(e) => setEditForm({ ...editForm, paymentMode: e.target.value })}
-                        className="w-full premium-input px-4 py-2.5 text-sm font-semibold"
+                        className="w-full glass-input px-4 py-2.5 text-sm font-semibold"
                         required
                       >
                         <option value="UPI" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">UPI / QR Code</option>
@@ -1992,11 +2056,11 @@ export default function Payments() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-500 mb-1.5">Bank Name</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Bank Name</label>
                       <select
                         value={editForm.bankName}
                         onChange={(e) => setEditForm({ ...editForm, bankName: e.target.value })}
-                        className="w-full premium-input px-4 py-2.5 text-sm font-semibold"
+                        className="w-full glass-input px-4 py-2.5 text-sm font-semibold"
                       >
                         <option value="" className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">N/A (Cash / None)</option>
                         {banks.map((bank) => (
@@ -2009,11 +2073,11 @@ export default function Payments() {
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5">Correction Remarks / Reason for Change</label>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Correction Remarks / Reason for Change</label>
                 <textarea
                   value={editForm.remark}
                   onChange={(e) => setEditForm({ ...editForm, remark: e.target.value })}
-                  className="w-full premium-input px-4 py-2.5 text-sm h-20 resize-none leading-relaxed font-semibold"
+                  className="w-full rounded-xl px-4 py-3 text-sm glass-input h-24 resize-none leading-relaxed text-slate-900 dark:text-white"
                   placeholder="Describe the reason for correcting this entry..."
                   required
                 ></textarea>

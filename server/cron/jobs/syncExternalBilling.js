@@ -78,6 +78,7 @@ module.exports = {
                             billAmount: billAmount,
                             billDiscount: 0,
                             paymentDiscount: 0,
+                            isGstApplied: panel.takeSopDiscount || false,
                             remark: `Synced ${quantity} licenses from smartalgo`,
                             addedBy: admin._id,
                             timestamp: new Date(item.createdAt)
@@ -221,7 +222,8 @@ module.exports = {
                                 paymentDiscount: 0,
                                 remark: `Auto-fixed: SOP Sync (${quantity} licenses). ${matchedPanel.takeSopDiscount ? `Amount: ₹${amount} + GST: ₹${gstAmount}` : ''}`.trim(),
                                 addedBy: admin._id,
-                                timestamp: timestamp
+                                timestamp: timestamp,
+                                isGstApplied: matchedPanel.takeSopDiscount || false
                             });
 
                             await Log.create({

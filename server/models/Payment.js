@@ -53,6 +53,10 @@ const paymentSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'Please add user who received this payment'],
     },
+    isGstApplied: {
+      type: Boolean,
+      default: false,
+    },
     timestamp: {
       type: Date,
       default: Date.now,

@@ -278,7 +278,9 @@ export default function DashboardHome() {
     if (selectedCatFilter !== 'All') {
       panelsToUse = rawPanels.filter(p => (p.category || 'Algo') === selectedCatFilter);
     }
-    const openingBalSum = panelsToUse.reduce((sum, p) => sum + (p.openingBalance || 0), 0);
+    const isMarch2026OrAll = filterType === 'all' || (filterType === 'month' && selectedMonth === '2026-03') || (filterType === 'quarter' && selectedQuarter === '2026-Q1');
+    const openingBalSum = isMarch2026OrAll ? panelsToUse.reduce((sum, p) => sum + (p.openingBalance || 0), 0) : 0;
+    const openingBalCount = isMarch2026OrAll ? panelsToUse.filter(p => (p.openingBalance || 0) > 0).length : 0;
 
     // Filter payments based on selection
     const filtered = rawPayments.filter((p) => {
@@ -340,6 +342,7 @@ export default function DashboardHome() {
     let online = 0;
     let billDiscountSum = 0;
     let paymentDiscountSum = 0;
+    let totalGst = 0;
 
     const typeStats = {};
 
@@ -352,6 +355,11 @@ export default function DashboardHome() {
       totalBilled += p.billAmount || 0;
       billDiscountSum += p.billDiscount || 0;
       paymentDiscountSum += p.paymentDiscount || 0;
+
+      if (p.isGstApplied === true && p.billAmount > 0) {
+        const base = p.billAmount / 1.18;
+        totalGst += (p.billAmount - base);
+      }
 
       if (p.billAmount > 0) billsCount += 1;
 
@@ -475,20 +483,48 @@ export default function DashboardHome() {
       const bOrd = typeOrder[bType] || 99;
       return aOrd - bOrd;
     });
-    salesBreakdown.push({
-      label: 'Bill Discounts Given',
-      value: `-₹${billDiscountSum.toLocaleString()}`,
-      dotColor: 'bg-orange-500',
-      link: '/dashboard/payments?transactionType=bill',
-      textColor: 'text-orange-600'
-    });
 
-    salesBreakdown.unshift({
-      label: 'Opening Balance',
-      value: `₹${openingBalSum.toLocaleString()}`,
-      dotColor: 'bg-slate-500',
-      link: '/dashboard/panels',
+    if (totalGst > 0) {
+      salesBreakdown.push({
+        label: 'Total GST (18%)',
+        value: `₹${Math.round(totalGst).toLocaleString()}`,
+        dotColor: 'bg-fuchsia-500',
+        link: '/dashboard/payments?transactionType=bill',
+        textColor: 'text-fuchsia-600 dark:text-fuchsia-400 font-semibold'
+      });
+    }
+
+    let hasBillDiscounts = false;
+    Object.entries(typeStats).forEach(([type, stats]) => {
+      if (stats.billDiscount > 0) {
+        hasBillDiscounts = true;
+        salesBreakdown.push({
+          label: `${type} Bill Discounts`,
+          value: `-₹${stats.billDiscount.toLocaleString()}`,
+          dotColor: 'bg-orange-500',
+          link: '/dashboard/payments?transactionType=bill',
+          textColor: 'text-orange-600'
+        });
+      }
     });
+    if (!hasBillDiscounts) {
+      salesBreakdown.push({
+        label: 'Bill Discounts Given',
+        value: `-₹0`,
+        dotColor: 'bg-orange-500',
+        link: '/dashboard/payments?transactionType=bill',
+        textColor: 'text-orange-600'
+      });
+    }
+
+    if (openingBalSum > 0) {
+      salesBreakdown.unshift({
+        label: 'Opening Balance',
+        value: `₹${openingBalSum.toLocaleString()}`,
+        dotColor: 'bg-slate-500',
+        link: '/dashboard/panels',
+      });
+    }
 
     const revenueBreakdown = [];
     Object.entries(typeStats).forEach(([type, stats]) => {
@@ -521,13 +557,15 @@ export default function DashboardHome() {
     });
 
     const outstandingBreakdown = [];
-    outstandingBreakdown.push({
-      label: 'Opening Balance Dues',
-      value: `₹${openingBalSum.toLocaleString()}`,
-      dotColor: 'bg-slate-500',
-      link: '/dashboard/panels?balance=Outstanding',
-      textColor: 'text-slate-800'
-    });
+    if (openingBalSum > 0) {
+      outstandingBreakdown.push({
+        label: 'Opening Balance Dues',
+        value: `₹${openingBalSum.toLocaleString()}`,
+        dotColor: 'bg-slate-500',
+        link: '/dashboard/panels?balance=Outstanding',
+        textColor: 'text-slate-800'
+      });
+    }
     Object.entries(typeStats).forEach(([type, stats]) => {
       const outstandingVal = stats.billed - stats.billDiscount - (stats.paid + stats.paymentDiscount);
       if (outstandingVal !== 0 || standardTypes.includes(type)) {
@@ -595,7 +633,7 @@ export default function DashboardHome() {
 
     let finalTotalBilled = totalBilled;
     let finalTotalPaid = totalPaid;
-    let finalBillsCount = billsCount;
+    let finalBillsCount = billsCount + openingBalCount;
     let finalRecovery = recRate;
     let finalOutstanding = cumulativeOutstanding;
 
@@ -948,16 +986,7 @@ export default function DashboardHome() {
               </span>
             )}
 
-            {/* Show background loading indicator if payments/panels are still downloading */}
-            {stats && (!stats.payments || stats.payments.length === 0) ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/30 text-amber-500 animate-pulse">
-                <span className="flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
-                </span>
-                Syncing historical records...
-              </span>
-            ) : (
+            {stats && (
               <span className="text-[10px] text-slate-400 dark:text-slate-500">— {filteredPayments.length} transactions · {panelStatsArray.length} panels</span>
             )}
           </div>
@@ -978,14 +1007,14 @@ export default function DashboardHome() {
             const Icon = card.icon;
             const accents = [
               {
-                wrapper: 'from-indigo-50/80 via-white to-white dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900 border-indigo-200/60 dark:border-indigo-900/40',
+                wrapper: 'bg-white dark:bg-slate-900 border-indigo-200 dark:border-indigo-900/40 shadow-md hover:shadow-indigo-500/10',
                 glow: 'bg-indigo-500/10 dark:bg-indigo-500/20',
                 iconOuter: 'bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-500/20 dark:to-indigo-500/5 border-indigo-200/80 dark:border-indigo-500/30',
                 iconInner: 'text-indigo-600 dark:text-indigo-400',
                 topBar: 'from-indigo-500 to-violet-500'
               },
               {
-                wrapper: 'from-emerald-50/80 via-white to-white dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 border-emerald-200/60 dark:border-emerald-900/40',
+                wrapper: 'bg-white dark:bg-slate-900 border-emerald-200 dark:border-emerald-900/40 shadow-md hover:shadow-emerald-500/10',
                 glow: 'bg-emerald-500/10 dark:bg-emerald-500/20',
                 iconOuter: 'bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-500/20 dark:to-emerald-500/5 border-emerald-200/80 dark:border-emerald-500/30',
                 iconInner: 'text-emerald-600 dark:text-emerald-400',
@@ -993,8 +1022,8 @@ export default function DashboardHome() {
               },
               {
                 wrapper: card.title.includes('Outstanding') && outstandingBalance > 0
-                  ? 'from-rose-50/80 via-white to-white dark:from-rose-950/30 dark:via-slate-900 dark:to-slate-900 border-rose-200/60 dark:border-rose-900/40'
-                  : 'from-teal-50/80 via-white to-white dark:from-teal-950/30 dark:via-slate-900 dark:to-slate-900 border-teal-200/60 dark:border-teal-900/40',
+                  ? 'bg-white dark:bg-slate-900 border-rose-200 dark:border-rose-900/40 shadow-md hover:shadow-rose-500/10'
+                  : 'bg-white dark:bg-slate-900 border-teal-200 dark:border-teal-900/40 shadow-md hover:shadow-teal-500/10',
                 glow: card.title.includes('Outstanding') && outstandingBalance > 0 ? 'bg-rose-500/10 dark:bg-rose-500/20' : 'bg-teal-500/10 dark:bg-teal-500/20',
                 iconOuter: card.title.includes('Outstanding') && outstandingBalance > 0
                   ? 'bg-gradient-to-br from-rose-100 to-rose-50 dark:from-rose-500/20 dark:to-rose-500/5 border-rose-200/80 dark:border-rose-500/30'
@@ -1006,7 +1035,7 @@ export default function DashboardHome() {
             const a = accents[i];
 
             return (
-              <div key={i} className={`group relative rounded-2xl border ${a.wrapper} bg-gradient-to-br shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col`}>
+              <div key={i} className={`group relative rounded-2xl border ${a.wrapper} shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col`}>
                 <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${a.topBar}`}></div>
                 <div className={`absolute -top-20 -right-20 h-40 w-40 rounded-full ${a.glow} blur-3xl pointer-events-none transition-all duration-500 group-hover:scale-150 group-hover:opacity-70 opacity-40`}></div>
 
@@ -1091,7 +1120,7 @@ export default function DashboardHome() {
         {/* Analytics Chart & Breakdown Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Payment & Billing Trend Chart */}
-          <div className="lg:col-span-2 bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-900 dark:to-slate-950/80 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 p-6 sm:p-7 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col min-h-[320px] relative overflow-hidden group">
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-md transition-all duration-300 flex flex-col min-h-[320px] relative overflow-hidden group">
             {/* Subtle background glow */}
             <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/5 dark:bg-indigo-500/10 blur-3xl pointer-events-none group-hover:bg-indigo-500/10 dark:group-hover:bg-indigo-500/20 transition-all duration-700"></div>
 
@@ -1232,7 +1261,7 @@ export default function DashboardHome() {
           </div>
 
           {/* Registry Overview */}
-          <div className="lg:col-span-1 bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-900 dark:to-slate-950/80 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 p-6 shadow-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden flex flex-col gap-5 group">
+          <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-md transition-all duration-300 relative overflow-hidden flex flex-col gap-5 group">
             {/* Subtle glow */}
             <div className="absolute -bottom-32 -right-32 h-64 w-64 rounded-full bg-violet-500/5 dark:bg-violet-500/10 blur-3xl pointer-events-none group-hover:bg-violet-500/10 dark:group-hover:bg-violet-500/20 transition-all duration-700"></div>
 
@@ -1256,7 +1285,7 @@ export default function DashboardHome() {
                   </div>
                 </Link>
 
-                <Link to="/dashboard/payments" className="flex flex-col gap-2 bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-500/10 dark:to-emerald-500/5 border border-emerald-100 dark:border-emerald-500/20 p-4 rounded-2xl hover:border-emerald-300 dark:hover:border-emerald-500/40 hover:shadow-md transition-all group/stat">
+                <Link to="/dashboard/payments" className="flex flex-col gap-2 bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-500/10 dark:to-emerald-500/5 border border-emerald-100 dark:border-emerald-500/20 p-4 rounded-2xl hover:border-emerald-300 dark:hover:emerald-500/40 hover:shadow-md transition-all group/stat">
                   <div className="h-8 w-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-sm shadow-emerald-500/30 group-hover/stat:scale-110 transition-transform">
                     <FileSpreadsheet className="h-4 w-4" />
                   </div>
@@ -1381,7 +1410,7 @@ export default function DashboardHome() {
         {/* Leaderboard Rankings Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* 1. Revenue Leaders */}
-          <div className="group relative rounded-3xl border from-emerald-50/80 via-white to-white dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 border-emerald-200/60 dark:border-emerald-900/40 bg-gradient-to-br shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col p-5">
+          <div className="group relative rounded-3xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-emerald-900/40 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col p-5">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
             <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 blur-3xl pointer-events-none transition-all duration-500 group-hover:scale-150 group-hover:opacity-70 opacity-40"></div>
 
@@ -1425,7 +1454,7 @@ export default function DashboardHome() {
           </div>
 
           {/* 2. Billing Leaders */}
-          <div className="group relative rounded-3xl border from-indigo-50/80 via-white to-white dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900 border-indigo-200/60 dark:border-indigo-900/40 bg-gradient-to-br shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col p-5">
+          <div className="group relative rounded-3xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-indigo-900/40 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col p-5">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-violet-500"></div>
             <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 blur-3xl pointer-events-none transition-all duration-500 group-hover:scale-150 group-hover:opacity-70 opacity-40"></div>
 
@@ -1469,7 +1498,7 @@ export default function DashboardHome() {
           </div>
 
           {/* 3. License Leaders */}
-          <div className="group relative rounded-3xl border from-cyan-50/80 via-white to-white dark:from-cyan-950/30 dark:via-slate-900 dark:to-slate-900 border-cyan-200/60 dark:border-cyan-900/40 bg-gradient-to-br shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col p-5">
+          <div className="group relative rounded-3xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-cyan-900/40 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col p-5">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500"></div>
             <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-cyan-500/10 dark:bg-cyan-500/20 blur-3xl pointer-events-none transition-all duration-500 group-hover:scale-150 group-hover:opacity-70 opacity-40"></div>
 
@@ -1514,7 +1543,7 @@ export default function DashboardHome() {
           </div>
 
           {/* 4. Maintenance SLA Tracker */}
-          <div className="group relative rounded-3xl border from-amber-50/80 via-white to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 border-amber-200/60 dark:border-amber-900/40 bg-gradient-to-br shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col p-5">
+          <div className="group relative rounded-3xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-amber-900/40 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col p-5">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
             <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-amber-500/10 dark:bg-amber-500/20 blur-3xl pointer-events-none transition-all duration-500 group-hover:scale-150 group-hover:opacity-70 opacity-40"></div>
 
@@ -1564,7 +1593,7 @@ export default function DashboardHome() {
 
           {/* Performance Alerts */}
           {worstPerforming.length > 0 && (
-            <div className="relative overflow-hidden rounded-2xl border border-rose-200/60 dark:border-rose-900/40 bg-gradient-to-br from-rose-50/80 via-white to-white dark:from-rose-950/20 dark:via-slate-900 dark:to-slate-900 p-5 shadow-sm">
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-rose-900/40 bg-white dark:bg-slate-900 p-5 shadow-sm">
               {/* Subtle background glow effect */}
               <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-rose-500/5 dark:bg-rose-500/10 blur-3xl pointer-events-none"></div>
 
@@ -1598,7 +1627,7 @@ export default function DashboardHome() {
 
               <div className="relative grid grid-cols-1 md:grid-cols-3 gap-4">
                 {worstPerforming.map((item, idx) => (
-                  <div key={item._id} className="group bg-white/60 dark:bg-slate-800/40 backdrop-blur-md border border-rose-100 dark:border-rose-900/30 rounded-xl p-4 flex flex-col gap-3 shadow-sm hover:shadow-md hover:border-rose-300 dark:hover:border-rose-700/50 transition-all duration-300">
+                  <div key={item._id} className="group bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex flex-col gap-3 shadow-sm hover:shadow-md hover:border-rose-300 dark:hover:border-rose-700/50 transition-all duration-300">
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0 pr-2">
                         <Link
@@ -1617,7 +1646,7 @@ export default function DashboardHome() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 pt-3 border-t border-rose-100/50 dark:border-rose-900/30 text-xs">
+                    <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 dark:border-rose-900/30 text-xs">
                       <div>
                         <span className="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold tracking-wider mb-0.5">Sales Billed</span>
                         <span className="text-slate-800 dark:text-slate-200 font-semibold">₹{item.totalBilled.toLocaleString()}</span>
@@ -1648,7 +1677,7 @@ export default function DashboardHome() {
           {/* Row 2: Client Performance Ledger Grid Table & Side Card */}
           <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
             <div className="xl:col-span-3">
-              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden h-full flex flex-col">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden h-full flex flex-col">
                 {/* Table Header */}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 p-4 border-b border-slate-200 dark:border-slate-800">
                   <div>
@@ -1779,14 +1808,13 @@ export default function DashboardHome() {
                       <span className="text-slate-400">Outstanding: <span className="text-rose-600 dark:text-rose-400 font-mono">₹{processedPerfPanels.reduce((s, p) => s + p.outstanding, 0).toLocaleString()}</span></span>
                     </div>
                   </div>
-
                 )}
               </div>
             </div>
 
             {/* Side Card: Recent Transactions */}
             <div className="xl:col-span-1">
-              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden h-full flex flex-col max-h-[900px]">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden h-full flex flex-col max-h-[900px]">
                 <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
                   <h3 className="font-extrabold text-[14px] tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                     <Zap className="h-4 w-4 text-emerald-500" /> Recent Activity

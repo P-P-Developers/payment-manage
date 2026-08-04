@@ -63,6 +63,10 @@ export default function TransactionLedgerTab({
   setTransactionTypeFilter,
   showDuplicates,
   setShowDuplicates,
+  discountOnly,
+  setDiscountOnly,
+  gstOnly,
+  setGstOnly,
   startDate,
   setStartDate,
   endDate,
@@ -88,109 +92,144 @@ export default function TransactionLedgerTab({
 
   return (
     <>
-      {/* Compact Filters Bar */}
-      <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-xl flex flex-wrap items-center gap-2">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search client..."
-            className="w-full rounded-lg pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500/50 transition-colors"
-          />
-        </div>
-
-        {/* Date Range Picker */}
-        <div className="group flex items-center gap-1.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 hover:border-indigo-300 dark:hover:border-indigo-500/50 rounded-lg px-2 py-1 transition-all" style={{ height: '32px' }}>
-          <Calendar className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="w-[100px] bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark]"
-          />
-          <span className="text-slate-300 dark:text-slate-600 text-[10px] font-bold">-</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="w-[100px] bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer text-xs font-semibold [color-scheme:light] dark:[color-scheme:dark]"
-          />
-        </div>
-
-        {/* Filters */}
-        <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300">
-          <input
-            type="checkbox"
-            checked={showDuplicates}
-            onChange={(e) => setShowDuplicates(e.target.checked)}
-            className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-600 dark:focus:ring-indigo-500 bg-white dark:bg-slate-800"
-          />
-          <span className="text-[11px] font-semibold whitespace-nowrap">Duplicates</span>
-        </label>
+      {/* Redesigned Filters Bar */}
+      <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-xl flex flex-col gap-3.5 shadow-sm mb-4">
         
-        <select
-          value={transactionTypeFilter}
-          onChange={(e) => setTransactionTypeFilter(e.target.value)}
-          className="w-[120px] rounded-lg px-2 py-1.5 text-[11px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 cursor-pointer font-semibold"
-          style={{ height: '32px' }}
-        >
-          <option value="all">All Trans.</option>
-          <option value="bill">Bills Only</option>
-          <option value="received">Payments</option>
-        </select>
+        {/* Top Row: Search and Date Range */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Search */}
+          <div className="relative flex-1 max-w-2xl">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by client, owner, remarks..."
+              className="w-full rounded-lg pl-10 pr-4 py-2 text-[13px] bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/10 transition-all shadow-inner"
+            />
+          </div>
+          
+          {/* Date Range Picker */}
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700/80 rounded-lg px-3 py-1.5 shrink-0 transition-all focus-within:border-indigo-500/50 focus-within:ring-2 focus-within:ring-indigo-500/10 shadow-inner">
+            <Calendar className="h-4 w-4 text-indigo-500 shrink-0" />
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-[110px] bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer text-[12px] font-semibold [color-scheme:light] dark:[color-scheme:dark]"
+            />
+            <span className="text-slate-300 dark:text-slate-600 font-bold px-1">-</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-[110px] bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer text-[12px] font-semibold [color-scheme:light] dark:[color-scheme:dark]"
+            />
+          </div>
+        </div>
 
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="w-[110px] rounded-lg px-2 py-1.5 text-[11px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 cursor-pointer font-semibold"
-          style={{ height: '32px' }}
-        >
-          <option value="All">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat._id} value={cat.name}>{cat.name}</option>
-          ))}
-        </select>
+        {/* Bottom Row: Dropdowns and Toggles */}
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-t border-slate-100 dark:border-slate-800 pt-3">
+          
+          {/* Dropdowns Group */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <select
+              value={transactionTypeFilter}
+              onChange={(e) => setTransactionTypeFilter(e.target.value)}
+              className="rounded-md px-3 py-1.5 text-[11px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 cursor-pointer font-semibold hover:border-slate-300 dark:hover:border-slate-600 transition-colors focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+            >
+              <option className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold" value="all">All Transactions</option>
+              <option className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold" value="bill">Bills Only</option>
+              <option className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold" value="received">Payments Only</option>
+            </select>
 
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="w-[100px] rounded-lg px-2 py-1.5 text-[11px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 cursor-pointer font-semibold"
-          style={{ height: '32px' }}
-        >
-          <option value="All">All Charges</option>
-          {(paymentTypes.length > 0 ? paymentTypes : FALLBACK_PAYMENT_TYPES.map(name => ({ _id: name, name }))).map((pt) => (
-            <option key={pt._id} value={pt.name}>{pt.name}</option>
-          ))}
-        </select>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="rounded-md px-3 py-1.5 text-[11px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 cursor-pointer font-semibold hover:border-slate-300 dark:hover:border-slate-600 transition-colors focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+            >
+              <option className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold" value="All">All Categories</option>
+              {categories.map((cat) => (
+                <option className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold" key={cat._id} value={cat.name}>{cat.name}</option>
+              ))}
+            </select>
 
-        <select
-          value={modeFilter}
-          onChange={(e) => setModeFilter(e.target.value)}
-          className="w-[90px] rounded-lg px-2 py-1.5 text-[11px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 cursor-pointer font-semibold"
-          style={{ height: '32px' }}
-        >
-          <option value="All">All Modes</option>
-          <option value="CASH">Cash</option>
-          <option value="UPI">UPI</option>
-          <option value="BANK_TRANSFER">Bank</option>
-        </select>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="rounded-md px-3 py-1.5 text-[11px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 cursor-pointer font-semibold hover:border-slate-300 dark:hover:border-slate-600 transition-colors focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+            >
+              <option className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold" value="All">All Charges</option>
+              {(paymentTypes.length > 0 ? paymentTypes : FALLBACK_PAYMENT_TYPES.map(name => ({ _id: name, name }))).map((pt) => (
+                <option className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold" key={pt._id} value={pt.name}>{pt.name}</option>
+              ))}
+            </select>
 
-        {/* Reset Button */}
-        {(startDate || endDate || transactionTypeFilter !== 'all' || typeFilter !== 'All' || modeFilter !== 'All' || categoryFilter !== 'All' || searchQuery) && (
-          <button
-            onClick={() => {
-              setStartDate(''); setEndDate(''); setTransactionTypeFilter('all');
-              setTypeFilter('All'); setModeFilter('All'); setCategoryFilter('All'); setSearchQuery('');
-            }}
-            className="shrink-0 text-[10px] uppercase font-bold tracking-wider text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 px-2.5 py-1.5 rounded-lg transition-colors border border-rose-200 dark:border-rose-500/20"
-            style={{ height: '32px' }}
-          >
-            Reset
-          </button>
-        )}
+            <select
+              value={modeFilter}
+              onChange={(e) => setModeFilter(e.target.value)}
+              className="rounded-md px-3 py-1.5 text-[11px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 cursor-pointer font-semibold hover:border-slate-300 dark:hover:border-slate-600 transition-colors focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+            >
+              <option className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold" value="All">All Modes</option>
+              <option className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold" value="CASH">Cash</option>
+              <option className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold" value="UPI">UPI</option>
+              <option className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold" value="BANK_TRANSFER">Bank</option>
+            </select>
+          </div>
+
+          {/* Toggles Group */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-3.5 bg-slate-50 dark:bg-slate-950/30 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700/80">
+              <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300 hover:opacity-80 transition-opacity">
+                <input
+                  type="checkbox"
+                  checked={showDuplicates}
+                  onChange={(e) => setShowDuplicates(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-600 dark:focus:ring-indigo-500 bg-white dark:bg-slate-800 cursor-pointer"
+                />
+                <span className="text-[11px] font-bold">Duplicates</span>
+              </label>
+              
+              <div className="w-px h-3.5 bg-slate-300 dark:bg-slate-700"></div>
+
+              <label className="flex items-center gap-1.5 cursor-pointer text-orange-700 dark:text-orange-400 hover:opacity-80 transition-opacity">
+                <input
+                  type="checkbox"
+                  checked={discountOnly}
+                  onChange={(e) => setDiscountOnly(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-orange-300 dark:border-orange-600/50 text-orange-500 focus:ring-orange-500 dark:focus:ring-orange-400 bg-white dark:bg-slate-800 cursor-pointer"
+                />
+                <span className="text-[11px] font-bold">Discounted</span>
+              </label>
+
+              <div className="w-px h-3.5 bg-slate-300 dark:bg-slate-700"></div>
+
+              <label className="flex items-center gap-1.5 cursor-pointer text-fuchsia-700 dark:text-fuchsia-400 hover:opacity-80 transition-opacity">
+                <input
+                  type="checkbox"
+                  checked={gstOnly}
+                  onChange={(e) => setGstOnly(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-fuchsia-300 dark:border-fuchsia-600/50 text-fuchsia-500 focus:ring-fuchsia-500 dark:focus:ring-fuchsia-400 bg-white dark:bg-slate-800 cursor-pointer"
+                />
+                <span className="text-[11px] font-bold">GST</span>
+              </label>
+            </div>
+
+            {/* Reset Button */}
+            {(startDate || endDate || transactionTypeFilter !== 'all' || typeFilter !== 'All' || modeFilter !== 'All' || categoryFilter !== 'All' || searchQuery || showDuplicates || discountOnly || gstOnly) && (
+              <button
+                onClick={() => {
+                  setStartDate(''); setEndDate(''); setTransactionTypeFilter('all');
+                  setTypeFilter('All'); setModeFilter('All'); setCategoryFilter('All'); setSearchQuery('');
+                  setShowDuplicates(false); setDiscountOnly(false); setGstOnly(false);
+                }}
+                className="shrink-0 flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-rose-500 hover:text-white bg-rose-50 hover:bg-rose-500 dark:bg-rose-500/10 dark:hover:bg-rose-600 px-3 py-1.5 rounded-lg transition-all border border-rose-200 dark:border-rose-500/20 hover:border-transparent shadow-sm h-[32px]"
+              >
+                Reset Filters
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Payments Table */}
@@ -307,6 +346,22 @@ export default function TransactionLedgerTab({
                             <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider w-8">Bill:</span>
                             <span className="text-slate-700 dark:text-slate-300 font-semibold font-mono">₹{p.billAmount?.toLocaleString()}</span>
                           </div>
+                          {(() => {
+                            const hasGst = p.isGstApplied === true;
+                            if (hasGst && p.billAmount > 0) {
+                              const base = p.billAmount / 1.18;
+                              const gstAmt = p.billAmount - base;
+                              return (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-[9px] text-fuchsia-500/80 dark:text-fuchsia-400/80 font-bold uppercase tracking-wider w-8">GST:</span>
+                                  <span className="text-fuchsia-600 dark:text-fuchsia-400 font-semibold font-mono text-[9px]">
+                                    (Inc. ₹{Math.round(gstAmt).toLocaleString()})
+                                  </span>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                           {p.billDiscount > 0 && (
                             <div className="flex items-center gap-1.5">
                               <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider w-8 text-rose-500/80">Disc:</span>
@@ -330,6 +385,7 @@ export default function TransactionLedgerTab({
                               ₹{p.amountReceived?.toLocaleString()}
                             </span>
                           </div>
+
                           {p.paymentDiscount > 0 && (
                             <div className="flex items-center gap-1.5">
                               <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider w-8 text-rose-500/80">Disc:</span>
