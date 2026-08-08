@@ -67,6 +67,8 @@ router.get('/monthly-summary', protect, hasPermission('view_panels'), async (req
               paymentType: '$paymentType',
               billAmount: '$billAmount',
               amountReceived: '$amountReceived',
+              billDiscount: '$billDiscount',
+              paymentDiscount: '$paymentDiscount',
               paymentMode: '$paymentMode',
               remark: '$remark',
               date: '$computedDate'
@@ -298,10 +300,32 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
       .limit(limit)
       .lean();
 
+    const totals = await Payment.aggregate([
+      { $match: filterQuery },
+      {
+        $group: {
+          _id: null,
+          totalBillAmount: { $sum: '$billAmount' },
+          totalBillDiscount: { $sum: '$billDiscount' },
+          totalAmountReceived: { $sum: '$amountReceived' },
+          totalPaymentDiscount: { $sum: '$paymentDiscount' }
+        }
+      }
+    ]);
+
+    const totalBillAmount = totals.length > 0 ? totals[0].totalBillAmount : 0;
+    const totalBillDiscount = totals.length > 0 ? totals[0].totalBillDiscount : 0;
+    const totalAmountReceived = totals.length > 0 ? totals[0].totalAmountReceived : 0;
+    const totalPaymentDiscount = totals.length > 0 ? totals[0].totalPaymentDiscount : 0;
+
     res.json({
       success: true,
       count: payments.length,
       total,
+      totalBillAmount,
+      totalBillDiscount,
+      totalAmountReceived,
+      totalPaymentDiscount,
       pages: limit === 0 ? 1 : Math.ceil(total / limit),
       currentPage: page,
       payments,

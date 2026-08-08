@@ -140,7 +140,7 @@ export default function MonthlySummary() {
       item.months.forEach((m) => {
         monthDataMap[m.month] = {
           bill: m.bill || 0,
-          received: m.received || 0,
+          received: (m.received || 0) + (m.discount || 0),
           discount: m.discount || 0,
           transactions: m.transactions || []
         };
@@ -189,7 +189,7 @@ export default function MonthlySummary() {
 
             if (isMatch) {
               customBill += t.billAmount || 0;
-              customReceived += t.amountReceived || 0;
+              customReceived += (t.amountReceived || 0) + (t.billDiscount || 0) + (t.paymentDiscount || 0);
               customCount += 1;
             }
           });
@@ -217,7 +217,7 @@ export default function MonthlySummary() {
           injectedInMonth = true;
         }
 
-        const balance = mData.bill - mData.received - mData.discount;
+        const balance = mData.bill - mData.received;
         totalBill += mData.bill;
         totalReceived += mData.received;
         totalDue += balance;
@@ -700,7 +700,10 @@ export default function MonthlySummary() {
                                 </div>
                                 <div className="text-emerald-600 dark:text-emerald-400 min-w-0">
                                   <div className="opacity-70">Paid</div>
-                                  <div className="font-semibold truncate">{fmt(mData.received)}</div>
+                                  <div className="font-semibold truncate">
+                                    {fmt(mData.received)}
+                                    {mData.discount > 0 && <span className="text-[9px] opacity-75 ml-0.5">({fmt(mData.discount)})</span>}
+                                  </div>
                                 </div>
                                 <div className={`min-w-0 ${mData.due > 0 ? 'text-rose-600 dark:text-rose-400' : mData.due < 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
                                   <div className="opacity-70">{mData.due < 0 ? 'Adv' : 'Due'}</div>
@@ -737,7 +740,15 @@ export default function MonthlySummary() {
                                             <span className="text-blue-600 dark:text-blue-400">Bill {fmt(t.billAmount)}</span>
                                           )}
                                           {t.amountReceived > 0 && (
-                                            <span className="text-emerald-600 dark:text-emerald-400">Paid {fmt(t.amountReceived)}</span>
+                                            <span className="text-emerald-600 dark:text-emerald-400">
+                                              Paid {fmt(t.amountReceived)}
+                                              {((t.billDiscount || 0) + (t.paymentDiscount || 0)) > 0 && ` (+${fmt((t.billDiscount || 0) + (t.paymentDiscount || 0))})`}
+                                            </span>
+                                          )}
+                                          {t.amountReceived === 0 && ((t.billDiscount || 0) + (t.paymentDiscount || 0)) > 0 && (
+                                            <span className="text-emerald-600 dark:text-emerald-400">
+                                              Disc {fmt((t.billDiscount || 0) + (t.paymentDiscount || 0))}
+                                            </span>
                                           )}
                                           {isSettled && <CheckCircle2 className="h-3 w-3 text-emerald-500 ml-auto shrink-0" />}
                                         </div>
@@ -894,7 +905,10 @@ export default function MonthlySummary() {
                                 </div>
                                 <div className="flex justify-between items-center px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300">
                                   <span className="truncate pr-1">{metricFilter !== 'All' ? `${metricFilter} Paid:` : 'Paid:'}</span>
-                                  <span className="font-semibold">{fmt(mData.received)}</span>
+                                  <span className="font-semibold">
+                                    {fmt(mData.received)}
+                                    {mData.discount > 0 && <span className="text-[9px] opacity-75 ml-1">({fmt(mData.discount)})</span>}
+                                  </span>
                                 </div>
                                 <div className={`flex justify-between items-center px-1.5 py-0.5 rounded ${mData.due > 0 ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300' : mData.due < 0 ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300' : 'text-slate-500'}`}>
                                   <span className="truncate pr-1">{metricFilter !== 'All' ? `${metricFilter} ${mData.due < 0 ? 'Adv:' : 'Due:'}` : mData.due < 0 ? 'Month Adv:' : 'Month Due:'}</span>
@@ -995,7 +1009,15 @@ export default function MonthlySummary() {
                                                         <div className="text-blue-600 dark:text-blue-400">Bill: {fmt(t.billAmount)}</div>
                                                       )}
                                                       {t.amountReceived > 0 && (
-                                                        <div className="text-emerald-600 dark:text-emerald-400">Paid: {fmt(t.amountReceived)}</div>
+                                                        <div className="text-emerald-600 dark:text-emerald-400">
+                                                          Paid: {fmt(t.amountReceived)}
+                                                          {((t.billDiscount || 0) + (t.paymentDiscount || 0)) > 0 && ` (+${fmt((t.billDiscount || 0) + (t.paymentDiscount || 0))})`}
+                                                        </div>
+                                                      )}
+                                                      {t.amountReceived === 0 && ((t.billDiscount || 0) + (t.paymentDiscount || 0)) > 0 && (
+                                                        <div className="text-emerald-600 dark:text-emerald-400">
+                                                          Disc: {fmt((t.billDiscount || 0) + (t.paymentDiscount || 0))}
+                                                        </div>
                                                       )}
                                                     </div>
                                                     {t.paymentMode && (
