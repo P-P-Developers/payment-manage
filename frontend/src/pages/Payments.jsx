@@ -112,6 +112,10 @@ export default function Payments() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalPaymentsCount, setTotalPaymentsCount] = useState(0);
+  const [totalBillAmount, setTotalBillAmount] = useState(0);
+  const [totalBillDiscount, setTotalBillDiscount] = useState(0);
+  const [totalAmountReceived, setTotalAmountReceived] = useState(0);
+  const [totalPaymentDiscount, setTotalPaymentDiscount] = useState(0);
   const [pageSize, setPageSize] = useState(20);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -374,6 +378,10 @@ export default function Payments() {
         setPayments(paymentsData.payments);
         setTotalPages(paymentsData.pages || 1);
         setTotalPaymentsCount(paymentsData.total || 0);
+        setTotalBillAmount(paymentsData.totalBillAmount || 0);
+        setTotalBillDiscount(paymentsData.totalBillDiscount || 0);
+        setTotalAmountReceived(paymentsData.totalAmountReceived || 0);
+        setTotalPaymentDiscount(paymentsData.totalPaymentDiscount || 0);
       }
       if (panelsData.success) setPanels(panelsData.panels);
     } catch (err) {
@@ -882,6 +890,35 @@ export default function Payments() {
             {loading && payments.length > 0 && (
               <div className="shrink-0 h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent"></div>
             )}
+          </div>
+
+          {/* Totals Summary */}
+          <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Total Bill</span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white">₹{totalBillAmount.toLocaleString()}</span>
+            </div>
+            <div className="h-6 w-px bg-slate-300 dark:bg-slate-600"></div>
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Total Received</span>
+              <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                ₹{(totalAmountReceived + totalPaymentDiscount).toLocaleString()}
+                {totalPaymentDiscount > 0 && <span className="text-xs text-rose-500 ml-1">(₹{totalPaymentDiscount.toLocaleString()} Dis.)</span>}
+              </span>
+            </div>
+            <div className="h-6 w-px bg-slate-300 dark:bg-slate-600"></div>
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Balance</span>
+              {(() => {
+                const diff = (totalAmountReceived + totalPaymentDiscount) - (totalBillAmount - totalBillDiscount);
+                if (diff > 0) {
+                  return <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">+₹{diff.toLocaleString()}</span>;
+                } else if (diff < 0) {
+                  return <span className="text-sm font-bold text-rose-600 dark:text-rose-400">-₹{Math.abs(diff).toLocaleString()}</span>;
+                }
+                return <span className="text-sm font-bold text-slate-600 dark:text-slate-400">₹0</span>;
+              })()}
+            </div>
           </div>
           
           {/* Compact View Switcher Tabs */}
