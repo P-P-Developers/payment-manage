@@ -318,10 +318,16 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
     const totalAmountReceived = totals.length > 0 ? totals[0].totalAmountReceived : 0;
     const totalPaymentDiscount = totals.length > 0 ? totals[0].totalPaymentDiscount : 0;
 
+    // Calculate totalOpeningBalance for unique panels in the current filtered view
+    const uniquePanelIds = await Payment.distinct('panelId', filterQuery);
+    const panelsForOB = await Panel.find({ _id: { $in: uniquePanelIds } });
+    const totalOpeningBalance = panelsForOB.reduce((sum, p) => sum + (p.openingBalance || 0), 0);
+
     res.json({
       success: true,
       count: payments.length,
       total,
+      totalOpeningBalance,
       totalBillAmount,
       totalBillDiscount,
       totalAmountReceived,

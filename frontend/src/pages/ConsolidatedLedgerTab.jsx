@@ -280,7 +280,7 @@ export default function ConsolidatedLedgerTab({
                                   >
                                     {editingCell && editingCell.paymentId === row.originalPayment?._id && editingCell.field === 'quantity' ? (
                                       <input
-                                        type="number"
+                                        type="number" step="any"
                                         className="w-16 bg-slate-50 dark:bg-slate-950 border border-indigo-500 rounded px-1 text-center text-xs text-indigo-300 font-mono focus:outline-none"
                                         value={editingCell.value}
                                         onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
@@ -311,7 +311,7 @@ export default function ConsolidatedLedgerTab({
                                   >
                                     {editingCell && editingCell.paymentId === row.originalPayment?._id && editingCell.field === 'billAmount' ? (
                                       <input
-                                        type="number"
+                                        type="number" step="any"
                                         className="w-20 bg-slate-50 dark:bg-slate-950 border border-indigo-500 rounded px-1 text-right text-xs text-indigo-300 font-mono focus:outline-none"
                                         value={editingCell.value}
                                         onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
@@ -342,7 +342,7 @@ export default function ConsolidatedLedgerTab({
                                   >
                                     {editingCell && editingCell.paymentId === row.originalPayment?._id && editingCell.field === 'amountReceived' ? (
                                       <input
-                                        type="number"
+                                        type="number" step="any"
                                         className="w-20 bg-slate-50 dark:bg-slate-950 border border-emerald-500 rounded px-1 text-right text-xs text-emerald-300 font-mono focus:outline-none"
                                         value={editingCell.value}
                                         onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}

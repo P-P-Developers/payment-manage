@@ -112,6 +112,7 @@ export default function Payments() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalPaymentsCount, setTotalPaymentsCount] = useState(0);
+  const [totalOpeningBalance, setTotalOpeningBalance] = useState(0);
   const [totalBillAmount, setTotalBillAmount] = useState(0);
   const [totalBillDiscount, setTotalBillDiscount] = useState(0);
   const [totalAmountReceived, setTotalAmountReceived] = useState(0);
@@ -378,6 +379,7 @@ export default function Payments() {
         setPayments(paymentsData.payments);
         setTotalPages(paymentsData.pages || 1);
         setTotalPaymentsCount(paymentsData.total || 0);
+        setTotalOpeningBalance(paymentsData.totalOpeningBalance || 0);
         setTotalBillAmount(paymentsData.totalBillAmount || 0);
         setTotalBillDiscount(paymentsData.totalBillDiscount || 0);
         setTotalAmountReceived(paymentsData.totalAmountReceived || 0);
@@ -879,10 +881,10 @@ export default function Payments() {
   return (
     <div className="space-y-6">
       {/* Unified Compact Header: Title, Tabs & Actions */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-2xl shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl shadow-sm">
         
         {/* Left: Title & Tabs */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 xl:gap-5 min-w-0">
+        <div className="flex flex-wrap items-center gap-3 lg:gap-4 min-w-0">
           <div className="flex items-center gap-2.5 px-1">
             <h2 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight truncate">
               Payments Ledger
@@ -893,7 +895,12 @@ export default function Payments() {
           </div>
 
           {/* Totals Summary */}
-          <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center gap-3 sm:gap-4 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto hide-scrollbar whitespace-nowrap max-w-full">
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Opening Bal.</span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white">₹{totalOpeningBalance.toLocaleString()}</span>
+            </div>
+            <div className="h-6 w-px bg-slate-300 dark:bg-slate-600"></div>
             <div className="flex flex-col">
               <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Total Bill</span>
               <span className="text-sm font-bold text-slate-900 dark:text-white">₹{totalBillAmount.toLocaleString()}</span>
@@ -910,7 +917,7 @@ export default function Payments() {
             <div className="flex flex-col">
               <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Balance</span>
               {(() => {
-                const diff = (totalAmountReceived + totalPaymentDiscount) - (totalBillAmount - totalBillDiscount);
+                const diff = (totalAmountReceived + totalPaymentDiscount) - (totalBillAmount - totalBillDiscount + totalOpeningBalance);
                 if (diff > 0) {
                   return <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">+₹{diff.toLocaleString()}</span>;
                 } else if (diff < 0) {
@@ -1182,7 +1189,7 @@ export default function Payments() {
                       Amount Received (₹)
                     </label>
                     <input
-                      type="number"
+                      type="number" step="any"
                       value={amountReceived}
                       onChange={(e) => setAmountReceived(e.target.value)}
                       placeholder="e.g. 15000"
@@ -1330,7 +1337,7 @@ export default function Payments() {
                             </span>
                             {isChecked && (
                               <input
-                                type="number"
+                                type="number" step="any"
                                 value={selectedAllocations[bill._id] || ''}
                                 onChange={(e) => {
                                   const val = e.target.value;
@@ -1424,7 +1431,7 @@ export default function Payments() {
                       Payment Discount (₹) {userRole !== 'Admin' && <span className="text-rose-400 font-mono text-[9px] lowercase">(Admin Only)</span>}
                     </label>
                     <input
-                      type="number"
+                      type="number" step="any"
                       value={paymentDiscount}
                       onChange={(e) => setPaymentDiscount(e.target.value)}
                       placeholder={userRole === 'Admin' ? "e.g. 1000" : "Requires Admin permissions"}
@@ -1450,7 +1457,7 @@ export default function Payments() {
                             Unit Price (₹) (Editable)
                           </label>
                           <input
-                            type="number"
+                            type="number" step="any"
                             value={unitPrice}
                             onChange={(e) => setUnitPrice(e.target.value)}
                             className="w-full rounded-xl px-3.5 py-2.5 text-xs glass-input text-slate-900 dark:text-white "
@@ -1464,7 +1471,7 @@ export default function Payments() {
                             Purchase Quantity
                           </label>
                           <input
-                            type="number"
+                            type="number" step="any"
                             value={quantity}
                             onChange={(e) => setQuantity(e.target.value)}
                             className="w-full rounded-xl px-3.5 py-2.5 text-xs glass-input text-slate-900 dark:text-white "
@@ -1491,7 +1498,7 @@ export default function Payments() {
                         Enter Bill Amount (₹)
                       </label>
                       <input
-                        type="number"
+                        type="number" step="any"
                         value={billAmountInput}
                         onChange={(e) => setBillAmountInput(e.target.value)}
                         placeholder="e.g. 10000 for maintenance charges"
@@ -1533,7 +1540,7 @@ export default function Payments() {
                           Bill Discount (₹) (Optional)
                         </label>
                         <input
-                          type="number"
+                          type="number" step="any"
                           value={billDiscount}
                           onChange={(e) => setBillDiscount(e.target.value)}
                           placeholder="e.g. 500"
@@ -1966,7 +1973,7 @@ export default function Payments() {
                         <div>
                           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Quantity</label>
                           <input
-                            type="number"
+                            type="number" step="any"
                             value={editForm.quantity}
                             onChange={(e) => setEditForm({ ...editForm, quantity: e.target.value })}
                             className="w-full glass-input px-4 py-2.5 text-sm font-mono font-semibold"
@@ -1980,7 +1987,7 @@ export default function Payments() {
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Total Bill Amount (₹)</label>
                         <input
-                          type="number"
+                          type="number" step="any"
                           value={editForm.billAmount}
                           onChange={(e) => setEditForm({ ...editForm, billAmount: e.target.value })}
                           className="w-full glass-input px-4 py-2.5 text-sm font-mono font-semibold"
@@ -1997,7 +2004,7 @@ export default function Payments() {
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Unit Price (₹)</label>
                         <input
-                          type="number"
+                          type="number" step="any"
                           value={editForm.unitPrice}
                           onChange={(e) => setEditForm({ ...editForm, unitPrice: e.target.value })}
                           className="w-full glass-input px-4 py-2.5 text-sm font-mono font-semibold"
@@ -2018,7 +2025,7 @@ export default function Payments() {
                   <div className="mt-4">
                     <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Bill Discount Applied (₹)</label>
                     <input
-                      type="number"
+                      type="number" step="any"
                       value={editForm.billDiscount}
                       onChange={(e) => setEditForm({ ...editForm, billDiscount: e.target.value })}
                       className="w-full glass-input px-4 py-2.5 text-sm font-mono font-semibold text-rose-500"
@@ -2054,7 +2061,7 @@ export default function Payments() {
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Amount Received (₹)</label>
                     <input
-                      type="number"
+                      type="number" step="any"
                       value={editForm.amountReceived}
                       onChange={(e) => setEditForm({ ...editForm, amountReceived: e.target.value })}
                       className="w-full glass-input px-4 py-2.5 text-sm font-mono font-semibold"
@@ -2067,7 +2074,7 @@ export default function Payments() {
                   <div className="mt-4">
                     <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Payment Discount Given (₹)</label>
                     <input
-                      type="number"
+                      type="number" step="any"
                       value={editForm.paymentDiscount}
                       onChange={(e) => setEditForm({ ...editForm, paymentDiscount: e.target.value })}
                       className="w-full glass-input px-4 py-2.5 text-sm font-mono font-semibold text-rose-500"
