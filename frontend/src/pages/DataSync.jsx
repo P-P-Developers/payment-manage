@@ -22,6 +22,13 @@ const DataSync = () => {
   const [sopFixing, setSopFixing] = useState(false);
   const [sopMessage, setSopMessage] = useState(null);
 
+  const [ipSearch, setIpSearch] = useState('');
+  const [licenseSearch, setLicenseSearch] = useState('');
+  const [sopSearch, setSopSearch] = useState('');
+
+  const [syncMode, setSyncMode] = useState('all');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+
   const [isCaptchaOpen, setIsCaptchaOpen] = useState(false);
   const [pendingFixFn, setPendingFixFn] = useState(null);
 
@@ -41,7 +48,8 @@ const DataSync = () => {
     setIpLoading(true);
     setIpMessage(null);
     try {
-      const data = await apiRequest('/sync/check-ip');
+      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const data = await apiRequest(`/sync/check-ip${query}`);
       setIpData(data.data);
     } catch (err) {
       setIpMessage({ type: 'error', text: err.message || 'Failed to check IP discrepancies' });
@@ -54,7 +62,8 @@ const DataSync = () => {
     setIpFixing(true);
     setIpMessage(null);
     try {
-      const res = await apiRequest('/sync/fix-ip', { method: 'POST' });
+      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const res = await apiRequest(`/sync/fix-ip${query}`, { method: 'POST' });
       setIpMessage({ type: 'success', text: `Fixed ${res.fixedMissing} missing entries and ${res.fixedMismatch} mismatches.` });
       await checkIp(); // Re-fetch to show updated status
     } catch (err) {
@@ -68,7 +77,8 @@ const DataSync = () => {
     setLicenseLoading(true);
     setLicenseMessage(null);
     try {
-      const data = await apiRequest('/sync/check-license');
+      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const data = await apiRequest(`/sync/check-license${query}`);
       setLicenseData(data.data);
     } catch (err) {
       setLicenseMessage({ type: 'error', text: err.message || 'Failed to check License discrepancies' });
@@ -81,7 +91,8 @@ const DataSync = () => {
     setLicenseFixing(true);
     setLicenseMessage(null);
     try {
-      const res = await apiRequest('/sync/fix-license', { method: 'POST' });
+      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const res = await apiRequest(`/sync/fix-license${query}`, { method: 'POST' });
       setLicenseMessage({ type: 'success', text: `Fixed ${res.fixedMissing} missing entries and ${res.fixedMismatch} mismatches.` });
       await checkLicense(); // Re-fetch to show updated status
     } catch (err) {
@@ -95,7 +106,8 @@ const DataSync = () => {
     setSopLoading(true);
     setSopMessage(null);
     try {
-      const response = await apiRequest('/sync/check-sop');
+      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const response = await apiRequest(`/sync/check-sop${query}`);
       if (response.success && response.data) {
         setSopData(response.data);
         setSopMessage({
@@ -116,7 +128,8 @@ const DataSync = () => {
     setSopFixing(true);
     setSopMessage(null);
     try {
-      const response = await apiRequest('/sync/fix-sop', { method: 'POST' });
+      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const response = await apiRequest(`/sync/fix-sop${query}`, { method: 'POST' });
       if (response.success) {
         setSopMessage({
           type: 'success',
@@ -139,7 +152,7 @@ const DataSync = () => {
     return (data.missingEntries?.length > 0) || (data.countMismatches?.length > 0) || (data.panelSummaries?.length > 0);
   };
 
-  const renderCard = (title, icon, data, loading, fixing, checkFn, fixFn, message) => {
+  const renderCard = (title, icon, data, loading, fixing, checkFn, fixFn, message, search, setSearch) => {
     const discrepanciesExist = hasDiscrepancies(data);
 
     return (
@@ -203,32 +216,56 @@ const DataSync = () => {
                     </div>
                   </div>
 
-                  <div className="mt-4 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-800 p-4 max-h-52 overflow-y-auto flex flex-col gap-3">
-                    <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Discrepancy Logs</h5>
+                  <div className="mt-4 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-800 p-0 overflow-hidden">
+                    <div className="flex justify-between items-center p-3 border-b border-slate-200 dark:border-slate-700/50">
+                      <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Discrepancy Logs</h5>
+                      <input 
+                        type="text" 
+                        placeholder="Search panel..." 
+                        className="px-2 py-1 text-xs rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-1 focus:ring-blue-500" 
+                        value={search} 
+                        onChange={(e) => setSearch(e.target.value)} 
+                      />
+                    </div>
 
-                    {data.missingEntries?.map((item, idx) => (
-                      <div key={`missing-${idx}`} className="text-sm pb-3 border-b border-slate-200 dark:border-slate-700/50 last:border-0 last:pb-0">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="font-semibold text-rose-600 dark:text-rose-400">Missing Entry</span>
-                          <span className="text-[11px] font-mono font-medium text-slate-500 bg-slate-200/50 dark:bg-slate-700/50 px-2 py-0.5 rounded">{item.date}</span>
-                        </div>
-                        <div className="text-slate-700 dark:text-slate-300">
-                          Panel <span className="font-semibold text-slate-900 dark:text-white">"{item.panelName}"</span> is missing {item.apiCount} entries in local DB.
-                        </div>
-                      </div>
-                    ))}
-
-                    {data.countMismatches?.map((item, idx) => (
-                      <div key={`mismatch-${idx}`} className="text-sm pb-3 border-b border-slate-200 dark:border-slate-700/50 last:border-0 last:pb-0">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="font-semibold text-amber-600 dark:text-amber-400">Count Mismatch</span>
-                          <span className="text-[11px] font-mono font-medium text-slate-500 bg-slate-200/50 dark:bg-slate-700/50 px-2 py-0.5 rounded">{item.date}</span>
-                        </div>
-                        <div className="text-slate-700 dark:text-slate-300">
-                          Panel <span className="font-semibold text-slate-900 dark:text-white">"{item.panelName}"</span> API count is {item.apiCount}, but DB has {item.dbQuantity} <span className="text-slate-500 dark:text-slate-400">(Diff: {item.difference > 0 ? '+' : ''}{item.difference})</span>.
-                        </div>
-                      </div>
-                    ))}
+                    <div className="max-h-52 overflow-y-auto">
+                      <table className="w-full text-left text-xs whitespace-nowrap">
+                        <thead className="bg-slate-100 dark:bg-slate-800/50 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 sticky top-0">
+                          <tr>
+                            <th className="px-3 py-2 w-10 text-center">Type</th>
+                            <th className="px-3 py-2">Panel Name</th>
+                            <th className="px-3 py-2">Details</th>
+                            <th className="px-3 py-2 text-right">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
+                          {/* Missing entries */}
+                          {[...data.missingEntries]
+                             .filter(i => !search || i.panelName.toLowerCase().includes(search.toLowerCase()))
+                             .sort((a,b)=>new Date(b.date)-new Date(a.date)).map((item, idx) => (
+                               <tr key={`missing-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                  <td className="px-3 py-2 text-center"><span className="text-[10px] bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 dark:border dark:border-rose-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Missing</span></td>
+                                  <td className="px-3 py-2 font-medium text-slate-900 dark:text-white">{item.panelName}</td>
+                                  <td className="px-3 py-2">Missing <span className="font-bold text-slate-800 dark:text-slate-200">{item.apiCount}</span> entries</td>
+                                  <td className="px-3 py-2 font-mono text-[10px] text-slate-500 text-right">{item.date}</td>
+                               </tr>
+                             ))
+                          }
+                          {/* Mismatches */}
+                          {[...data.countMismatches]
+                             .filter(i => !search || i.panelName.toLowerCase().includes(search.toLowerCase()))
+                             .sort((a,b)=>new Date(b.date)-new Date(a.date)).map((item, idx) => (
+                               <tr key={`mismatch-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                  <td className="px-3 py-2 text-center"><span className="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 dark:border dark:border-amber-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Mismatch</span></td>
+                                  <td className="px-3 py-2 font-medium text-slate-900 dark:text-white">{item.panelName}</td>
+                                  <td className="px-3 py-2">API: {item.apiCount} <span className="text-slate-300 dark:text-slate-600">|</span> DB: {item.dbQuantity} <span className="text-slate-400">({item.difference > 0 ? '+':''}{item.difference})</span></td>
+                                  <td className="px-3 py-2 font-mono text-[10px] text-slate-500 text-right">{item.date}</td>
+                               </tr>
+                             ))
+                          }
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </>
               ) : (
@@ -270,29 +307,52 @@ const DataSync = () => {
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Data Synchronization</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-2">
-          Verify and synchronize billing history between SmartAlgo and local database.
-        </p>
+    <div className="p-4 md:p-8 space-y-8 max-w-[1600px] mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Data Synchronization</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">
+            Verify and synchronize billing history between SmartAlgo and local database.
+          </p>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-wrap items-center gap-4 shadow-sm">
+          <span className="font-semibold text-sm text-slate-700 dark:text-slate-200">Sync Scope:</span>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="syncMode" value="all" checked={syncMode === 'all'} onChange={() => setSyncMode('all')} className="accent-blue-600 w-4 h-4" />
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">All Time</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="syncMode" value="date" checked={syncMode === 'date'} onChange={() => setSyncMode('date')} className="accent-blue-600 w-4 h-4" />
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Specific Date</span>
+          </label>
+          
+          {syncMode === 'date' && (
+            <input 
+              type="date" 
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="px-3 py-1.5 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-slate-200 ml-2"
+            />
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+      <div className="grid grid-cols-1 gap-6 items-stretch">
         {renderCard(
           "IP Billing Sync All panels ",
           <Server className="h-6 w-6" />,
-          ipData, ipLoading, ipFixing, checkIp, () => openCaptchaFor('ip'), ipMessage
+          ipData, ipLoading, ipFixing, checkIp, () => openCaptchaFor('ip'), ipMessage, ipSearch, setIpSearch
         )}
 
         {renderCard(
           "License Billing Sync Algo panels",
           <Database className="h-6 w-6" />,
-          licenseData, licenseLoading, licenseFixing, checkLicense, () => openCaptchaFor('license'), licenseMessage
+          licenseData, licenseLoading, licenseFixing, checkLicense, () => openCaptchaFor('license'), licenseMessage, licenseSearch, setLicenseSearch
         )}
 
         {/* SOP Card */}
-        <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col h-full">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col h-full">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-3 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl">
               <Server className="h-6 w-6" />
@@ -340,9 +400,18 @@ const DataSync = () => {
 
                   {/* Category 1: DISCREPANCIES */}
                   <div>
-                    <h5 className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2 border-b border-amber-200 dark:border-amber-800/50 pb-2">
-                      1. Discrepancies (Missing / Mismatch in DB)
-                    </h5>
+                    <div className="flex justify-between items-center mb-2 border-b border-amber-200 dark:border-amber-800/50 pb-2">
+                      <h5 className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                        1. Discrepancies (Missing / Mismatch in DB)
+                      </h5>
+                      <input 
+                        type="text" 
+                        placeholder="Search panel..." 
+                        className="px-2 py-1 text-xs rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-1 focus:ring-blue-500" 
+                        value={sopSearch} 
+                        onChange={(e) => setSopSearch(e.target.value)} 
+                      />
+                    </div>
 
                     {sopData.matchedData.length > 0 ? (
                       <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700/50 mt-3">
@@ -358,8 +427,23 @@ const DataSync = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
-                            {sopData.matchedData.map((match, idx) => (
-                              <tr key={`match-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            {[...sopData.matchedData]
+                              .filter(m => !sopSearch || m.sopItem.Companyname?.toLowerCase().includes(sopSearch.toLowerCase()) || m.localPanel.panelName.toLowerCase().includes(sopSearch.toLowerCase()))
+                              .sort((a, b) => {
+                                const parseSopDate = (dStr) => {
+                                  if (!dStr) return 0;
+                                  const parts = dStr.split(' ');
+                                  if (parts.length >= 1) {
+                                    const dParts = parts[0].split('/');
+                                    if (dParts.length === 3) {
+                                      return new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1] || '00:00:00'}Z`).getTime();
+                                    }
+                                  }
+                                  return new Date(dStr).getTime();
+                                };
+                                return parseSopDate(b.sopItem["Payment Date"]) - parseSopDate(a.sopItem["Payment Date"]);
+                              }).map((match, idx) => (
+                                <tr key={`match-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                 <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">{idx + 1}</td>
                                 <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{match.sopItem.Companyname || '-'}</td>
                                 <td className="px-4 py-3">

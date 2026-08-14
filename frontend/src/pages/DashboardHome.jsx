@@ -158,6 +158,7 @@ export default function DashboardHome() {
   const [filterType, setFilterType] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState(`${curYear}-${curMonth}`);
   const [selectedQuarter, setSelectedQuarter] = useState(`${curYear}-Q${curQ}`);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showInactive, setShowInactive] = useState(false);
 
   // Performance Table & Card States
@@ -278,7 +279,7 @@ export default function DashboardHome() {
     if (selectedCatFilter !== 'All') {
       panelsToUse = rawPanels.filter(p => (p.category || 'Algo') === selectedCatFilter);
     }
-    const isMarch2026OrAll = filterType === 'all' || (filterType === 'month' && selectedMonth === '2026-03') || (filterType === 'quarter' && selectedQuarter === '2026-Q1');
+    const isMarch2026OrAll = filterType === 'all' || (filterType === 'monthly' && selectedMonth === '2026-03') || (filterType === 'quarterly' && selectedQuarter === '2026-Q1') || (filterType === 'daily' && selectedDate.startsWith('2026-03'));
     const openingBalSum = isMarch2026OrAll ? panelsToUse.reduce((sum, p) => sum + (p.openingBalance || 0), 0) : 0;
     const openingBalCount = isMarch2026OrAll ? panelsToUse.filter(p => (p.openingBalance || 0) > 0).length : 0;
 
@@ -308,6 +309,9 @@ export default function DashboardHome() {
       } else if (filterType === 'quarterly') {
         const q = Math.ceil((date.getMonth() + 1) / 3);
         return `${y}-Q${q}` === selectedQuarter;
+      } else if (filterType === 'daily') {
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}` === selectedDate;
       }
       return true;
     });
@@ -686,7 +690,7 @@ export default function DashboardHome() {
       revenueBreakdown: finalRevenueBreakdown,
       outstandingBreakdown: finalOutstandingBreakdown,
     };
-  }, [stats, filterType, selectedMonth, selectedQuarter, selectedCatFilter]);
+  }, [stats, filterType, selectedMonth, selectedQuarter, selectedDate, selectedCatFilter]);
 
   // Compute trend data for SVG Chart
   const trendData = useMemo(() => {
@@ -739,6 +743,18 @@ export default function DashboardHome() {
       });
 
       return months;
+    } else if (filterType === 'daily') {
+      let paid = 0;
+      let billed = 0;
+      filteredPayments.forEach((p) => {
+        paid += p.amountReceived || 0;
+        billed += p.billAmount || 0;
+      });
+      return [{
+        label: new Date(selectedDate).toLocaleDateString('default', { day: 'numeric', month: 'short' }),
+        paid,
+        billed
+      }];
     } else {
       // Group by last 6 months
       const trendMap = {};
@@ -762,7 +778,7 @@ export default function DashboardHome() {
 
       return Object.values(trendMap);
     }
-  }, [filteredPayments, filterType, selectedQuarter]);
+  }, [filteredPayments, filterType, selectedQuarter, selectedDate]);
 
   const uniqueCategories = useMemo(() => {
     const rawPanels = stats?.panels || [];
@@ -866,6 +882,8 @@ export default function DashboardHome() {
   } else if (filterType === 'quarterly') {
     const q = availableQuarters.find(x => x.value === selectedQuarter);
     activePeriodLabel = q ? q.label : selectedQuarter;
+  } else if (filterType === 'daily') {
+    activePeriodLabel = new Date(selectedDate).toLocaleDateString('default', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
   const medals = ['🥇', '🥈', '🥉', '4.', '5.'];
@@ -948,10 +966,16 @@ export default function DashboardHome() {
                 </select>
               </div>
               <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                {[{ id: "all", label: "All Time" }, { id: "monthly", label: "Monthly" }, { id: "quarterly", label: "Quarterly" }].map((t) => (
+                {[{ id: "all", label: "All Time" }, { id: "daily", label: "Daily" }, { id: "monthly", label: "Monthly" }, { id: "quarterly", label: "Quarterly" }].map((t) => (
                   <button key={t.id} onClick={() => setFilterType(t.id)} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${filterType === t.id ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}>{t.label}</button>
                 ))}
               </div>
+              {filterType === "daily" && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-indigo-400 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30">
+                  <Calendar className="h-3.5 w-3.5 text-indigo-500" />
+                  <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer" />
+                </div>
+              )}
               {filterType === "monthly" && (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-indigo-400 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30">
                   <Calendar className="h-3.5 w-3.5 text-indigo-500" />

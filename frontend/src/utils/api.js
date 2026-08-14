@@ -7,18 +7,28 @@ const BASE_URL = typeof window !== 'undefined'
 // Fetched once from ipify, then reused for every API request.
 // The server cannot see the real internet IP when client & server are on the
 // same machine (localhost), so we send it ourselves in X-Client-IP header.
-let cachedPublicIp = null;
+let ipFetchPromise = null;
 
 const getPublicIp = async () => {
-  if (cachedPublicIp) return cachedPublicIp;
-  try {
-    const res = await fetch('https://api.ipify.org?format=json', { cache: 'force-cache' });
-    const data = await res.json();
-    cachedPublicIp = data.ip || null;
-  } catch {
-    cachedPublicIp = null; // silently fail — server will fall back to req.ip
-  }
-  return cachedPublicIp;
+  if (ipFetchPromise) return ipFetchPromise;
+
+  ipFetchPromise = (async () => {
+    try {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+      const res = await fetch('https://api.ipify.org?format=json', { 
+        cache: 'force-cache',
+        signal: controller.signal
+      });
+      clearTimeout(id);
+      const data = await res.json();
+      return data.ip || null;
+    } catch {
+      return null; // silently fail — server will fall back to req.ip
+    }
+  })();
+
+  return ipFetchPromise;
 };
 
 // Kick off IP fetch immediately on page load (warm the cache)

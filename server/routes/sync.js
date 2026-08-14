@@ -12,10 +12,18 @@ function escapeRegex(str) {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// Helper: Format Date to IST exact hour string for grouping
+function formatIST(d) {
+    if (isNaN(d.getTime())) return null;
+    const offsetMs = 5.5 * 60 * 60 * 1000;
+    const ist = new Date(d.getTime() + offsetMs);
+    return ist.toISOString().replace('T', ' ').substring(0, 13) + ':00';
+}
+
 // ==========================================
 // 1. Helper Function: Check IP Discrepancies
 // ==========================================
-async function getIpReport() {
+async function getIpReport(targetDate = null) {
     const apiResponse = await axios.get('https://iphub.deepmindinfotech.com/backend/admin/ip/billing-summary?limit=2000');
     const apiData = apiResponse.data.data;
 
@@ -35,15 +43,21 @@ async function getIpReport() {
         }
     });
 
+    const nowIST = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+    const todayStr = nowIST.toISOString().split('T')[0];
+
     const apiAgg = {};
     for (const item of apiData) {
         const panelName = item.panel_name ? item.panel_name.toLowerCase().trim() : 'unknown';
-        const d = new Date(item.new_start_date);
+        const dateToUse = item.type === 'ALLOT' ? item.date : item.new_start_date;
+        const d = new Date(dateToUse);
         if (isNaN(d.getTime())) continue;
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = formatIST(d);
+        if (dateStr.substring(0, 10) >= todayStr) continue;
+        if (targetDate && !dateStr.startsWith(targetDate)) continue;
 
         if (!apiAgg[panelName]) apiAgg[panelName] = {};
-        if (!apiAgg[panelName][dateStr]) apiAgg[panelName][dateStr] = { count: 0, originalDate: item.new_start_date, types: new Set() };
+        if (!apiAgg[panelName][dateStr]) apiAgg[panelName][dateStr] = { count: 0, originalDate: dateToUse, types: new Set() };
         apiAgg[panelName][dateStr].count += (item.count || 0);
         if (item.type) apiAgg[panelName][dateStr].types.add(item.type);
     }
@@ -54,7 +68,9 @@ async function getIpReport() {
         const panelName = panelIdToName[panelId] ? panelIdToName[panelId].toLowerCase().trim() : 'unknown';
         const d = new Date(p.timestamp || p.createdAt || p.date);
         if (isNaN(d.getTime())) continue;
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = formatIST(d);
+        if (dateStr.substring(0, 10) >= todayStr) continue;
+        if (targetDate && !dateStr.startsWith(targetDate)) continue;
 
         if (!dbAgg[panelName]) dbAgg[panelName] = {};
         if (!dbAgg[panelName][dateStr]) dbAgg[panelName][dateStr] = { quantity: 0 };
@@ -129,7 +145,7 @@ async function getIpReport() {
 // ===============================================
 // 2. Helper Function: Check License Discrepancies
 // ===============================================
-async function getLicenseReport() {
+async function getLicenseReport(targetDate = null) {
     const ALGO_URL = 'https://newpenal.deepmindinfotech.com/backend/getall/history';
     const ALGO_PAYLOAD = {
         page: 1, limit: 10000, search: '',
@@ -141,6 +157,9 @@ async function getLicenseReport() {
     const response = await axios.post(ALGO_URL, ALGO_PAYLOAD);
     const apiData = response.data.data || [];
 
+    const nowIST = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+    const todayStr = nowIST.toISOString().split('T')[0];
+
     const apiAgg = {};
     for (const item of apiData) {
         const panelName = item.panal_name ? item.panal_name.toLowerCase().trim() : 'unknown';
@@ -149,7 +168,9 @@ async function getLicenseReport() {
 
         const d = new Date(item.createdAt);
         if (isNaN(d.getTime())) continue;
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = formatIST(d);
+        if (dateStr.substring(0, 10) >= todayStr) continue;
+        if (targetDate && !dateStr.startsWith(targetDate)) continue;
 
         if (!apiAgg[panelName]) apiAgg[panelName] = {};
         if (!apiAgg[panelName][dateStr]) apiAgg[panelName][dateStr] = { count: 0, originalDate: item.createdAt };
@@ -178,7 +199,9 @@ async function getLicenseReport() {
         const panelName = (panelIdToName[panelId] || 'unknown').toLowerCase().trim();
         const d = new Date(pay.timestamp || pay.createdAt);
         if (isNaN(d.getTime())) continue;
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = formatIST(d);
+        if (dateStr.substring(0, 10) >= todayStr) continue;
+        if (targetDate && !dateStr.startsWith(targetDate)) continue;
 
         if (!dbAgg[panelName]) dbAgg[panelName] = {};
         if (!dbAgg[panelName][dateStr]) dbAgg[panelName][dateStr] = { quantity: 0 };
@@ -255,7 +278,8 @@ async function getLicenseReport() {
 // @access  Admin
 router.get('/check-ip', protect, adminOnly, async (req, res) => {
     try {
-        const report = await getIpReport();
+        const targetDate = req.query.date || null;
+        const report = await getIpReport(targetDate);
         res.status(200).json({ success: true, data: report });
     } catch (error) {
 
@@ -268,7 +292,8 @@ router.get('/check-ip', protect, adminOnly, async (req, res) => {
 // @access  Admin
 router.post('/fix-ip', protect, adminOnly, async (req, res) => {
     try {
-        const report = await getIpReport();
+        const targetDate = req.query.date || req.body.date || null;
+        const report = await getIpReport(targetDate);
         let fixedMissing = 0;
         let fixedMismatch = 0;
 
@@ -279,7 +304,7 @@ router.post('/fix-ip', protect, adminOnly, async (req, res) => {
             const quantity = entry.apiCount;
             const unitPrice = panel.ipCharges || 1;
             const billAmount = quantity * unitPrice;
-            const dateObj = entry.originalDate ? new Date(entry.originalDate) : new Date(entry.date + 'T12:00:00Z');
+            const dateObj = new Date(entry.originalDate);
 
             await Payment.create({
                 panelId: panel._id,
@@ -299,18 +324,18 @@ router.post('/fix-ip', protect, adminOnly, async (req, res) => {
             const diff = mismatch.difference;
             const dateStr = mismatch.date;
             const unitPrice = panel.ipCharges || 1;
-            const startOfDay = new Date(dateStr + 'T00:00:00.000Z');
-            const endOfDay = new Date(dateStr + 'T23:59:59.999Z');
+            const exactTime = new Date(mismatch.originalDate);
+            const startOfRange = new Date(exactTime.getTime()); startOfRange.setMinutes(0, 0, 0);
+            const endOfRange = new Date(exactTime.getTime()); endOfRange.setMinutes(59, 59, 999);
 
             if (diff > 0) {
                 const billAmount = diff * unitPrice;
-                const dateObj = mismatch.originalDate ? new Date(mismatch.originalDate) : new Date(dateStr + 'T12:00:00Z');
                 await Payment.create({
                     panelId: panel._id, paymentType: 'IP Charges',
                     amountReceived: 0, paymentMode: 'UPI', bankName: '',
                     quantity: diff, unitPrice, billAmount, billDiscount: 0, paymentDiscount: 0,
                     remark: `Auto-fixed: Added ${diff} extra IPs to match API count. Type: ${mismatch.types || 'Unknown'}`,
-                    addedBy: req.user._id, timestamp: dateObj
+                    addedBy: req.user._id, timestamp: exactTime
                 });
                 fixedMismatch++;
             } else if (diff < 0) {
@@ -318,9 +343,9 @@ router.post('/fix-ip', protect, adminOnly, async (req, res) => {
                 const payments = await Payment.find({
                     panelId: panel._id, paymentType: 'IP Charges',
                     $or: [
-                        { timestamp: { $gte: startOfDay, $lte: endOfDay } },
-                        { timestamp: null, createdAt: { $gte: startOfDay, $lte: endOfDay } },
-                        { timestamp: { $exists: false }, createdAt: { $gte: startOfDay, $lte: endOfDay } }
+                        { timestamp: { $gte: startOfRange, $lte: endOfRange } },
+                        { timestamp: null, createdAt: { $gte: startOfRange, $lte: endOfRange } },
+                        { timestamp: { $exists: false }, createdAt: { $gte: startOfRange, $lte: endOfRange } }
                     ]
                 }).sort({ createdAt: -1 });
 
@@ -353,7 +378,8 @@ router.post('/fix-ip', protect, adminOnly, async (req, res) => {
 // @access  Admin
 router.get('/check-license', protect, adminOnly, async (req, res) => {
     try {
-        const report = await getLicenseReport();
+        const targetDate = req.query.date || null;
+        const report = await getLicenseReport(targetDate);
         res.status(200).json({ success: true, data: report });
     } catch (error) {
 
@@ -366,7 +392,8 @@ router.get('/check-license', protect, adminOnly, async (req, res) => {
 // @access  Admin
 router.post('/fix-license', protect, adminOnly, async (req, res) => {
     try {
-        const report = await getLicenseReport();
+        const targetDate = req.query.date || req.body.date || null;
+        const report = await getLicenseReport(targetDate);
         let fixedMissing = 0;
         let fixedMismatch = 0;
 
@@ -377,7 +404,7 @@ router.post('/fix-license', protect, adminOnly, async (req, res) => {
             const quantity = entry.apiCount;
             const unitPrice = panel.licenseCharges || 1000;
             const billAmount = quantity * unitPrice;
-            const dateObj = entry.originalDate ? new Date(entry.originalDate) : new Date(entry.date + 'T12:00:00Z');
+            const dateObj = new Date(entry.originalDate);
 
             await Payment.create({
                 panelId: panel._id, paymentType: 'License',
@@ -400,8 +427,9 @@ router.post('/fix-license', protect, adminOnly, async (req, res) => {
             const diff = mismatch.difference;
             const dateStr = mismatch.date;
             const unitPrice = panel.licenseCharges || 1000;
-            const startOfDay = new Date(dateStr + 'T00:00:00.000Z');
-            const endOfDay = new Date(dateStr + 'T23:59:59.999Z');
+            const exactTime = new Date(mismatch.originalDate);
+            const startOfRange = new Date(exactTime.getTime()); startOfRange.setMinutes(0, 0, 0);
+            const endOfRange = new Date(exactTime.getTime()); endOfRange.setMinutes(59, 59, 999);
 
             if (diff > 0) {
                 const billAmount = diff * unitPrice;
@@ -410,7 +438,7 @@ router.post('/fix-license', protect, adminOnly, async (req, res) => {
                     amountReceived: 0, paymentMode: 'UPI', bankName: '',
                     quantity: diff, unitPrice, billAmount, billDiscount: 0, paymentDiscount: 0,
                     isGstApplied: panel.takeSopDiscount || false, remark: `Auto-fixed: Added ${diff} extra licenses to match API count (${dateStr})`,
-                    addedBy: req.user._id, timestamp: new Date(dateStr + 'T12:00:00Z')
+                    addedBy: req.user._id, timestamp: exactTime
                 });
                 await Log.create({
                     userId: req.user._id, actionType: 'ADD', module: 'Payment',
@@ -422,9 +450,9 @@ router.post('/fix-license', protect, adminOnly, async (req, res) => {
                 const payments = await Payment.find({
                     panelId: panel._id, paymentType: 'License',
                     $or: [
-                        { timestamp: { $gte: startOfDay, $lte: endOfDay } },
-                        { timestamp: null, createdAt: { $gte: startOfDay, $lte: endOfDay } },
-                        { timestamp: { $exists: false }, createdAt: { $gte: startOfDay, $lte: endOfDay } }
+                        { timestamp: { $gte: startOfRange, $lte: endOfRange } },
+                        { timestamp: null, createdAt: { $gte: startOfRange, $lte: endOfRange } },
+                        { timestamp: { $exists: false }, createdAt: { $gte: startOfRange, $lte: endOfRange } }
                     ]
                 }).sort({ createdAt: -1 });
 
@@ -455,7 +483,7 @@ router.post('/fix-license', protect, adminOnly, async (req, res) => {
 // ==========================================
 // Helper Function: Check SOP Discrepancies
 // ==========================================
-async function getSopReport() {
+async function getSopReport(targetDate = null) {
     const apiResponse = await axios.post('https://soptools.tradestreet.in/superbackend/AmmountDetailsFilter', {
         month: null, year: null, Status: 'All'
     }, { headers: { 'Content-Type': 'application/json' } });
@@ -465,6 +493,9 @@ async function getSopReport() {
     let sopArray = Array.isArray(sopApiData) ? sopApiData : (sopApiData?.data || []);
 
     const cutoffDate = new Date('2026-03-31T18:30:00.000Z'); // 1 April 2026 00:00:00 IST
+    const nowIST = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+    const todayStr = nowIST.toISOString().split('T')[0];
+
     sopArray = sopArray.filter(item => {
         const dateStr = item["Payment Date"];
         if (!dateStr) return false;
@@ -473,8 +504,15 @@ async function getSopReport() {
         if (parts.length === 2) {
             const dParts = parts[0].split('/');
             if (dParts.length === 3) {
+                if (targetDate) {
+                    const tParts = targetDate.split('-');
+                    if (dParts[0] !== tParts[2] || dParts[1] !== tParts[1] || dParts[2] !== tParts[0]) {
+                        return false;
+                    }
+                }
                 // Parse as IST (+05:30)
                 const itemDate = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1]}+05:30`);
+                if (itemDate >= new Date(`${todayStr}T00:00:00+05:30`)) return false;
                 return itemDate >= cutoffDate;
             }
         }
@@ -573,7 +611,8 @@ async function getSopReport() {
 // @route   GET /api/sync/check-sop
 router.get('/check-sop', protect, adminOnly, async (req, res) => {
     try {
-        const report = await getSopReport();
+        const targetDate = req.query.date || null;
+        const report = await getSopReport(targetDate);
         res.status(200).json({ success: true, data: report });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message || 'Server Error' });
@@ -583,7 +622,8 @@ router.get('/check-sop', protect, adminOnly, async (req, res) => {
 // @route   POST /api/sync/fix-sop
 router.post('/fix-sop', protect, adminOnly, async (req, res) => {
     try {
-        const report = await getSopReport();
+        const targetDate = req.query.date || req.body.date || null;
+        const report = await getSopReport(targetDate);
         let fixedMissing = 0;
 
         for (const match of report.matchedData) {
