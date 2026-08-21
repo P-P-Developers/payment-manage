@@ -12,12 +12,13 @@ function escapeRegex(str) {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// Helper: Format Date to IST exact hour string for grouping
+// Helper: Format Date to IST exact minute string for grouping
 function formatIST(d) {
     if (isNaN(d.getTime())) return null;
     const offsetMs = 5.5 * 60 * 60 * 1000;
     const ist = new Date(d.getTime() + offsetMs);
-    return ist.toISOString().replace('T', ' ').substring(0, 13) + ':00';
+    // Include Date, Hour, and Minute. Ignore seconds.
+    return ist.toISOString().replace('T', ' ').substring(0, 16);
 }
 
 // ==========================================
@@ -150,7 +151,7 @@ async function getLicenseReport(targetDate = null) {
     const ALGO_PAYLOAD = {
         page: 1, limit: 10000, search: '',
         startDate: '2026-04-01',
-        endDate: new Date().toISOString().split('T')[0],
+        endDate: "",
         month: '', licAdd: true
     };
 
@@ -280,7 +281,7 @@ router.get('/check-ip', protect, adminOnly, async (req, res) => {
     try {
         const targetDate = req.query.date || null;
         const report = await getIpReport(targetDate);
-        
+
         await Log.create({
             userId: req.user._id,
             actionType: 'SYNC',
@@ -394,7 +395,7 @@ router.get('/check-license', protect, adminOnly, async (req, res) => {
     try {
         const targetDate = req.query.date || null;
         const report = await getLicenseReport(targetDate);
-        
+
         await Log.create({
             userId: req.user._id,
             actionType: 'SYNC',
@@ -518,124 +519,124 @@ async function getSopReport(targetDate = null) {
             month: null, year: null, Status: 'All'
         }, { headers: { 'Content-Type': 'application/json' } });
 
-    let sopApiData = apiResponse.data?.AmmountDetails;
-    if (!sopApiData) sopApiData = apiResponse.data;
-    let sopArray = Array.isArray(sopApiData) ? sopApiData : (sopApiData?.data || []);
+        let sopApiData = apiResponse.data?.AmmountDetails;
+        if (!sopApiData) sopApiData = apiResponse.data;
+        let sopArray = Array.isArray(sopApiData) ? sopApiData : (sopApiData?.data || []);
 
-    const cutoffDate = new Date('2026-03-31T18:30:00.000Z'); // 1 April 2026 00:00:00 IST
-    const nowIST = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
-    const todayStr = nowIST.toISOString().split('T')[0];
+        const cutoffDate = new Date('2026-03-31T18:30:00.000Z'); // 1 April 2026 00:00:00 IST
+        const nowIST = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+        const todayStr = nowIST.toISOString().split('T')[0];
 
-    sopArray = sopArray.filter(item => {
-        const dateStr = item["Payment Date"];
-        if (!dateStr) return false;
+        sopArray = sopArray.filter(item => {
+            const dateStr = item["Payment Date"];
+            if (!dateStr) return false;
 
-        const parts = dateStr.split(' ');
-        if (parts.length === 2) {
-            const dParts = parts[0].split('/');
-            if (dParts.length === 3) {
-                if (targetDate) {
-                    const tParts = targetDate.split('-');
-                    if (dParts[0] !== tParts[2] || dParts[1] !== tParts[1] || dParts[2] !== tParts[0]) {
-                        return false;
-                    }
-                }
-                // Parse as IST (+05:30)
-                const itemDate = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1]}+05:30`);
-                if (itemDate >= new Date(`${todayStr}T00:00:00+05:30`)) return false;
-                return itemDate >= cutoffDate;
-            }
-        }
-        return false;
-    });
-
-    const panels = await Panel.find({ category: { $regex: new RegExp('^sop$', 'i') } }).lean();
-
-    const panelIds = panels.map(p => p._id);
-    const payments = await Payment.find({
-        panelId: { $in: panelIds },
-        paymentType: 'License'
-    }).lean();
-
-    const matchedData = [];
-    const matchedPanelIds = new Set();
-    let newMissingCount = 0;
-
-    sopArray.forEach(sopItem => {
-        const url = (sopItem.Url || "").toLowerCase();
-        const matchedPanel = panels.find(p => p.panelName && url.includes(p.panelName.toLowerCase()));
-
-
-        if (matchedPanel) {
-            matchedPanelIds.add(matchedPanel._id.toString());
-
-            const panelPayments = payments.filter(pay => pay.panelId.toString() === matchedPanel._id.toString());
-            const sopAmount = parseFloat(sopItem.AmountDetails) || 0;
-
-            if (panelPayments.length === 0) {
-                newMissingCount++;
-                matchedData.push({
-                    sopItem,
-                    localPanel: matchedPanel,
-                    status: 'Missing in DB'
-                });
-            } else {
-                const isExisting = panelPayments.some(pay => {
-                    const bAmt = parseFloat(pay.billAmount) || 0;
-                    const uPrice = parseFloat(pay.unitPrice) || 0;
-                    const amtWithGst = parseFloat((sopAmount + (sopAmount * 0.18)).toFixed(2));
-
-                    const amtMatches = bAmt === sopAmount || bAmt === amtWithGst;
-
-                    let dateMatches = false;
-                    const dateStr = sopItem["Payment Date"];
-                    if (dateStr) {
-                        const parts = dateStr.split(' ');
-                        if (parts.length >= 1) {
-                            const dParts = parts[0].split('/');
-                            if (dParts.length === 3) {
-                                const sopDateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`; // YYYY-MM-DD
-                                const payDateObj = new Date(pay.timestamp || pay.createdAt || pay.date);
-                                if (!isNaN(payDateObj.getTime())) {
-                                    // Convert to IST to compare the date part correctly
-                                    const offsetMs = 5.5 * 60 * 60 * 1000;
-                                    const istDateObj = new Date(payDateObj.getTime() + offsetMs);
-                                    const payDateStr = istDateObj.toISOString().split('T')[0];
-
-                                    if (payDateStr === sopDateStr) {
-                                        dateMatches = true;
-                                    }
-                                }
-                            }
+            const parts = dateStr.split(' ');
+            if (parts.length === 2) {
+                const dParts = parts[0].split('/');
+                if (dParts.length === 3) {
+                    if (targetDate) {
+                        const tParts = targetDate.split('-');
+                        if (dParts[0] !== tParts[2] || dParts[1] !== tParts[1] || dParts[2] !== tParts[0]) {
+                            return false;
                         }
-                    } else {
-                        dateMatches = true; // Fallback if no date in sopItem
                     }
+                    // Parse as IST (+05:30)
+                    const itemDate = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1]}+05:30`);
+                    if (itemDate >= new Date(`${todayStr}T00:00:00+05:30`)) return false;
+                    return itemDate >= cutoffDate;
+                }
+            }
+            return false;
+        });
 
-                    return amtMatches && dateMatches;
-                });
+        const panels = await Panel.find({ category: { $regex: new RegExp('^sop$', 'i') } }).lean();
 
-                if (!isExisting) {
+        const panelIds = panels.map(p => p._id);
+        const payments = await Payment.find({
+            panelId: { $in: panelIds },
+            paymentType: 'License'
+        }).lean();
+
+        const matchedData = [];
+        const matchedPanelIds = new Set();
+        let newMissingCount = 0;
+
+        sopArray.forEach(sopItem => {
+            const url = (sopItem.Url || "").toLowerCase();
+            const matchedPanel = panels.find(p => p.panelName && url.includes(p.panelName.toLowerCase()));
+
+
+            if (matchedPanel) {
+                matchedPanelIds.add(matchedPanel._id.toString());
+
+                const panelPayments = payments.filter(pay => pay.panelId.toString() === matchedPanel._id.toString());
+                const sopAmount = parseFloat(sopItem.AmountDetails) || 0;
+
+                if (panelPayments.length === 0) {
                     newMissingCount++;
                     matchedData.push({
                         sopItem,
                         localPanel: matchedPanel,
-                        status: 'Mismatch Amount'
+                        status: 'Missing in DB'
                     });
+                } else {
+                    const isExisting = panelPayments.some(pay => {
+                        const bAmt = parseFloat(pay.billAmount) || 0;
+                        const uPrice = parseFloat(pay.unitPrice) || 0;
+                        const amtWithGst = parseFloat((sopAmount + (sopAmount * 0.18)).toFixed(2));
+
+                        const amtMatches = bAmt === sopAmount || bAmt === amtWithGst;
+
+                        let dateMatches = false;
+                        const dateStr = sopItem["Payment Date"];
+                        if (dateStr) {
+                            const parts = dateStr.split(' ');
+                            if (parts.length >= 1) {
+                                const dParts = parts[0].split('/');
+                                if (dParts.length === 3) {
+                                    const sopDateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`; // YYYY-MM-DD
+                                    const payDateObj = new Date(pay.timestamp || pay.createdAt || pay.date);
+                                    if (!isNaN(payDateObj.getTime())) {
+                                        // Convert to IST to compare the date part correctly
+                                        const offsetMs = 5.5 * 60 * 60 * 1000;
+                                        const istDateObj = new Date(payDateObj.getTime() + offsetMs);
+                                        const payDateStr = istDateObj.toISOString().split('T')[0];
+
+                                        if (payDateStr === sopDateStr) {
+                                            dateMatches = true;
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            dateMatches = true; // Fallback if no date in sopItem
+                        }
+
+                        return amtMatches && dateMatches;
+                    });
+
+                    if (!isExisting) {
+                        newMissingCount++;
+                        matchedData.push({
+                            sopItem,
+                            localPanel: matchedPanel,
+                            status: 'Mismatch Amount'
+                        });
+                    }
+                    // If isExisting is true, it is perfectly matched, so we don't add it to matchedData
                 }
-                // If isExisting is true, it is perfectly matched, so we don't add it to matchedData
             }
-        }
-    });
+        });
 
-    const unmatchedDbPanels = panels.filter(p => !matchedPanelIds.has(p._id.toString()));
+        const unmatchedDbPanels = panels.filter(p => !matchedPanelIds.has(p._id.toString()));
 
-    return {
-        total: sopArray.length,
-        matchedData,
-        unmatchedDbPanels,
-        newMissingCount
-    };
+        return {
+            total: sopArray.length,
+            matchedData,
+            unmatchedDbPanels,
+            newMissingCount
+        };
     } catch (error) {
         console.error("[getSopReport] Error fetching SOP report:", error.response?.data || error.message || error);
         throw error;
@@ -647,7 +648,7 @@ router.get('/check-sop', protect, adminOnly, async (req, res) => {
     try {
         const targetDate = req.query.date || null;
         const report = await getSopReport(targetDate);
-        
+
         await Log.create({
             userId: req.user._id,
             actionType: 'SYNC',
