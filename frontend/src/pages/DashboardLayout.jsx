@@ -20,6 +20,9 @@ import {
   Settings,
   Sun,
   Moon,
+  Bell,
+  AlertCircle,
+  HardDrive,
 } from 'lucide-react';
 
 export default function DashboardLayout() {
@@ -31,6 +34,9 @@ export default function DashboardLayout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const notifDropdownRef = useRef(null);
 
   const [isDark, setIsDark] = useState(() => {
     const savedTheme = localStorage.getItem('app_theme');
@@ -45,14 +51,17 @@ export default function DashboardLayout() {
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
         setIsProfileOpen(false);
       }
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target)) {
+        setIsNotificationOpen(false);
+      }
     }
-    if (isProfileOpen) {
+    if (isProfileOpen || isNotificationOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isProfileOpen]);
+  }, [isProfileOpen, isNotificationOpen]);
 
   useEffect(() => {
     if (isDark) {
@@ -131,6 +140,22 @@ export default function DashboardLayout() {
       setLoading(false);
     }
 
+    const fetchNotifications = async () => {
+      if (getAuthToken()) {
+        try {
+          const res = await apiRequest('/notifications');
+          if (res.success) {
+            setNotifications(res.data);
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+    
+    fetchNotifications();
+    const notifInterval = setInterval(fetchNotifications, 60000);
+
     const loadSettings = async () => {
       try {
         // Fast local pre-render
@@ -172,8 +197,18 @@ export default function DashboardLayout() {
     return () => {
       window.removeEventListener('settingsUpdated', loadSettings);
       clearInterval(sessionInterval);
+      clearInterval(notifInterval);
     };
   }, [navigate]);
+
+  const handleDismissNotification = async (id) => {
+    try {
+      setNotifications(prev => prev.filter(n => n._id !== id));
+      await apiRequest(`/notifications/${id}/read`, { method: 'POST' });
+    } catch (e) {
+      // ignore
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -323,6 +358,56 @@ export default function DashboardLayout() {
           </h1>
 
           <div className="flex items-center gap-4 relative">
+            {/* Notification Bell */}
+            <div className="relative" ref={notifDropdownRef}>
+              <button
+                onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all duration-300 shadow-sm active:scale-95 flex items-center justify-center relative"
+                title="System Alerts"
+              >
+                <Bell className="h-4.5 w-4.5" />
+                {notifications.length > 0 && (
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 animate-pulse border border-white dark:border-slate-900"></span>
+                )}
+              </button>
+              
+              {isNotificationOpen && (
+                <div className="absolute right-0 mt-2.5 w-80 max-h-[80vh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-3 duration-200 custom-scrollbar">
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 mb-2 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">System Alerts</h3>
+                    {notifications.length > 0 && (
+                      <span className="text-[10px] bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 px-2 py-0.5 rounded-full font-bold">{notifications.length} New</span>
+                    )}
+                  </div>
+                  
+                  {notifications.length === 0 ? (
+                    <div className="py-6 text-center text-slate-500 dark:text-slate-400 text-xs font-medium">
+                      No new alerts
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {notifications.map(notif => (
+                        <div key={notif._id} className="p-3 bg-rose-50/50 dark:bg-rose-500/5 border border-rose-100 dark:border-rose-500/10 rounded-xl flex items-start gap-3 relative group transition-colors hover:bg-rose-50 dark:hover:bg-rose-500/10">
+                          <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+                          <div className="flex-1 pr-6">
+                            <p className="text-xs text-rose-800 dark:text-rose-300 font-semibold leading-relaxed">{notif.message}</p>
+                            <p className="text-[9px] text-rose-500/70 dark:text-rose-400/60 mt-1.5 font-medium">{new Date(notif.createdAt).toLocaleString()}</p>
+                          </div>
+                          <button 
+                            onClick={() => handleDismissNotification(notif._id)}
+                            className="absolute top-2.5 right-2.5 text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-slate-800 rounded-full p-0.5 shadow-sm border border-rose-100 dark:border-rose-500/20"
+                            title="Dismiss"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Theme Toggle Button */}
             <button
               onClick={() => setIsDark(!isDark)}
@@ -379,6 +464,14 @@ export default function DashboardLayout() {
 
                       {user?.role === 'Admin' && (
                         <div className="px-1 space-y-1 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                          <Link
+                            to="/dashboard/backups"
+                            onClick={() => setIsProfileOpen(false)}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all"
+                          >
+                            <HardDrive className="h-4 w-4 text-slate-400" />
+                            <span>Database Backups</span>
+                          </Link>
                           <Link
                             to="/dashboard/sync"
                             onClick={() => setIsProfileOpen(false)}

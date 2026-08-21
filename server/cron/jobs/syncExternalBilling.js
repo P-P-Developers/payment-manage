@@ -3,6 +3,7 @@ const Panel = require('../../models/Panel');
 const Payment = require('../../models/Payment');
 const User = require('../../models/User');
 const Log = require('../../models/Log');
+const Notification = require('../../models/Notification');
 
 /**
  * Job: Sync External Billing (Licenses and IP Charges)
@@ -96,7 +97,8 @@ module.exports = {
                 }
             }
         } catch (error) {
-
+            console.error("Algo Billing Sync Error:", error);
+            await Notification.create({ message: `SmartAlgo License fetch error: ${error.message}`, type: 'error' });
         }
 
         // ==============================================================
@@ -150,7 +152,8 @@ module.exports = {
                 }
             }
         } catch (error) {
-
+            console.error("IP Billing Sync Error:", error);
+            await Notification.create({ message: `IP Billing fetch error: ${error.message}`, type: 'error' });
         }
 
         // ==============================================================
@@ -160,9 +163,8 @@ module.exports = {
         try {
             const sopUrl = "https://soptools.tradestreet.in/superbackend/TodayAmountDetails";
             // Hit the API (no specific body is needed as per example, using empty object)
-            const sopResponse = await axios.get(sopUrl, {}, { headers: { 'Content-Type': 'application/json' } });
+            const sopResponse = await axios.get(sopUrl);
 
-            console.log("sopResponse", sopResponse.data)
             if (sopResponse.data.Status === true && sopResponse.data.AmmountDetails) {
                 const sopData = sopResponse.data.AmmountDetails;
                 // Fetch SOP panels
@@ -241,6 +243,7 @@ module.exports = {
             }
         } catch (error) {
             console.error("SOP Billing Sync Error:", error);
+            await Notification.create({ message: `SOP License fetch error: ${error.message}`, type: 'error' });
         }
 
         return { success: true, licenseBilled, ipBilled, sopBilled };

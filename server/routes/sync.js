@@ -280,6 +280,15 @@ router.get('/check-ip', protect, adminOnly, async (req, res) => {
     try {
         const targetDate = req.query.date || null;
         const report = await getIpReport(targetDate);
+        
+        await Log.create({
+            userId: req.user._id,
+            actionType: 'SYNC',
+            module: 'Sync',
+            details: `Checked IP Billing sync status${targetDate ? ` for date: ${targetDate}` : ' for all time'}`,
+            ipAddress: req.ip
+        });
+
         res.status(200).json({ success: true, data: report });
     } catch (error) {
 
@@ -385,6 +394,15 @@ router.get('/check-license', protect, adminOnly, async (req, res) => {
     try {
         const targetDate = req.query.date || null;
         const report = await getLicenseReport(targetDate);
+        
+        await Log.create({
+            userId: req.user._id,
+            actionType: 'SYNC',
+            module: 'Sync',
+            details: `Checked SmartAlgo Licenses sync status${targetDate ? ` for date: ${targetDate}` : ' for all time'}`,
+            ipAddress: req.ip
+        });
+
         res.status(200).json({ success: true, data: report });
     } catch (error) {
 
@@ -629,6 +647,15 @@ router.get('/check-sop', protect, adminOnly, async (req, res) => {
     try {
         const targetDate = req.query.date || null;
         const report = await getSopReport(targetDate);
+        
+        await Log.create({
+            userId: req.user._id,
+            actionType: 'SYNC',
+            module: 'Sync',
+            details: `Checked SOP Licenses sync status${targetDate ? ` for date: ${targetDate}` : ' for all time'}`,
+            ipAddress: req.ip
+        });
+
         res.status(200).json({ success: true, data: report });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message || 'Server Error' });
@@ -703,11 +730,20 @@ router.post('/fix-sop', protect, adminOnly, async (req, res) => {
             }
         }
 
+        await Log.create({
+            userId: req.user._id,
+            actionType: 'SYNC',
+            module: 'Sync',
+            details: `Fixed SOP Billing discrepancies. Added: ${fixedMissing}.`,
+            ipAddress: req.ip
+        });
+
         res.status(200).json({ success: true, fixedMissing, message: `SOP fixes applied. Added ${fixedMissing} payments.` });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message || 'Server Error' });
     }
 });
 
-module.exports = router;
 
+
+module.exports = router;

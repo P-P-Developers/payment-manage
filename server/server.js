@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
-const User = require('./models/User');
 const cronScheduler = require('./cron/cron');
 
 // Load environment variables
@@ -34,6 +33,8 @@ app.use('/api/banks', require('./routes/banks'));
 app.use('/api/payment-types', require('./routes/payment-types'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/sync', require('./routes/sync'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/backups', require('./routes/backups'));
 
 // Basic health check route
 app.get('/api/health', (req, res) => {

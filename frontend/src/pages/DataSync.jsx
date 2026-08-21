@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiRequest } from '@/utils/api';
 import { Server, RefreshCw, AlertTriangle, CheckCircle, Database } from 'lucide-react';
 import RotateCaptchaModal from '@/components/RotateCaptchaModal';
@@ -26,8 +26,14 @@ const DataSync = () => {
   const [licenseSearch, setLicenseSearch] = useState('');
   const [sopSearch, setSopSearch] = useState('');
 
+  const [activeTab, setActiveTab] = useState('ip');
+  const [page, setPage] = useState(1);
   const [syncMode, setSyncMode] = useState('all');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab]);
 
   const [isCaptchaOpen, setIsCaptchaOpen] = useState(false);
   const [pendingFixFn, setPendingFixFn] = useState(null);
@@ -88,7 +94,7 @@ const DataSync = () => {
     setIpMessage(null);
     try {
       const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
-      const response = await apiRequest(`/sync/fix-ip${query}`, { 
+      const response = await apiRequest(`/sync/fix-ip${query}`, {
         method: 'POST',
         body: JSON.stringify({
           specificPanelName: item.panelName,
@@ -146,7 +152,7 @@ const DataSync = () => {
     setLicenseMessage(null);
     try {
       const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
-      const response = await apiRequest(`/sync/fix-license${query}`, { 
+      const response = await apiRequest(`/sync/fix-license${query}`, {
         method: 'POST',
         body: JSON.stringify({
           specificPanelName: item.panelName,
@@ -220,7 +226,7 @@ const DataSync = () => {
     setSopMessage(null);
     try {
       const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
-      const response = await apiRequest(`/sync/fix-sop${query}`, { 
+      const response = await apiRequest(`/sync/fix-sop${query}`, {
         method: 'POST',
         body: JSON.stringify({
           specificPanelId: item.localPanel._id,
@@ -253,13 +259,45 @@ const DataSync = () => {
   const renderCard = (title, icon, data, loading, fixing, checkFn, fixFn, message, search, setSearch, typePrefix) => {
     const discrepanciesExist = hasDiscrepancies(data);
 
+    let combinedList = [];
+    if (data) {
+      combinedList = [
+        ...data.missingEntries.map(e => ({ ...e, discrepancyType: 'missing' })),
+        ...data.countMismatches.map(e => ({ ...e, discrepancyType: 'mismatch' }))
+      ].filter(i => !search || i.panelName.toLowerCase().includes(search.toLowerCase()))
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    const totalPages = Math.ceil(combinedList.length / 10);
+    const paginatedList = combinedList.slice((page - 1) * 10, page * 10);
+
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col h-full">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl">
-            {icon}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col h-full">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl">
+              {icon}
+            </div>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">{title}</h2>
           </div>
-          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">{title}</h2>
+          <div className="flex gap-3">
+            <button
+              onClick={checkFn}
+              disabled={loading || fixing}
+              className="py-2 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
+              Check Now
+            </button>
+            <button
+              onClick={fixFn}
+              disabled={!discrepanciesExist || loading || fixing}
+              className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              {fixing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Server className="h-4 w-4" />}
+              Fix Discrepancies
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 space-y-4">
@@ -286,47 +324,49 @@ const DataSync = () => {
           )}
 
           {data && !loading && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                  <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Missing Entries</div>
-                  <div className={`text-2xl font-bold ${data.missingEntries.length > 0 ? 'text-amber-600 dark:text-amber-500' : 'text-emerald-600 dark:text-emerald-500'}`}>
+            <div className="flex flex-col h-full gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Missing Entries:</span>
+                  <span className={`text-sm font-bold ${data.missingEntries.length > 0 ? 'text-amber-600 dark:text-amber-500' : 'text-emerald-600 dark:text-emerald-500'}`}>
                     {data.missingEntries.length}
-                  </div>
+                  </span>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                  <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Count Mismatches</div>
-                  <div className={`text-2xl font-bold ${data.countMismatches.length > 0 ? 'text-amber-600 dark:text-amber-500' : 'text-emerald-600 dark:text-emerald-500'}`}>
+                <div className="bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Count Mismatches:</span>
+                  <span className={`text-sm font-bold ${data.countMismatches.length > 0 ? 'text-amber-600 dark:text-amber-500' : 'text-emerald-600 dark:text-emerald-500'}`}>
                     {data.countMismatches.length}
-                  </div>
+                  </span>
                 </div>
+
+                {discrepanciesExist ? (
+                  <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 px-3 py-1.5 rounded-lg flex items-center gap-2 md:ml-auto">
+                    <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+                    <span className="text-xs font-bold text-amber-800 dark:text-amber-400">Action Required</span>
+                  </div>
+                ) : (
+                  <div className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-900/30 px-3 py-1.5 rounded-lg flex items-center gap-2 md:ml-auto">
+                    <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-500" />
+                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400">All Synced</span>
+                  </div>
+                )}
               </div>
 
-              {discrepanciesExist ? (
+              {discrepanciesExist && (
                 <>
-                  <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-xl p-4 flex gap-3">
-                    <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
-                    <div>
-                      <h4 className="text-sm font-bold text-amber-800 dark:text-amber-400">Action Required</h4>
-                      <p className="text-sm text-amber-700 dark:text-amber-500/80 mt-1">
-                        Discrepancies were found. You can automatically fix these issues by clicking the Fix button below.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-800 p-0 overflow-hidden">
+                  <div className="mt-1 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-800 p-0 flex-1 overflow-hidden flex flex-col">
                     <div className="flex justify-between items-center p-3 border-b border-slate-200 dark:border-slate-700/50">
                       <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Discrepancy Logs</h5>
-                      <input 
-                        type="text" 
-                        placeholder="Search panel..." 
-                        className="px-2 py-1 text-xs rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-1 focus:ring-blue-500" 
-                        value={search} 
-                        onChange={(e) => setSearch(e.target.value)} 
+                      <input
+                        type="text"
+                        placeholder="Search panel..."
+                        className="px-2 py-1 text-xs rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-1 focus:ring-blue-500"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
                       />
                     </div>
 
-                    <div className="max-h-52 overflow-y-auto">
+                    <div className="overflow-hidden">
                       <table className="w-full text-left text-xs whitespace-nowrap">
                         <thead className="bg-slate-100 dark:bg-slate-800/50 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 sticky top-0">
                           <tr>
@@ -338,97 +378,73 @@ const DataSync = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
-                          {/* Missing entries */}
-                          {[...data.missingEntries]
-                             .filter(i => !search || i.panelName.toLowerCase().includes(search.toLowerCase()))
-                             .sort((a,b)=>new Date(b.date)-new Date(a.date)).map((item, idx) => (
-                               <tr key={`missing-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                  <td className="px-3 py-2 text-center"><span className="text-[10px] bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 dark:border dark:border-rose-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Missing</span></td>
-                                  <td className="px-3 py-2 font-medium text-slate-900 dark:text-white">{item.panelName}</td>
-                                  <td className="px-3 py-2">Missing <span className="font-bold text-slate-800 dark:text-slate-200">{item.apiCount}</span> entries</td>
-                                  <td className="px-3 py-2 font-mono text-[10px] text-slate-500 text-right">{item.date}</td>
-                                  <td className="px-3 py-2 text-center">
-                                    <button
-                                      onClick={() => openSpecificCaptchaFor(`${typePrefix}-specific`, item)}
-                                      disabled={fixing || loading}
-                                      className="text-[10px] px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 font-bold rounded-md transition-colors border border-blue-200 dark:border-blue-500/20"
-                                    >
-                                      Fix
-                                    </button>
-                                  </td>
-                               </tr>
-                             ))
-                          }
-                          {/* Mismatches */}
-                          {[...data.countMismatches]
-                             .filter(i => !search || i.panelName.toLowerCase().includes(search.toLowerCase()))
-                             .sort((a,b)=>new Date(b.date)-new Date(a.date)).map((item, idx) => (
-                               <tr key={`mismatch-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                  <td className="px-3 py-2 text-center"><span className="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 dark:border dark:border-amber-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Mismatch</span></td>
-                                  <td className="px-3 py-2 font-medium text-slate-900 dark:text-white">{item.panelName}</td>
-                                  <td className="px-3 py-2">API: {item.apiCount} <span className="text-slate-300 dark:text-slate-600">|</span> DB: {item.dbQuantity} <span className="text-slate-400">({item.difference > 0 ? '+':''}{item.difference})</span></td>
-                                  <td className="px-3 py-2 font-mono text-[10px] text-slate-500 text-right">{item.date}</td>
-                                  <td className="px-3 py-2 text-center">
-                                    <button
-                                      onClick={() => openSpecificCaptchaFor(`${typePrefix}-specific`, item)}
-                                      disabled={fixing || loading}
-                                      className="text-[10px] px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 font-bold rounded-md transition-colors border border-blue-200 dark:border-blue-500/20"
-                                    >
-                                      Fix
-                                    </button>
-                                  </td>
-                               </tr>
-                             ))
-                          }
+                          {paginatedList.map((item, idx) => (
+                            <tr key={`${item.discrepancyType}-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                              <td className="px-3 py-2 text-center">
+                                {item.discrepancyType === 'missing' ? (
+                                  <span className="text-[10px] bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 dark:border dark:border-rose-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Missing</span>
+                                ) : (
+                                  <span className="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 dark:border dark:border-amber-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Mismatch</span>
+                                )}
+                              </td>
+                              <td className="px-3 py-2 font-medium text-slate-900 dark:text-white">{item.panelName}</td>
+                              <td className="px-3 py-2">
+                                {item.discrepancyType === 'missing' ? (
+                                  <>Missing <span className="font-bold text-slate-800 dark:text-slate-200">{item.apiCount}</span> entries</>
+                                ) : (
+                                  <>API: {item.apiCount} <span className="text-slate-300 dark:text-slate-600">|</span> DB: {item.dbQuantity} <span className="text-slate-400">({item.difference > 0 ? '+' : ''}{item.difference})</span></>
+                                )}
+                              </td>
+                              <td className="px-3 py-2 font-mono text-[10px] text-slate-500 text-right">{item.date}</td>
+                              <td className="px-3 py-2 text-center">
+                                <button
+                                  onClick={() => openSpecificCaptchaFor(`${typePrefix}-specific`, item)}
+                                  disabled={fixing || loading}
+                                  className="text-[10px] px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 font-bold rounded-md transition-colors border border-blue-200 dark:border-blue-500/20"
+                                >
+                                  Fix
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>
+                    {totalPages > 1 && (
+                      <div className="flex justify-between items-center p-3 border-t border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/30">
+                        <button
+                          onClick={() => setPage(p => Math.max(1, p - 1))}
+                          disabled={page === 1}
+                          className="px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                        >
+                          Previous
+                        </button>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">Page {page} of {totalPages}</span>
+                        <button
+                          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                          disabled={page === totalPages}
+                          className="px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </>
-              ) : (
-                <div className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-900/30 rounded-xl p-4 flex gap-3">
-                  <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-500 flex-shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-400">All Synced</h4>
-                    <p className="text-sm text-emerald-700 dark:text-emerald-500/80 mt-1">
-                      Local DB exactly matches the external API history. No action required.
-                    </p>
-                  </div>
-                </div>
               )}
             </div>
           )}
-        </div>
-
-        <div className="flex gap-3 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
-          <button
-            onClick={checkFn}
-            disabled={loading || fixing}
-            className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
-          >
-            {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
-            Check Now
-          </button>
-
-          <button
-            onClick={fixFn}
-            disabled={!discrepanciesExist || loading || fixing}
-            className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
-          >
-            {fixing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Server className="h-4 w-4" />}
-            Fix Discrepancies
-          </button>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-8 max-w-[1600px] mx-auto">
+    <div className="p-4 md:p-8 space-y-6 max-w-[1600px] mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Data Synchronization</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-2">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Data Synchronization</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Verify and synchronize billing history between SmartAlgo and local database.
           </p>
         </div>
@@ -443,10 +459,10 @@ const DataSync = () => {
             <input type="radio" name="syncMode" value="date" checked={syncMode === 'date'} onChange={() => setSyncMode('date')} className="accent-blue-600 w-4 h-4" />
             <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Specific Date</span>
           </label>
-          
+
           {syncMode === 'date' && (
-            <input 
-              type="date" 
+            <input
+              type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               className="px-3 py-1.5 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-slate-200 ml-2"
@@ -455,173 +471,243 @@ const DataSync = () => {
         </div>
       </div>
 
+      <div className="flex bg-slate-100 dark:bg-slate-800/50 p-1.5 rounded-xl w-full max-w-3xl mb-2 mx-auto">
+        <button
+          onClick={() => setActiveTab('ip')}
+          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'ip' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}
+        >
+          IP Billing
+        </button>
+        <button
+          onClick={() => setActiveTab('license')}
+          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'license' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}
+        >
+          SmartAlgo Licenses
+        </button>
+        <button
+          onClick={() => setActiveTab('sop')}
+          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'sop' ? 'bg-white dark:bg-slate-700 shadow-sm text-purple-600 dark:text-purple-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}
+        >
+          SOP Licenses
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 gap-6 items-stretch">
-        {renderCard(
+        {activeTab === 'ip' && renderCard(
           "IP Billing Sync All panels ",
           <Server className="h-6 w-6" />,
           ipData, ipLoading, ipFixing, checkIp, () => openCaptchaFor('ip'), ipMessage, ipSearch, setIpSearch, 'ip'
         )}
 
-        {renderCard(
+        {activeTab === 'license' && renderCard(
           "License Billing Sync Algo panels",
           <Database className="h-6 w-6" />,
           licenseData, licenseLoading, licenseFixing, checkLicense, () => openCaptchaFor('license'), licenseMessage, licenseSearch, setLicenseSearch, 'license'
         )}
 
         {/* SOP Card */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col h-full">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl">
-              <Server className="h-6 w-6" />
+        {activeTab === 'sop' && (
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col h-full">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl">
+                  <Server className="h-6 w-6" />
+                </div>
+                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">SOP Licenses Check</h2>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={checkSop}
+                  disabled={sopLoading || sopFixing}
+                  className="py-2 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {sopLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
+                  Check Now
+                </button>
+                <button
+                  onClick={() => openCaptchaFor('sop')}
+                  disabled={!(sopData?.newMissingCount > 0) || sopFixing || sopLoading}
+                  className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {sopFixing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Server className="h-4 w-4" />}
+                  Fix Discrepancies
+                </button>
+              </div>
             </div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">SOP Licenses Check</h2>
-          </div>
 
-          <div className="flex-1 space-y-4">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Fetch and verify SOP license details from the external tradestreet API for all statuses.
-            </p>
+            <div className="flex-1 space-y-4">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Fetch and verify SOP license details from the external tradestreet API for all statuses.
+              </p>
 
-            {sopMessage && (
-              <div className={`p-4 rounded-xl text-sm font-medium border ${sopMessage.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20'}`}>
-                {sopMessage.text}
-              </div>
-            )}
+              {sopMessage && (
+                <div className={`p-4 rounded-xl text-sm font-medium border ${sopMessage.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20'}`}>
+                  {sopMessage.text}
+                </div>
+              )}
 
-            {!sopData && !sopLoading && (
-              <div className="py-8 text-center text-slate-400 dark:text-slate-500 italic">
-                Click Check to pull data from SOP API.
-              </div>
-            )}
+              {!sopData && !sopLoading && (
+                <div className="py-8 text-center text-slate-400 dark:text-slate-500 italic">
+                  Click Check to pull data from SOP API.
+                </div>
+              )}
 
-            {sopLoading && (
-              <div className="py-8 flex justify-center items-center">
-                <RefreshCw className="h-8 w-8 animate-spin text-purple-500" />
-              </div>
-            )}
+              {sopLoading && (
+                <div className="py-8 flex justify-center items-center">
+                  <RefreshCw className="h-8 w-8 animate-spin text-purple-500" />
+                </div>
+              )}
 
-            {sopData && !sopLoading && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
-                    <div className="text-sm font-medium text-emerald-700 dark:text-emerald-400 mb-1">Mapped Both Sides</div>
-                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">
-                      {sopData.matchedData.length}
+              {sopData && !sopLoading && (
+                <div className="flex flex-col h-full gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="bg-emerald-50 dark:bg-emerald-900/10 px-3 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-800/30 flex items-center gap-2">
+                      <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Mapped Both Sides:</span>
+                      <span className="text-sm font-bold text-emerald-600 dark:text-emerald-500">
+                        {sopData.matchedData.length}
+                      </span>
                     </div>
                   </div>
 
-
-                </div>
-
-                <div className="mt-4 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-800 p-4 max-h-[600px] overflow-y-auto flex flex-col gap-6">
-
-                  {/* Category 1: DISCREPANCIES */}
-                  <div>
-                    <div className="flex justify-between items-center mb-2 border-b border-amber-200 dark:border-amber-800/50 pb-2">
-                      <h5 className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-                        1. Discrepancies (Missing / Mismatch in DB)
-                      </h5>
-                      <input 
-                        type="text" 
-                        placeholder="Search panel..." 
-                        className="px-2 py-1 text-xs rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-1 focus:ring-blue-500" 
-                        value={sopSearch} 
-                        onChange={(e) => setSopSearch(e.target.value)} 
-                      />
-                    </div>
-
-                    {sopData.matchedData.length > 0 ? (
-                      <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700/50 mt-3">
-                        <table className="w-full text-left text-xs whitespace-nowrap">
-                          <thead className="bg-slate-100 dark:bg-slate-800/50 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
-                            <tr>
-                              <th className="px-4 py-3 w-12 text-center">S.No.</th>
-                              <th className="px-4 py-3">SOP Company (API)</th>
-                              <th className="px-4 py-3">Matched Local Panel (DB)</th>
-                              <th className="px-4 py-3 text-right">API Amount</th>
-                              <th className="px-4 py-3">API Date</th>
-                              <th className="px-4 py-3 text-center">Payment Status</th>
-                              <th className="px-4 py-3 text-center">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
-                            {[...sopData.matchedData]
-                              .filter(m => !sopSearch || m.sopItem.Companyname?.toLowerCase().includes(sopSearch.toLowerCase()) || m.localPanel.panelName.toLowerCase().includes(sopSearch.toLowerCase()))
-                              .sort((a, b) => {
-                                const parseSopDate = (dStr) => {
-                                  if (!dStr) return 0;
-                                  const parts = dStr.split(' ');
-                                  if (parts.length >= 1) {
-                                    const dParts = parts[0].split('/');
-                                    if (dParts.length === 3) {
-                                      return new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1] || '00:00:00'}Z`).getTime();
-                                    }
-                                  }
-                                  return new Date(dStr).getTime();
-                                };
-                                return parseSopDate(b.sopItem["Payment Date"]) - parseSopDate(a.sopItem["Payment Date"]);
-                              }).map((match, idx) => (
-                                <tr key={`match-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">{idx + 1}</td>
-                                <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{match.sopItem.Companyname || '-'}</td>
-                                <td className="px-4 py-3">
-                                  <span className="font-mono text-[11px] bg-slate-200/50 dark:bg-slate-700/50 px-2 py-0.5 rounded text-slate-600 dark:text-slate-400">
-                                    {match.localPanel.panelName}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3 text-right font-semibold">₹{match.sopItem.AmountDetails}</td>
-                                <td className="px-4 py-3">{match.sopItem["Payment Date"]}</td>
-                                <td className="px-4 py-3 text-center">
-                                  <span className={`inline-flex items-center text-[10px] font-bold uppercase px-2 py-1 rounded-md shadow-sm ${match.status === 'Mismatch Amount' ? 'bg-amber-100 text-amber-700 border border-amber-200 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400' : 'bg-rose-100 text-rose-700 border border-rose-200 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400'}`}>
-                                    {match.status}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  <button
-                                    onClick={() => openSpecificCaptchaFor('sop-specific', match)}
-                                    disabled={sopFixing || sopLoading}
-                                    className="text-[10px] px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 font-bold rounded-md transition-colors border border-blue-200 dark:border-blue-500/20"
-                                  >
-                                    Fix
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                  <div className="mt-1 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-800 p-0 flex-1 overflow-hidden flex flex-col">
+                    {/* Category 1: DISCREPANCIES */}
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                      <div className="flex justify-between items-center p-3 border-b border-slate-200 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50">
+                        <h5 className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                          Discrepancy Logs
+                        </h5>
+                        <input
+                          type="text"
+                          placeholder="Search panel..."
+                          className="px-2 py-1 text-xs rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-1 focus:ring-blue-500"
+                          value={sopSearch}
+                          onChange={(e) => setSopSearch(e.target.value)}
+                        />
                       </div>
-                    ) : (
-                      <div className="text-sm text-slate-500 dark:text-slate-400 italic py-2">No mapped records found.</div>
-                    )}
+
+                      {sopData.matchedData.length > 0 ? (
+                        <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700/50 mt-3">
+                          <table className="w-full text-left text-xs whitespace-nowrap">
+                            <thead className="bg-slate-100 dark:bg-slate-800/50 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                              <tr>
+                                <th className="px-4 py-3 w-12 text-center">S.No.</th>
+                                <th className="px-4 py-3">SOP Company (API)</th>
+                                <th className="px-4 py-3">Matched Local Panel (DB)</th>
+                                <th className="px-4 py-3 text-right">API Amount</th>
+                                <th className="px-4 py-3">API Date</th>
+                                <th className="px-4 py-3 text-center">Payment Status</th>
+                                <th className="px-4 py-3 text-center">Action</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
+                              {(() => {
+                                const filteredSop = [...sopData.matchedData]
+                                  .filter(m => !sopSearch || m.sopItem.Companyname?.toLowerCase().includes(sopSearch.toLowerCase()) || m.localPanel.panelName.toLowerCase().includes(sopSearch.toLowerCase()))
+                                  .sort((a, b) => {
+                                    const parseSopDate = (dStr) => {
+                                      if (!dStr) return 0;
+                                      const parts = dStr.split(' ');
+                                      if (parts.length >= 1) {
+                                        const dParts = parts[0].split('/');
+                                        if (dParts.length === 3) {
+                                          return new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1] || '00:00:00'}Z`).getTime();
+                                        }
+                                      }
+                                      return new Date(dStr).getTime();
+                                    };
+                                    return parseSopDate(b.sopItem["Payment Date"]) - parseSopDate(a.sopItem["Payment Date"]);
+                                  });
+                                const totalSopPages = Math.ceil(filteredSop.length / 10);
+                                const paginatedSop = filteredSop.slice((page - 1) * 10, page * 10);
+
+                                return (
+                                  <>
+                                    {paginatedSop.map((match, idx) => (
+                                      <tr key={`match-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                        <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">{idx + 1 + (page - 1) * 10}</td>
+                                        <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{match.sopItem.Companyname || '-'}</td>
+                                        <td className="px-4 py-3">
+                                          <span className="font-mono text-[11px] bg-slate-200/50 dark:bg-slate-700/50 px-2 py-0.5 rounded text-slate-600 dark:text-slate-400">
+                                            {match.localPanel.panelName}
+                                          </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-right font-semibold">₹{match.sopItem.AmountDetails}</td>
+                                        <td className="px-4 py-3">{match.sopItem["Payment Date"]}</td>
+                                        <td className="px-4 py-3 text-center">
+                                          <span className={`inline-flex items-center text-[10px] font-bold uppercase px-2 py-1 rounded-md shadow-sm ${match.status === 'Mismatch Amount' ? 'bg-amber-100 text-amber-700 border border-amber-200 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400' : 'bg-rose-100 text-rose-700 border border-rose-200 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400'}`}>
+                                            {match.status}
+                                          </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
+                                          <button
+                                            onClick={() => openSpecificCaptchaFor('sop-specific', match)}
+                                            disabled={sopFixing || sopLoading}
+                                            className="text-[10px] px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 font-bold rounded-md transition-colors border border-blue-200 dark:border-blue-500/20"
+                                          >
+                                            Fix
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                    {totalSopPages > 1 && (
+                                      <tr>
+                                        <td colSpan="7" className="p-0">
+                                          <div className="flex justify-between items-center p-3 border-t border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/30">
+                                            <button
+                                              onClick={() => setPage(p => Math.max(1, p - 1))}
+                                              disabled={page === 1}
+                                              className="px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                                            >
+                                              Previous
+                                            </button>
+                                            <span className="text-xs text-slate-500 dark:text-slate-400">Page {page} of {totalSopPages}</span>
+                                            <button
+                                              onClick={() => setPage(p => Math.min(totalSopPages, p + 1))}
+                                              disabled={page === totalSopPages}
+                                              className="px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                                            >
+                                              Next
+                                            </button>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </>
+                                );
+                              })()}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-slate-500 dark:text-slate-400 italic p-4 text-center">No mapped records found.</div>
+                      )}
+                    </div>
                   </div>
-
-
-
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          <div className="flex gap-3 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
-            <button
-              onClick={checkSop}
-              disabled={sopLoading || sopFixing}
-              className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
-            >
-              {sopLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
-              Check Now
-            </button>
+            <div className="flex gap-3 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+              <button
+                onClick={checkSop}
+                disabled={sopLoading || sopFixing}
+                className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              >
+                {sopLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
+                Check Now
+              </button>
 
-            <button
-              onClick={() => openCaptchaFor('sop')}
-              disabled={!(sopData?.newMissingCount > 0) || sopFixing || sopLoading}
-              className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
-            >
-              {sopFixing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Server className="h-4 w-4" />}
-              Fix Discrepancies
-            </button>
+              <button
+                onClick={() => openCaptchaFor('sop')}
+                disabled={!(sopData?.newMissingCount > 0) || sopFixing || sopLoading}
+                className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              >
+                {sopFixing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Server className="h-4 w-4" />}
+                Fix Discrepancies
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <RotateCaptchaModal

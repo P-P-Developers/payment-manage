@@ -13,6 +13,7 @@ import Settings from './pages/Settings';
 import Statement from './pages/Statement';
 import DataSync from './pages/DataSync';
 import MonthlySummary from './pages/MonthlySummary';
+import Backups from './pages/Backups';
 
 export default function App() {
   useEffect(() => {
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="statement" element={<Statement />} />
           <Route path="sync" element={<DataSync />} />
           <Route path="monthly-summary" element={<MonthlySummary />} />
+          <Route path="backups" element={<Backups />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

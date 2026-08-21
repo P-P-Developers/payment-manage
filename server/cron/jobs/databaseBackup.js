@@ -18,13 +18,13 @@ module.exports = async () => {
         }
 
 
-        const backupDir = path.join(__dirname, '../../../backups');
+        const backupDir = path.join(__dirname, '../../backups');
         if (!fs.existsSync(backupDir)) {
             fs.mkdirSync(backupDir, { recursive: true });
         }
 
         const date = new Date();
-        const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}_${date.getHours().toString().padStart(2, '0')}-${date.getMinutes().toString().padStart(2, '0')}-${date.getSeconds().toString().padStart(2, '0')}`;
         const folderName = path.join(backupDir, `backup_${dateString}`);
 
         if (!fs.existsSync(folderName)) {

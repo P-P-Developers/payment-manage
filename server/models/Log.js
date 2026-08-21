@@ -9,12 +9,12 @@ const logSchema = new mongoose.Schema(
     },
     actionType: {
       type: String,
-      enum: ['ADD', 'EDIT', 'DELETE', 'LOGIN', 'LOGOUT'],
+      enum: ['ADD', 'EDIT', 'DELETE', 'LOGIN', 'LOGOUT', 'SYNC', 'RESTORE', 'BACKUP'],
       required: true,
     },
     module: {
       type: String,
-      enum: ['Panel', 'Payment', 'User', 'Auth'],
+      enum: ['Panel', 'Payment', 'User', 'Auth', 'Sync', 'Backup'],
       required: true,
     },
     details: {

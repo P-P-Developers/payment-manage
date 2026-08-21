@@ -12,6 +12,10 @@ import {
   LogIn,
   LogOut,
   Server,
+  RefreshCw,
+  RotateCcw,
+  Search,
+  Database,
 } from 'lucide-react';
 
 const LogSkeleton = () => (
@@ -36,6 +40,8 @@ export default function Logs() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchDate, setSearchDate] = useState('');
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -85,14 +91,39 @@ export default function Logs() {
         }
       `}</style>
 
-      <div>
-        <div className="flex items-center gap-3">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">System Activity Logs</h2>
-          {loading && logs.length > 0 && (
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent shrink-0"></div>
-          )}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">System Activity Logs</h2>
+            {loading && logs.length > 0 && (
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent shrink-0"></div>
+            )}
+          </div>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Audit trail tracking all additions, modifications, and deletions in the ledger system.</p>
         </div>
-        <p className="text-sm text-slate-600 dark:text-slate-400">Audit trail tracking all additions, modifications, and deletions in the ledger system.</p>
+
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-slate-400" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search details, user..."
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white transition-all"
+            />
+          </div>
+          <div className="relative w-full md:w-40 shrink-0">
+            <input
+              type="date"
+              value={searchDate}
+              onChange={(e) => setSearchDate(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white [color-scheme:light] dark:[color-scheme:dark] transition-all"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="rounded-2xl glass-card border border-slate-300 dark:border-slate-800 p-6 md:p-8 shadow-xl relative">
@@ -105,10 +136,32 @@ export default function Logs() {
               <LogSkeleton />
               <LogSkeleton />
             </>
-          ) : logs.length > 0 ? (
-            logs.map((log, index) => {
-              const date = new Date(log.timestamp);
-              const actionType = log.actionType; // ADD, EDIT, DELETE
+          ) : (() => {
+            const filteredLogs = logs.filter((log) => {
+              let matchQuery = true;
+              let matchDate = true;
+
+              if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                const details = log.details ? log.details.toLowerCase() : '';
+                const userName = log.userId?.name ? log.userId.name.toLowerCase() : 'super admin';
+                const moduleStr = log.module ? log.module.toLowerCase() : '';
+                
+                matchQuery = details.includes(query) || userName.includes(query) || moduleStr.includes(query);
+              }
+
+              if (searchDate) {
+                const logDate = new Date(log.timestamp).toISOString().split('T')[0];
+                matchDate = logDate === searchDate;
+              }
+
+              return matchQuery && matchDate;
+            });
+
+            return filteredLogs.length > 0 ? (
+              filteredLogs.map((log, index) => {
+                const date = new Date(log.timestamp);
+                const actionType = log.actionType; // ADD, EDIT, DELETE
 
               return (
                 <div
@@ -117,7 +170,7 @@ export default function Logs() {
                   style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
                 >
                   {/* Connecting line between log markers */}
-                  {index !== logs.length - 1 && (
+                  {index !== filteredLogs.length - 1 && (
                     <div className="absolute left-[19px] top-10 bottom-0 w-[2px] bg-slate-200 dark:bg-slate-800"></div>
                   )}
 
@@ -131,7 +184,13 @@ export default function Logs() {
                             ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
                             : actionType === 'LOGIN'
                               ? 'bg-teal-500/10 border-teal-500/20 text-teal-500'
-                              : 'bg-orange-500/10 border-orange-500/20 text-orange-500'
+                              : actionType === 'SYNC'
+                                ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                                : actionType === 'BACKUP'
+                                  ? 'bg-purple-500/10 border-purple-500/20 text-purple-400'
+                                  : actionType === 'RESTORE'
+                                    ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                                    : 'bg-orange-500/10 border-orange-500/20 text-orange-500'
                       }`}
                   >
                     {actionType === 'ADD' ? (
@@ -142,6 +201,12 @@ export default function Logs() {
                       <Trash2 className="h-5 w-5" />
                     ) : actionType === 'LOGIN' ? (
                       <LogIn className="h-5 w-5" />
+                    ) : actionType === 'SYNC' ? (
+                      <RefreshCw className="h-5 w-5" />
+                    ) : actionType === 'BACKUP' ? (
+                      <Database className="h-5 w-5" />
+                    ) : actionType === 'RESTORE' ? (
+                      <RotateCcw className="h-5 w-5" />
                     ) : (
                       <LogOut className="h-5 w-5" />
                     )}
@@ -160,7 +225,13 @@ export default function Logs() {
                                   ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                                   : actionType === 'LOGIN'
                                     ? 'bg-teal-500/10 text-teal-500 border border-teal-500/20'
-                                    : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'
+                                    : actionType === 'SYNC'
+                                      ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                                      : actionType === 'BACKUP'
+                                        ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                        : actionType === 'RESTORE'
+                                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                          : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'
                             }`}
                         >
                           {actionType}
@@ -200,13 +271,14 @@ export default function Logs() {
                   </div>
                 </div>
               );
-            })
-          ) : (
-            <div className="text-center py-12 text-slate-500 dark:text-slate-500 flex flex-col items-center gap-3 animate-pulse">
-              <ClipboardList className="h-10 w-10 text-slate-600" />
-              <p className="font-semibold">No system activity logged yet.</p>
-            </div>
-          )}
+              })
+            ) : (
+              <div className="text-center py-12 text-slate-500 dark:text-slate-500 flex flex-col items-center gap-3 animate-pulse">
+                <ClipboardList className="h-10 w-10 text-slate-600" />
+                <p className="font-semibold">No activity logs found for your search.</p>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>
