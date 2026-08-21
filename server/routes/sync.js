@@ -13,10 +13,13 @@ function escapeRegex(str) {
 }
 
 // Helper: Format Date to IST exact minute string for grouping
-function formatIST(d) {
+function formatIST(d, ignoreTime = false) {
     if (isNaN(d.getTime())) return null;
     const offsetMs = 5.5 * 60 * 60 * 1000;
     const ist = new Date(d.getTime() + offsetMs);
+    if (ignoreTime) {
+        return ist.toISOString().split('T')[0];
+    }
     // Include Date, Hour, and Minute. Ignore seconds.
     return ist.toISOString().replace('T', ' ').substring(0, 16);
 }
@@ -24,7 +27,7 @@ function formatIST(d) {
 // ==========================================
 // 1. Helper Function: Check IP Discrepancies
 // ==========================================
-async function getIpReport(targetDate = null) {
+async function getIpReport(targetDate = null, ignoreTime = false) {
     const apiResponse = await axios.get('https://iphub.deepmindinfotech.com/backend/admin/ip/billing-summary?limit=2000');
     const apiData = apiResponse.data.data;
 
@@ -50,11 +53,12 @@ async function getIpReport(targetDate = null) {
     const apiAgg = {};
     for (const item of apiData) {
         const panelName = item.panel_name ? item.panel_name.toLowerCase().trim() : 'unknown';
-        const dateToUse = item.type === 'ALLOT' ? item.date : item.new_start_date;
+        const dateToUse = item.createdAt;
         const d = new Date(dateToUse);
         if (isNaN(d.getTime())) continue;
-        const dateStr = formatIST(d);
+        const dateStr = formatIST(d, ignoreTime);
         if (dateStr.substring(0, 10) >= todayStr) continue;
+        if (dateStr.substring(0, 10) < '2026-04-01') continue;
         if (targetDate && !dateStr.startsWith(targetDate)) continue;
 
         if (!apiAgg[panelName]) apiAgg[panelName] = {};
@@ -69,8 +73,9 @@ async function getIpReport(targetDate = null) {
         const panelName = panelIdToName[panelId] ? panelIdToName[panelId].toLowerCase().trim() : 'unknown';
         const d = new Date(p.timestamp || p.createdAt || p.date);
         if (isNaN(d.getTime())) continue;
-        const dateStr = formatIST(d);
+        const dateStr = formatIST(d, ignoreTime);
         if (dateStr.substring(0, 10) >= todayStr) continue;
+        if (dateStr.substring(0, 10) < '2026-04-01') continue;
         if (targetDate && !dateStr.startsWith(targetDate)) continue;
 
         if (!dbAgg[panelName]) dbAgg[panelName] = {};
@@ -101,7 +106,7 @@ async function getIpReport(targetDate = null) {
                 if (p.panelId && p.panelId.toString() === panelId) {
                     const payDate = new Date(p.timestamp || p.createdAt || p.date);
                     if (!isNaN(payDate.getTime())) {
-                        const payDateStr = formatIST(payDate);
+                        const payDateStr = formatIST(payDate, ignoreTime);
                         if (payDateStr && payDateStr.startsWith(calendarDate)) {
                             return true;
                         }
@@ -167,7 +172,7 @@ async function getIpReport(targetDate = null) {
 // ===============================================
 // 2. Helper Function: Check License Discrepancies
 // ===============================================
-async function getLicenseReport(targetDate = null) {
+async function getLicenseReport(targetDate = null, ignoreTime = false) {
     const ALGO_URL = 'https://newpenal.deepmindinfotech.com/backend/getall/history';
     const ALGO_PAYLOAD = {
         page: 1, limit: 10000, search: '',
@@ -190,8 +195,9 @@ async function getLicenseReport(targetDate = null) {
 
         const d = new Date(item.createdAt);
         if (isNaN(d.getTime())) continue;
-        const dateStr = formatIST(d);
+        const dateStr = formatIST(d, ignoreTime);
         if (dateStr.substring(0, 10) >= todayStr) continue;
+        if (dateStr.substring(0, 10) < '2026-04-01') continue;
         if (targetDate && !dateStr.startsWith(targetDate)) continue;
 
         if (!apiAgg[panelName]) apiAgg[panelName] = {};
@@ -221,8 +227,9 @@ async function getLicenseReport(targetDate = null) {
         const panelName = (panelIdToName[panelId] || 'unknown').toLowerCase().trim();
         const d = new Date(pay.timestamp || pay.createdAt);
         if (isNaN(d.getTime())) continue;
-        const dateStr = formatIST(d);
+        const dateStr = formatIST(d, ignoreTime);
         if (dateStr.substring(0, 10) >= todayStr) continue;
+        if (dateStr.substring(0, 10) < '2026-04-01') continue;
         if (targetDate && !dateStr.startsWith(targetDate)) continue;
 
         if (!dbAgg[panelName]) dbAgg[panelName] = {};
@@ -253,7 +260,7 @@ async function getLicenseReport(targetDate = null) {
                 if (pay.panelId && pay.panelId.toString() === panelId) {
                     const payDate = new Date(pay.timestamp || pay.createdAt);
                     if (!isNaN(payDate.getTime())) {
-                        const payDateStr = formatIST(payDate);
+                        const payDateStr = formatIST(payDate, ignoreTime);
                         if (payDateStr && payDateStr.startsWith(calendarDate)) {
                             return true;
                         }
@@ -322,7 +329,8 @@ async function getLicenseReport(targetDate = null) {
 router.get('/check-ip', protect, adminOnly, async (req, res) => {
     try {
         const targetDate = req.query.date || null;
-        const report = await getIpReport(targetDate);
+        const ignoreTime = req.query.ignoreTime === 'true';
+        const report = await getIpReport(targetDate, ignoreTime);
 
         await Log.create({
             userId: req.user._id,
@@ -345,8 +353,9 @@ router.get('/check-ip', protect, adminOnly, async (req, res) => {
 router.post('/fix-ip', protect, adminOnly, async (req, res) => {
     try {
         const targetDate = req.query.date || req.body.date || null;
+        const ignoreTime = req.query.ignoreTime === 'true' || req.body.ignoreTime === true;
         const { specificPanelName, specificDate } = req.body || {};
-        const report = await getIpReport(targetDate);
+        const report = await getIpReport(targetDate, ignoreTime);
         let fixedMissing = 0;
         let fixedMismatch = 0;
 
@@ -436,7 +445,8 @@ router.post('/fix-ip', protect, adminOnly, async (req, res) => {
 router.get('/check-license', protect, adminOnly, async (req, res) => {
     try {
         const targetDate = req.query.date || null;
-        const report = await getLicenseReport(targetDate);
+        const ignoreTime = req.query.ignoreTime === 'true';
+        const report = await getLicenseReport(targetDate, ignoreTime);
 
         await Log.create({
             userId: req.user._id,
@@ -459,8 +469,9 @@ router.get('/check-license', protect, adminOnly, async (req, res) => {
 router.post('/fix-license', protect, adminOnly, async (req, res) => {
     try {
         const targetDate = req.query.date || req.body.date || null;
+        const ignoreTime = req.query.ignoreTime === 'true' || req.body.ignoreTime === true;
         const { specificPanelName, specificDate } = req.body || {};
-        const report = await getLicenseReport(targetDate);
+        const report = await getLicenseReport(targetDate, ignoreTime);
         let fixedMissing = 0;
         let fixedMismatch = 0;
 
@@ -817,6 +828,58 @@ router.post('/fix-sop', protect, adminOnly, async (req, res) => {
     }
 });
 
+// @route   PUT /api/sync/update-time/:id
+// @desc    Update timestamp of a payment to match API time
+// @access  Admin
+router.put('/update-time/:id', protect, adminOnly, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { newTime, syncType } = req.body;
 
+        if (!newTime) {
+            return res.status(400).json({ success: false, message: 'New time is required' });
+        }
+
+        let timestamp = new Date();
+
+        if (syncType === 'sop') {
+            const dateStr = newTime;
+            const parts = dateStr.split(' ');
+            if (parts.length >= 2) {
+                const dParts = parts[0].split('/');
+                if (dParts.length === 3) {
+                    timestamp = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1]}+05:30`);
+                } else {
+                    timestamp = new Date(dateStr);
+                }
+            } else {
+                timestamp = new Date(dateStr);
+            }
+        } else {
+            timestamp = new Date(newTime);
+        }
+
+        if (isNaN(timestamp.getTime())) {
+            return res.status(400).json({ success: false, message: 'Invalid date format' });
+        }
+
+        const payment = await Payment.findByIdAndUpdate(id, { timestamp }, { new: true });
+        if (!payment) {
+            return res.status(404).json({ success: false, message: 'Payment not found' });
+        }
+
+        await Log.create({
+            userId: req.user._id,
+            actionType: 'EDIT',
+            module: 'Sync',
+            details: `Fixed time discrepancy: Updated payment ${id} timestamp to match API time`,
+            ipAddress: req.ip
+        });
+
+        res.status(200).json({ success: true, message: 'Time updated successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message || 'Server Error' });
+    }
+});
 
 module.exports = router;

@@ -4,7 +4,7 @@ When syncing data from external APIs into the `payment-manage` local database (w
 
 ## 1. IPHub API (IP Billing)
 - Endpoint: `https://iphub.deepmindinfotech.com/backend/admin/ip/billing-summary` (Manual Check)
-  - Key to use: `start_date`
+  - Key to use: `createdAt`
 - Endpoint: `https://iphub.deepmindinfotech.com/backend/admin/ip/billing-summary-today` (Daily Cron)
   - Key to use: `createdAt`
 

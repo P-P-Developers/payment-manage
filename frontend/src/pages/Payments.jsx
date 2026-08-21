@@ -27,10 +27,17 @@ const FALLBACK_BANK_LIST = [
 ];
 
 const getTodayDateString = () => {
+  const user = getLoggedUser();
+  const isSuperAdmin = user && user.email === 'admin@panel.com';
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
+  if (isSuperAdmin) {
+    const hours = String(today.getHours()).padStart(2, '0');
+    const minutes = String(today.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
   return `${year}-${month}-${day}`;
 };
 
@@ -117,6 +124,7 @@ export default function Payments() {
   const [totalBillDiscount, setTotalBillDiscount] = useState(0);
   const [totalAmountReceived, setTotalAmountReceived] = useState(0);
   const [totalPaymentDiscount, setTotalPaymentDiscount] = useState(0);
+  const [totalQuantity, setTotalQuantity] = useState(0);
   const [pageSize, setPageSize] = useState(20);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -389,6 +397,7 @@ export default function Payments() {
         setTotalBillDiscount(paymentsData.totalBillDiscount || 0);
         setTotalAmountReceived(paymentsData.totalAmountReceived || 0);
         setTotalPaymentDiscount(paymentsData.totalPaymentDiscount || 0);
+        setTotalQuantity(paymentsData.totalQuantity || 0);
       }
       if (panelsData.success) setPanels(panelsData.panels);
     } catch (err) {
@@ -692,6 +701,7 @@ export default function Payments() {
 
       const combineDateWithCurrentTime = (dateStr) => {
         if (!dateStr) return new Date();
+        if (dateStr.includes('T')) return new Date(dateStr);
         const [year, month, day] = dateStr.split('-').map(Number);
         const now = new Date();
         now.setFullYear(year);
@@ -921,7 +931,12 @@ export default function Payments() {
             <div className="h-6 w-px bg-slate-300 dark:bg-slate-600"></div>
             <div className="flex flex-col">
               <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Total Bill</span>
-              <span className="text-sm font-bold text-slate-900 dark:text-white">₹{totalBillAmount.toLocaleString()}</span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white">
+                ₹{totalBillAmount.toLocaleString()}
+                {(typeFilter === 'IP Charges' || typeFilter === 'License') && totalQuantity > 0 && (
+                  <span className="text-xs text-blue-500 ml-1.5">(Qty: {totalQuantity.toLocaleString()})</span>
+                )}
+              </span>
             </div>
             <div className="h-6 w-px bg-slate-300 dark:bg-slate-600"></div>
             <div className="flex flex-col">
@@ -1193,7 +1208,7 @@ export default function Payments() {
                     Transaction Date
                   </label>
                   <input
-                    type="date"
+                    type={(getLoggedUser()?.email === 'admin@panel.com') ? "datetime-local" : "date"}
                     value={paymentDate}
                     onChange={(e) => setPaymentDate(e.target.value)}
                     className="w-full rounded-xl px-4 py-3 text-sm glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white cursor-pointer"

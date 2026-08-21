@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { apiRequest } from '@/utils/api';
-import { Server, RefreshCw, AlertTriangle, CheckCircle, Database } from 'lucide-react';
+import { Server, RefreshCw, AlertTriangle, CheckCircle, Database, Edit2, X } from 'lucide-react';
 import RotateCaptchaModal from '@/components/RotateCaptchaModal';
+import EditPaymentModal from '@/components/EditPaymentModal';
 
 const DataSync = () => {
   const [ipData, setIpData] = useState(null);
@@ -30,6 +31,7 @@ const DataSync = () => {
   const [page, setPage] = useState(1);
   const [syncMode, setSyncMode] = useState('all');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [ignoreTime, setIgnoreTime] = useState(false);
 
   useEffect(() => {
     setPage(1);
@@ -38,6 +40,9 @@ const DataSync = () => {
   const [isCaptchaOpen, setIsCaptchaOpen] = useState(false);
   const [pendingFixFn, setPendingFixFn] = useState(null);
   const [specificFixItem, setSpecificFixItem] = useState(null);
+
+  // Edit Modal State
+  const [editModal, setEditModal] = useState({ isOpen: false, entryId: null, type: '' });
 
   const handleCaptchaSuccess = () => {
     setIsCaptchaOpen(false);
@@ -64,7 +69,10 @@ const DataSync = () => {
     setIpLoading(true);
     setIpMessage(null);
     try {
-      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const queryParams = new URLSearchParams();
+      if (syncMode === 'date' && selectedDate) queryParams.append('date', selectedDate);
+      if (ignoreTime) queryParams.append('ignoreTime', 'true');
+      const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
       const data = await apiRequest(`/sync/check-ip${query}`);
       setIpData(data.data);
     } catch (err) {
@@ -78,7 +86,10 @@ const DataSync = () => {
     setIpFixing(true);
     setIpMessage(null);
     try {
-      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const queryParams = new URLSearchParams();
+      if (syncMode === 'date' && selectedDate) queryParams.append('date', selectedDate);
+      if (ignoreTime) queryParams.append('ignoreTime', 'true');
+      const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
       const res = await apiRequest(`/sync/fix-ip${query}`, { method: 'POST' });
       setIpMessage({ type: 'success', text: `Fixed ${res.fixedMissing} missing entries and ${res.fixedMismatch} mismatches.` });
       await checkIp(); // Re-fetch to show updated status
@@ -93,7 +104,10 @@ const DataSync = () => {
     setIpFixing(true);
     setIpMessage(null);
     try {
-      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const queryParams = new URLSearchParams();
+      if (syncMode === 'date' && selectedDate) queryParams.append('date', selectedDate);
+      if (ignoreTime) queryParams.append('ignoreTime', 'true');
+      const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
       const response = await apiRequest(`/sync/fix-ip${query}`, {
         method: 'POST',
         body: JSON.stringify({
@@ -122,7 +136,10 @@ const DataSync = () => {
     setLicenseLoading(true);
     setLicenseMessage(null);
     try {
-      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const queryParams = new URLSearchParams();
+      if (syncMode === 'date' && selectedDate) queryParams.append('date', selectedDate);
+      if (ignoreTime) queryParams.append('ignoreTime', 'true');
+      const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
       const data = await apiRequest(`/sync/check-license${query}`);
       setLicenseData(data.data);
     } catch (err) {
@@ -136,7 +153,10 @@ const DataSync = () => {
     setLicenseFixing(true);
     setLicenseMessage(null);
     try {
-      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const queryParams = new URLSearchParams();
+      if (syncMode === 'date' && selectedDate) queryParams.append('date', selectedDate);
+      if (ignoreTime) queryParams.append('ignoreTime', 'true');
+      const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
       const res = await apiRequest(`/sync/fix-license${query}`, { method: 'POST' });
       setLicenseMessage({ type: 'success', text: `Fixed ${res.fixedMissing} missing entries and ${res.fixedMismatch} mismatches.` });
       await checkLicense(); // Re-fetch to show updated status
@@ -151,7 +171,10 @@ const DataSync = () => {
     setLicenseFixing(true);
     setLicenseMessage(null);
     try {
-      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const queryParams = new URLSearchParams();
+      if (syncMode === 'date' && selectedDate) queryParams.append('date', selectedDate);
+      if (ignoreTime) queryParams.append('ignoreTime', 'true');
+      const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
       const response = await apiRequest(`/sync/fix-license${query}`, {
         method: 'POST',
         body: JSON.stringify({
@@ -251,6 +274,41 @@ const DataSync = () => {
     }
   };
 
+  const updateDbTime = async (dbEntryId, apiDateStr, type) => {
+    if (!window.confirm("Are you sure you want to update the DB entry time to match the API?")) return;
+    
+    try {
+       const res = await apiRequest(`/sync/update-time/${dbEntryId}`, {
+           method: 'PUT',
+           body: JSON.stringify({ newTime: apiDateStr, syncType: type })
+       });
+       if(res.success) {
+           if (type.includes('ip')) {
+               setIpMessage({ type: 'success', text: 'Time updated successfully' });
+               await checkIp();
+           } else if (type.includes('license')) {
+               setLicenseMessage({ type: 'success', text: 'Time updated successfully' });
+               await checkLicense();
+           } else if (type.includes('sop')) {
+               setSopMessage({ type: 'success', text: 'Time updated successfully' });
+               await checkSop();
+           }
+       } else {
+           alert(res.message || 'Failed to update time');
+       }
+    } catch (err) {
+       alert(err.message || 'Failed to update time');
+    }
+  };
+
+  const handleEditPaymentSuccess = async () => {
+    setEditModal({ isOpen: false, entryId: null, type: '' });
+    // Re-check
+    if (editModal.type.includes('ip')) await checkIp();
+    else if (editModal.type.includes('license')) await checkLicense();
+    else if (editModal.type.includes('sop')) await checkSop();
+  };
+
   const hasDiscrepancies = (data) => {
     if (!data) return false;
     return (data.missingEntries?.length > 0) || (data.countMismatches?.length > 0) || (data.panelSummaries?.length > 0);
@@ -265,7 +323,11 @@ const DataSync = () => {
         ...data.missingEntries.map(e => ({ ...e, discrepancyType: 'missing' })),
         ...data.countMismatches.map(e => ({ ...e, discrepancyType: 'mismatch' }))
       ].filter(i => !search || i.panelName.toLowerCase().includes(search.toLowerCase()))
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
+        .sort((a, b) => {
+          const dateDiff = new Date(b.date) - new Date(a.date);
+          if (dateDiff !== 0) return dateDiff;
+          return a.panelName.localeCompare(b.panelName);
+        });
     }
 
     const totalPages = Math.ceil(combinedList.length / 10);
@@ -399,9 +461,19 @@ const DataSync = () => {
                                     <div className="font-semibold text-slate-500 dark:text-slate-400 mb-1">Other entries on this date:</div>
                                     <ul className="space-y-1">
                                       {item.relatedDbEntries.map((rel, rIdx) => (
-                                        <li key={rIdx} className="text-slate-600 dark:text-slate-300 flex justify-between gap-2">
+                                        <li key={rIdx} className="text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2">
                                           <span className="font-mono">{rel.time}</span>
-                                          <span>Qty: {rel.quantity || rel.amount}</span>
+                                          <div className="flex items-center gap-2">
+                                            <span>Qty: {rel.quantity || rel.amount}</span>
+                                            <button 
+                                              onClick={() => updateDbTime(rel.id, item.originalDate, typePrefix)}
+                                              disabled={loading || fixing}
+                                              className="px-1.5 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 rounded transition-colors border border-indigo-200 dark:border-indigo-500/20"
+                                              title="Update DB time to match API time"
+                                            >
+                                              Match Time
+                                            </button>
+                                          </div>
                                         </li>
                                       ))}
                                     </ul>
@@ -478,9 +550,21 @@ const DataSync = () => {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3 py-1.5 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-slate-200 ml-2"
+              className="px-3 py-1.5 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-slate-200 ml-2 mr-4"
             />
           )}
+
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden md:block"></div>
+
+          <label className="flex items-center gap-2 cursor-pointer tooltip-trigger" title="Match only by Date/Month/Year and ignore the exact Time">
+            <input 
+              type="checkbox" 
+              checked={ignoreTime} 
+              onChange={(e) => setIgnoreTime(e.target.checked)} 
+              className="accent-indigo-600 w-4 h-4 rounded border-slate-300" 
+            />
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Ignore Time</span>
+          </label>
         </div>
       </div>
 
@@ -655,9 +739,29 @@ const DataSync = () => {
                                               <div className="font-semibold text-slate-500 dark:text-slate-400 mb-1">Other entries on this date:</div>
                                               <ul className="space-y-1">
                                                 {match.relatedDbEntries.map((rel, rIdx) => (
-                                                  <li key={rIdx} className="text-slate-600 dark:text-slate-300 flex justify-between gap-2">
+                                                  <li key={rIdx} className="text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2">
                                                     <span className="font-mono">{rel.time}</span>
-                                                    <span className="font-bold">₹{rel.amount}</span>
+                                                    <div className="flex items-center gap-2">
+                                                      <span className="font-bold">₹{rel.amount}</span>
+                                                      <button 
+                                                        onClick={() => updateDbTime(rel.id, match.sopItem["Payment Date"], 'sop')}
+                                                        disabled={sopLoading || sopFixing}
+                                                        className="px-1.5 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 rounded transition-colors border border-indigo-200 dark:border-indigo-500/20"
+                                                        title="Update DB time to match API time"
+                                                      >
+                                                        Match Time
+                                                      </button>
+                                                      <button
+                                                        onClick={() => {
+                                                          setEditModal({ isOpen: true, entryId: rel.id, type: 'sop' });
+                                                        }}
+                                                        disabled={sopLoading || sopFixing}
+                                                        className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-slate-700/50 dark:hover:bg-slate-700 dark:text-slate-300 rounded transition-colors border border-slate-200 dark:border-slate-600 flex items-center gap-1"
+                                                        title="Edit Entry"
+                                                      >
+                                                        <Edit2 className="h-3 w-3" /> Full Edit
+                                                      </button>
+                                                    </div>
                                                   </li>
                                                 ))}
                                               </ul>
@@ -740,6 +844,13 @@ const DataSync = () => {
         isOpen={isCaptchaOpen}
         onClose={() => setIsCaptchaOpen(false)}
         onSuccess={handleCaptchaSuccess}
+      />
+
+      <EditPaymentModal 
+        isOpen={editModal.isOpen} 
+        onClose={() => setEditModal({ isOpen: false, entryId: null, type: '' })} 
+        onSuccess={handleEditPaymentSuccess} 
+        paymentId={editModal.entryId} 
       />
     </div>
   );

@@ -308,7 +308,8 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
           totalBillAmount: { $sum: '$billAmount' },
           totalBillDiscount: { $sum: '$billDiscount' },
           totalAmountReceived: { $sum: '$amountReceived' },
-          totalPaymentDiscount: { $sum: '$paymentDiscount' }
+          totalPaymentDiscount: { $sum: '$paymentDiscount' },
+          totalQuantity: { $sum: '$quantity' }
         }
       }
     ]);
@@ -317,6 +318,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
     const totalBillDiscount = totals.length > 0 ? totals[0].totalBillDiscount : 0;
     const totalAmountReceived = totals.length > 0 ? totals[0].totalAmountReceived : 0;
     const totalPaymentDiscount = totals.length > 0 ? totals[0].totalPaymentDiscount : 0;
+    const totalQuantity = totals.length > 0 ? (totals[0].totalQuantity || 0) : 0;
 
     // Calculate totalOpeningBalance for unique panels in the current filtered view
     const uniquePanelIds = await Payment.distinct('panelId', filterQuery);
@@ -332,6 +334,7 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
       totalBillDiscount,
       totalAmountReceived,
       totalPaymentDiscount,
+      totalQuantity,
       pages: limit === 0 ? 1 : Math.ceil(total / limit),
       currentPage: page,
       payments,
@@ -589,6 +592,25 @@ router.post('/', protect, hasPermission('add_payments'), async (req, res) => {
     });
 
     res.status(201).json({ success: true, payment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Get a single payment by ID
+// @route   GET /api/payments/:id
+// @access  Private (view_panels permission)
+router.get('/:id', protect, hasPermission('view_panels'), async (req, res) => {
+  try {
+    const payment = await Payment.findById(req.params.id)
+      .populate('panelId', 'panelName category ownerName ownerEmail phoneNumber status')
+      .populate('addedBy', 'name email')
+      .populate('editHistory.editedBy', 'name email')
+      .lean();
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'Payment not found' });
+    }
+    res.json({ success: true, payment });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

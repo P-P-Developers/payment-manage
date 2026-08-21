@@ -137,7 +137,7 @@ module.exports = {
                             paymentDiscount: 0,
                             remark: `Synced ${quantity} IP charges from iphub. Type: ${item.type || 'Unknown'}`,
                             addedBy: admin._id,
-                            timestamp: new Date(item.new_start_date || new Date())
+                            timestamp: new Date(item.createdAt || new Date())
                         });
 
                         await Log.create({
@@ -198,7 +198,7 @@ module.exports = {
                             if (parts.length === 2) {
                                 const dParts = parts[0].split('/');
                                 if (dParts.length === 3) {
-                                    timestamp = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1]}Z`);
+                                    timestamp = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${parts[1]}+05:30`);
                                 }
                             }
                         }
