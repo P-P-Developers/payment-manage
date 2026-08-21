@@ -394,6 +394,19 @@ const DataSync = () => {
                                 ) : (
                                   <>API: {item.apiCount} <span className="text-slate-300 dark:text-slate-600">|</span> DB: {item.dbQuantity} <span className="text-slate-400">({item.difference > 0 ? '+' : ''}{item.difference})</span></>
                                 )}
+                                {item.relatedDbEntries && item.relatedDbEntries.length > 0 && (
+                                  <div className="mt-2 text-[10px] bg-slate-100 dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700">
+                                    <div className="font-semibold text-slate-500 dark:text-slate-400 mb-1">Other entries on this date:</div>
+                                    <ul className="space-y-1">
+                                      {item.relatedDbEntries.map((rel, rIdx) => (
+                                        <li key={rIdx} className="text-slate-600 dark:text-slate-300 flex justify-between gap-2">
+                                          <span className="font-mono">{rel.time}</span>
+                                          <span>Qty: {rel.quantity || rel.amount}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
                               </td>
                               <td className="px-3 py-2 font-mono text-[10px] text-slate-500 text-right">{item.date}</td>
                               <td className="px-3 py-2 text-center">
@@ -637,6 +650,19 @@ const DataSync = () => {
                                           <span className={`inline-flex items-center text-[10px] font-bold uppercase px-2 py-1 rounded-md shadow-sm ${match.status === 'Mismatch Amount' ? 'bg-amber-100 text-amber-700 border border-amber-200 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400' : 'bg-rose-100 text-rose-700 border border-rose-200 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400'}`}>
                                             {match.status}
                                           </span>
+                                          {match.relatedDbEntries && match.relatedDbEntries.length > 0 && (
+                                            <div className="mt-2 text-[10px] bg-slate-100 dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700 text-left min-w-[150px]">
+                                              <div className="font-semibold text-slate-500 dark:text-slate-400 mb-1">Other entries on this date:</div>
+                                              <ul className="space-y-1">
+                                                {match.relatedDbEntries.map((rel, rIdx) => (
+                                                  <li key={rIdx} className="text-slate-600 dark:text-slate-300 flex justify-between gap-2">
+                                                    <span className="font-mono">{rel.time}</span>
+                                                    <span className="font-bold">₹{rel.amount}</span>
+                                                  </li>
+                                                ))}
+                                              </ul>
+                                            </div>
+                                          )}
                                         </td>
                                         <td className="px-4 py-3 text-center">
                                           <button

@@ -96,6 +96,25 @@ async function getIpReport(targetDate = null) {
             const dbInfo = dbAgg[panelName] && dbAgg[panelName][dateStr];
             totalApiForPanel += apiInfo.count;
 
+            const calendarDate = dateStr.substring(0, 10);
+            const relatedDbEntries = dbPayments.filter(p => {
+                if (p.panelId && p.panelId.toString() === panelId) {
+                    const payDate = new Date(p.timestamp || p.createdAt || p.date);
+                    if (!isNaN(payDate.getTime())) {
+                        const payDateStr = formatIST(payDate);
+                        if (payDateStr && payDateStr.startsWith(calendarDate)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }).map(p => ({
+                id: p._id,
+                time: formatIST(new Date(p.timestamp || p.createdAt || p.date)),
+                quantity: p.quantity || 0,
+                amount: p.billAmount || 0
+            }));
+
             if (!dbInfo) {
                 report.missingEntries.push({
                     panelName: panelIdToName[panelId],
@@ -103,6 +122,7 @@ async function getIpReport(targetDate = null) {
                     originalDate: apiInfo.originalDate,
                     apiCount: apiInfo.count,
                     types: Array.from(apiInfo.types).join(', '),
+                    relatedDbEntries,
                     message: 'API has entry for this date but DB has none'
                 });
             } else {
@@ -116,6 +136,7 @@ async function getIpReport(targetDate = null) {
                         dbQuantity: dbInfo.quantity,
                         difference: apiInfo.count - dbInfo.quantity,
                         types: Array.from(apiInfo.types).join(', '),
+                        relatedDbEntries,
                         message: 'Count mismatch between API and DB'
                     });
                 }
@@ -227,12 +248,32 @@ async function getLicenseReport(targetDate = null) {
             const dbInfo = dbAgg[panelName] && dbAgg[panelName][dateStr];
             totalApiForPanel += apiInfo.count;
 
+            const calendarDate = dateStr.substring(0, 10);
+            const relatedDbEntries = dbPayments.filter(pay => {
+                if (pay.panelId && pay.panelId.toString() === panelId) {
+                    const payDate = new Date(pay.timestamp || pay.createdAt);
+                    if (!isNaN(payDate.getTime())) {
+                        const payDateStr = formatIST(payDate);
+                        if (payDateStr && payDateStr.startsWith(calendarDate)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }).map(pay => ({
+                id: pay._id,
+                time: formatIST(new Date(pay.timestamp || pay.createdAt)),
+                quantity: pay.quantity || 0,
+                amount: pay.billAmount || 0
+            }));
+
             if (!dbInfo) {
                 report.missingEntries.push({
                     panelName: panelIdToName[panelId],
                     date: dateStr,
                     originalDate: apiInfo.originalDate,
                     apiCount: apiInfo.count,
+                    relatedDbEntries,
                     message: 'API has license entry for this date but DB has none'
                 });
             } else {
@@ -245,6 +286,7 @@ async function getLicenseReport(targetDate = null) {
                         apiCount: apiInfo.count,
                         dbQuantity: dbInfo.quantity,
                         difference: apiInfo.count - dbInfo.quantity,
+                        relatedDbEntries,
                         message: 'License count mismatch between API and DB'
                     });
                 }
@@ -573,11 +615,40 @@ async function getSopReport(targetDate = null) {
                 const panelPayments = payments.filter(pay => pay.panelId.toString() === matchedPanel._id.toString());
                 const sopAmount = parseFloat(sopItem.AmountDetails) || 0;
 
+                let calendarDate = null;
+                const sopDateStr = sopItem["Payment Date"];
+                if (sopDateStr) {
+                    const parts = sopDateStr.split(' ');
+                    if (parts.length >= 1) {
+                        const dParts = parts[0].split('/');
+                        if (dParts.length === 3) {
+                            calendarDate = `${dParts[2]}-${dParts[1]}-${dParts[0]}`; // YYYY-MM-DD
+                        }
+                    }
+                }
+
+                const relatedDbEntries = calendarDate ? panelPayments.filter(pay => {
+                    const payDateObj = new Date(pay.timestamp || pay.createdAt || pay.date);
+                    if (!isNaN(payDateObj.getTime())) {
+                        const offsetMs = 5.5 * 60 * 60 * 1000;
+                        const istDateObj = new Date(payDateObj.getTime() + offsetMs);
+                        const payDateStr = istDateObj.toISOString().split('T')[0];
+                        return payDateStr === calendarDate;
+                    }
+                    return false;
+                }).map(pay => ({
+                    id: pay._id,
+                    time: formatIST(new Date(pay.timestamp || pay.createdAt || pay.date)),
+                    quantity: pay.quantity || 0,
+                    amount: pay.billAmount || 0
+                })) : [];
+
                 if (panelPayments.length === 0) {
                     newMissingCount++;
                     matchedData.push({
                         sopItem,
                         localPanel: matchedPanel,
+                        relatedDbEntries,
                         status: 'Missing in DB'
                     });
                 } else {
@@ -595,7 +666,7 @@ async function getSopReport(targetDate = null) {
                             if (parts.length >= 1) {
                                 const dParts = parts[0].split('/');
                                 if (dParts.length === 3) {
-                                    const sopDateStr = `${dParts[2]}-${dParts[1]}-${dParts[0]}`; // YYYY-MM-DD
+                                    const sopDateStrMatch = `${dParts[2]}-${dParts[1]}-${dParts[0]}`; // YYYY-MM-DD
                                     const payDateObj = new Date(pay.timestamp || pay.createdAt || pay.date);
                                     if (!isNaN(payDateObj.getTime())) {
                                         // Convert to IST to compare the date part correctly
@@ -603,7 +674,7 @@ async function getSopReport(targetDate = null) {
                                         const istDateObj = new Date(payDateObj.getTime() + offsetMs);
                                         const payDateStr = istDateObj.toISOString().split('T')[0];
 
-                                        if (payDateStr === sopDateStr) {
+                                        if (payDateStr === sopDateStrMatch) {
                                             dateMatches = true;
                                         }
                                     }
@@ -621,6 +692,7 @@ async function getSopReport(targetDate = null) {
                         matchedData.push({
                             sopItem,
                             localPanel: matchedPanel,
+                            relatedDbEntries,
                             status: 'Mismatch Amount'
                         });
                     }
