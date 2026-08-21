@@ -327,10 +327,15 @@ export default function Payments() {
     }
   }, [amountReceived, unpaidBills, modalMode]);
 
+  const [userEmail, setUserEmail] = useState('');
+
   useEffect(() => {
     const user = getLoggedUser();
     if (user && user.role) {
       setUserRole(user.role);
+    }
+    if (user && user.email) {
+      setUserEmail(user.email);
     }
   }, []);
 
@@ -420,7 +425,19 @@ export default function Payments() {
 
   const handleOpenEditModal = (payment) => {
     const pDate = payment.timestamp ? new Date(payment.timestamp) : new Date();
-    const formattedDate = `${pDate.getFullYear()}-${String(pDate.getMonth() + 1).padStart(2, '0')}-${String(pDate.getDate()).padStart(2, '0')}`;
+    const user = getLoggedUser();
+    const isSuperAdmin = user && user.email === 'admin@panel.com';
+    let formattedDate = '';
+    if (isSuperAdmin) {
+      const year = pDate.getFullYear();
+      const month = String(pDate.getMonth() + 1).padStart(2, '0');
+      const day = String(pDate.getDate()).padStart(2, '0');
+      const hours = String(pDate.getHours()).padStart(2, '0');
+      const minutes = String(pDate.getMinutes()).padStart(2, '0');
+      formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+    } else {
+      formattedDate = `${pDate.getFullYear()}-${String(pDate.getMonth() + 1).padStart(2, '0')}-${String(pDate.getDate()).padStart(2, '0')}`;
+    }
     setEditingPayment(payment);
     setEditForm({
       paymentType: payment.paymentType || '',
@@ -448,6 +465,7 @@ export default function Payments() {
     try {
       const combineDateWithCurrentTime = (dateStr) => {
         if (!dateStr) return new Date();
+        if (dateStr.includes('T')) return new Date(dateStr);
         const [year, month, day] = dateStr.split('-').map(Number);
         const now = new Date();
         now.setFullYear(year);
@@ -1938,9 +1956,9 @@ export default function Payments() {
             <form onSubmit={handleUpdatePayment} className="space-y-4">
               {/* Transaction Date Row */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Transaction Date</label>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Transaction Date {userEmail === 'admin@panel.com' && '& Time'}</label>
                 <input
-                  type="date"
+                  type={userEmail === 'admin@panel.com' ? "datetime-local" : "date"}
                   value={editForm.timestamp}
                   onChange={(e) => setEditForm({ ...editForm, timestamp: e.target.value })}
                   className="w-full glass-input px-4 py-2.5 text-sm cursor-pointer font-semibold"

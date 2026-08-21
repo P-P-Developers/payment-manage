@@ -160,8 +160,9 @@ module.exports = {
         try {
             const sopUrl = "https://soptools.tradestreet.in/superbackend/TodayAmountDetails";
             // Hit the API (no specific body is needed as per example, using empty object)
-            const sopResponse = await axios.post(sopUrl, {}, { headers: { 'Content-Type': 'application/json' } });
+            const sopResponse = await axios.get(sopUrl, {}, { headers: { 'Content-Type': 'application/json' } });
 
+            console.log("sopResponse", sopResponse.data)
             if (sopResponse.data.Status === true && sopResponse.data.AmmountDetails) {
                 const sopData = sopResponse.data.AmmountDetails;
                 // Fetch SOP panels

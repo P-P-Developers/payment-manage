@@ -31,16 +31,26 @@ const DataSync = () => {
 
   const [isCaptchaOpen, setIsCaptchaOpen] = useState(false);
   const [pendingFixFn, setPendingFixFn] = useState(null);
+  const [specificFixItem, setSpecificFixItem] = useState(null);
 
   const handleCaptchaSuccess = () => {
     setIsCaptchaOpen(false);
     if (pendingFixFn === 'ip') fixIp();
     else if (pendingFixFn === 'license') fixLicense();
     else if (pendingFixFn === 'sop') fixSop();
+    else if (pendingFixFn === 'sop-specific') fixSpecificSop(specificFixItem);
+    else if (pendingFixFn === 'ip-specific') fixSpecificIp(specificFixItem);
+    else if (pendingFixFn === 'license-specific') fixSpecificLicense(specificFixItem);
   };
 
   const openCaptchaFor = (type) => {
     setPendingFixFn(type);
+    setIsCaptchaOpen(true);
+  };
+
+  const openSpecificCaptchaFor = (type, item) => {
+    setPendingFixFn(type);
+    setSpecificFixItem(item);
     setIsCaptchaOpen(true);
   };
 
@@ -73,6 +83,35 @@ const DataSync = () => {
     }
   };
 
+  const fixSpecificIp = async (item) => {
+    setIpFixing(true);
+    setIpMessage(null);
+    try {
+      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const response = await apiRequest(`/sync/fix-ip${query}`, { 
+        method: 'POST',
+        body: JSON.stringify({
+          specificPanelName: item.panelName,
+          specificDate: item.date
+        })
+      });
+      if (response.success) {
+        setIpMessage({
+          type: 'success',
+          text: `Fixed IP discrepancy for ${item.panelName}.`
+        });
+        await checkIp();
+      } else {
+        throw new Error(response.message || 'Failed to fix specific IP discrepancy');
+      }
+    } catch (err) {
+      setIpMessage({ type: 'error', text: err.message || 'Failed to fix specific IP discrepancy' });
+    } finally {
+      setIpFixing(false);
+      setSpecificFixItem(null);
+    }
+  };
+
   const checkLicense = async () => {
     setLicenseLoading(true);
     setLicenseMessage(null);
@@ -99,6 +138,35 @@ const DataSync = () => {
       setLicenseMessage({ type: 'error', text: err.message || 'Failed to fix License discrepancies' });
     } finally {
       setLicenseFixing(false);
+    }
+  };
+
+  const fixSpecificLicense = async (item) => {
+    setLicenseFixing(true);
+    setLicenseMessage(null);
+    try {
+      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const response = await apiRequest(`/sync/fix-license${query}`, { 
+        method: 'POST',
+        body: JSON.stringify({
+          specificPanelName: item.panelName,
+          specificDate: item.date
+        })
+      });
+      if (response.success) {
+        setLicenseMessage({
+          type: 'success',
+          text: `Fixed License discrepancy for ${item.panelName}.`
+        });
+        await checkLicense();
+      } else {
+        throw new Error(response.message || 'Failed to fix specific License discrepancy');
+      }
+    } catch (err) {
+      setLicenseMessage({ type: 'error', text: err.message || 'Failed to fix specific License discrepancy' });
+    } finally {
+      setLicenseFixing(false);
+      setSpecificFixItem(null);
     }
   };
 
@@ -147,12 +215,42 @@ const DataSync = () => {
     }
   };
 
+  const fixSpecificSop = async (item) => {
+    setSopFixing(true);
+    setSopMessage(null);
+    try {
+      const query = syncMode === 'date' && selectedDate ? `?date=${selectedDate}` : '';
+      const response = await apiRequest(`/sync/fix-sop${query}`, { 
+        method: 'POST',
+        body: JSON.stringify({
+          specificPanelId: item.localPanel._id,
+          specificDate: item.sopItem["Payment Date"],
+          specificAmount: item.sopItem.AmountDetails
+        })
+      });
+      if (response.success) {
+        setSopMessage({
+          type: 'success',
+          text: response.message || `Successfully fixed SOP discrepancy for ${item.localPanel.panelName}.`
+        });
+        await checkSop();
+      } else {
+        throw new Error(response.message || 'Failed to fix specific SOP license');
+      }
+    } catch (err) {
+      setSopMessage({ type: 'error', text: err.message || 'Failed to fix specific SOP license' });
+    } finally {
+      setSopFixing(false);
+      setSpecificFixItem(null);
+    }
+  };
+
   const hasDiscrepancies = (data) => {
     if (!data) return false;
     return (data.missingEntries?.length > 0) || (data.countMismatches?.length > 0) || (data.panelSummaries?.length > 0);
   };
 
-  const renderCard = (title, icon, data, loading, fixing, checkFn, fixFn, message, search, setSearch) => {
+  const renderCard = (title, icon, data, loading, fixing, checkFn, fixFn, message, search, setSearch, typePrefix) => {
     const discrepanciesExist = hasDiscrepancies(data);
 
     return (
@@ -236,6 +334,7 @@ const DataSync = () => {
                             <th className="px-3 py-2">Panel Name</th>
                             <th className="px-3 py-2">Details</th>
                             <th className="px-3 py-2 text-right">Date</th>
+                            <th className="px-3 py-2 text-center">Action</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
@@ -248,6 +347,15 @@ const DataSync = () => {
                                   <td className="px-3 py-2 font-medium text-slate-900 dark:text-white">{item.panelName}</td>
                                   <td className="px-3 py-2">Missing <span className="font-bold text-slate-800 dark:text-slate-200">{item.apiCount}</span> entries</td>
                                   <td className="px-3 py-2 font-mono text-[10px] text-slate-500 text-right">{item.date}</td>
+                                  <td className="px-3 py-2 text-center">
+                                    <button
+                                      onClick={() => openSpecificCaptchaFor(`${typePrefix}-specific`, item)}
+                                      disabled={fixing || loading}
+                                      className="text-[10px] px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 font-bold rounded-md transition-colors border border-blue-200 dark:border-blue-500/20"
+                                    >
+                                      Fix
+                                    </button>
+                                  </td>
                                </tr>
                              ))
                           }
@@ -260,6 +368,15 @@ const DataSync = () => {
                                   <td className="px-3 py-2 font-medium text-slate-900 dark:text-white">{item.panelName}</td>
                                   <td className="px-3 py-2">API: {item.apiCount} <span className="text-slate-300 dark:text-slate-600">|</span> DB: {item.dbQuantity} <span className="text-slate-400">({item.difference > 0 ? '+':''}{item.difference})</span></td>
                                   <td className="px-3 py-2 font-mono text-[10px] text-slate-500 text-right">{item.date}</td>
+                                  <td className="px-3 py-2 text-center">
+                                    <button
+                                      onClick={() => openSpecificCaptchaFor(`${typePrefix}-specific`, item)}
+                                      disabled={fixing || loading}
+                                      className="text-[10px] px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 font-bold rounded-md transition-colors border border-blue-200 dark:border-blue-500/20"
+                                    >
+                                      Fix
+                                    </button>
+                                  </td>
                                </tr>
                              ))
                           }
@@ -342,13 +459,13 @@ const DataSync = () => {
         {renderCard(
           "IP Billing Sync All panels ",
           <Server className="h-6 w-6" />,
-          ipData, ipLoading, ipFixing, checkIp, () => openCaptchaFor('ip'), ipMessage, ipSearch, setIpSearch
+          ipData, ipLoading, ipFixing, checkIp, () => openCaptchaFor('ip'), ipMessage, ipSearch, setIpSearch, 'ip'
         )}
 
         {renderCard(
           "License Billing Sync Algo panels",
           <Database className="h-6 w-6" />,
-          licenseData, licenseLoading, licenseFixing, checkLicense, () => openCaptchaFor('license'), licenseMessage, licenseSearch, setLicenseSearch
+          licenseData, licenseLoading, licenseFixing, checkLicense, () => openCaptchaFor('license'), licenseMessage, licenseSearch, setLicenseSearch, 'license'
         )}
 
         {/* SOP Card */}
@@ -424,6 +541,7 @@ const DataSync = () => {
                               <th className="px-4 py-3 text-right">API Amount</th>
                               <th className="px-4 py-3">API Date</th>
                               <th className="px-4 py-3 text-center">Payment Status</th>
+                              <th className="px-4 py-3 text-center">Action</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
@@ -457,6 +575,15 @@ const DataSync = () => {
                                   <span className={`inline-flex items-center text-[10px] font-bold uppercase px-2 py-1 rounded-md shadow-sm ${match.status === 'Mismatch Amount' ? 'bg-amber-100 text-amber-700 border border-amber-200 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400' : 'bg-rose-100 text-rose-700 border border-rose-200 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400'}`}>
                                     {match.status}
                                   </span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <button
+                                    onClick={() => openSpecificCaptchaFor('sop-specific', match)}
+                                    disabled={sopFixing || sopLoading}
+                                    className="text-[10px] px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 font-bold rounded-md transition-colors border border-blue-200 dark:border-blue-500/20"
+                                  >
+                                    Fix
+                                  </button>
                                 </td>
                               </tr>
                             ))}

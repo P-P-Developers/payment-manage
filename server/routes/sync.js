@@ -293,11 +293,14 @@ router.get('/check-ip', protect, adminOnly, async (req, res) => {
 router.post('/fix-ip', protect, adminOnly, async (req, res) => {
     try {
         const targetDate = req.query.date || req.body.date || null;
+        const { specificPanelName, specificDate } = req.body || {};
         const report = await getIpReport(targetDate);
         let fixedMissing = 0;
         let fixedMismatch = 0;
 
         for (const entry of report.missingEntries) {
+            if (specificPanelName && entry.panelName !== specificPanelName) continue;
+            if (specificDate && entry.date !== specificDate) continue;
             const panel = await Panel.findOne({ panelName: new RegExp(`^${escapeRegex(entry.panelName)}$`, 'i') });
             if (!panel) continue;
 
@@ -318,6 +321,8 @@ router.post('/fix-ip', protect, adminOnly, async (req, res) => {
         }
 
         for (const mismatch of report.countMismatches) {
+            if (specificPanelName && mismatch.panelName !== specificPanelName) continue;
+            if (specificDate && mismatch.date !== specificDate) continue;
             const panel = await Panel.findOne({ panelName: new RegExp(`^${escapeRegex(mismatch.panelName)}$`, 'i') });
             if (!panel) continue;
 
@@ -393,11 +398,14 @@ router.get('/check-license', protect, adminOnly, async (req, res) => {
 router.post('/fix-license', protect, adminOnly, async (req, res) => {
     try {
         const targetDate = req.query.date || req.body.date || null;
+        const { specificPanelName, specificDate } = req.body || {};
         const report = await getLicenseReport(targetDate);
         let fixedMissing = 0;
         let fixedMismatch = 0;
 
         for (const entry of report.missingEntries) {
+            if (specificPanelName && entry.panelName !== specificPanelName) continue;
+            if (specificDate && entry.date !== specificDate) continue;
             const panel = await Panel.findOne({ panelName: new RegExp(`^${escapeRegex(entry.panelName)}$`, 'i') });
             if (!panel) continue;
 
@@ -421,6 +429,8 @@ router.post('/fix-license', protect, adminOnly, async (req, res) => {
         }
 
         for (const mismatch of report.countMismatches) {
+            if (specificPanelName && mismatch.panelName !== specificPanelName) continue;
+            if (specificDate && mismatch.date !== specificDate) continue;
             const panel = await Panel.findOne({ panelName: new RegExp(`^${escapeRegex(mismatch.panelName)}$`, 'i') });
             if (!panel) continue;
 
@@ -484,9 +494,11 @@ router.post('/fix-license', protect, adminOnly, async (req, res) => {
 // Helper Function: Check SOP Discrepancies
 // ==========================================
 async function getSopReport(targetDate = null) {
-    const apiResponse = await axios.post('https://soptools.tradestreet.in/superbackend/AmmountDetailsFilter', {
-        month: null, year: null, Status: 'All'
-    }, { headers: { 'Content-Type': 'application/json' } });
+    try {
+        console.log(`[getSopReport] Starting SOP report sync for targetDate: ${targetDate || 'all'}`);
+        const apiResponse = await axios.post('https://soptools.tradestreet.in/superbackend/AmmountDetailsFilter', {
+            month: null, year: null, Status: 'All'
+        }, { headers: { 'Content-Type': 'application/json' } });
 
     let sopApiData = apiResponse.data?.AmmountDetails;
     if (!sopApiData) sopApiData = apiResponse.data;
@@ -571,7 +583,7 @@ async function getSopReport(targetDate = null) {
                                     const offsetMs = 5.5 * 60 * 60 * 1000;
                                     const istDateObj = new Date(payDateObj.getTime() + offsetMs);
                                     const payDateStr = istDateObj.toISOString().split('T')[0];
-                                    
+
                                     if (payDateStr === sopDateStr) {
                                         dateMatches = true;
                                     }
@@ -606,6 +618,10 @@ async function getSopReport(targetDate = null) {
         unmatchedDbPanels,
         newMissingCount
     };
+    } catch (error) {
+        console.error("[getSopReport] Error fetching SOP report:", error.response?.data || error.message || error);
+        throw error;
+    }
 }
 
 // @route   GET /api/sync/check-sop
@@ -623,11 +639,17 @@ router.get('/check-sop', protect, adminOnly, async (req, res) => {
 router.post('/fix-sop', protect, adminOnly, async (req, res) => {
     try {
         const targetDate = req.query.date || req.body.date || null;
+        const { specificPanelId, specificDate, specificAmount } = req.body || {};
+
         const report = await getSopReport(targetDate);
         let fixedMissing = 0;
 
         for (const match of report.matchedData) {
             if (match.status === 'Missing in DB' || match.status === 'Mismatch Amount') {
+                if (specificPanelId && match.localPanel._id.toString() !== specificPanelId) continue;
+                if (specificDate && match.sopItem["Payment Date"] !== specificDate) continue;
+                if (specificAmount && match.sopItem.AmountDetails !== specificAmount) continue;
+
                 const amount = parseFloat(match.sopItem.AmountDetails) || 0;
                 let finalBillAmount = amount;
 
