@@ -278,28 +278,28 @@ const DataSync = () => {
 
   const updateDbTime = async (dbEntryId, apiDateStr, type) => {
     if (!window.confirm("Are you sure you want to update the DB entry time to match the API?")) return;
-    
+
     try {
-       const res = await apiRequest(`/sync/update-time/${dbEntryId}`, {
-           method: 'PUT',
-           body: JSON.stringify({ newTime: apiDateStr, syncType: type })
-       });
-       if(res.success) {
-           if (type.includes('ip')) {
-               setIpMessage({ type: 'success', text: 'Time updated successfully' });
-               await checkIp();
-           } else if (type.includes('license')) {
-               setLicenseMessage({ type: 'success', text: 'Time updated successfully' });
-               await checkLicense();
-           } else if (type.includes('sop')) {
-               setSopMessage({ type: 'success', text: 'Time updated successfully' });
-               await checkSop();
-           }
-       } else {
-           alert(res.message || 'Failed to update time');
-       }
+      const res = await apiRequest(`/sync/update-time/${dbEntryId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ newTime: apiDateStr, syncType: type })
+      });
+      if (res.success) {
+        if (type.includes('ip')) {
+          setIpMessage({ type: 'success', text: 'Time updated successfully' });
+          await checkIp();
+        } else if (type.includes('license')) {
+          setLicenseMessage({ type: 'success', text: 'Time updated successfully' });
+          await checkLicense();
+        } else if (type.includes('sop')) {
+          setSopMessage({ type: 'success', text: 'Time updated successfully' });
+          await checkSop();
+        }
+      } else {
+        alert(res.message || 'Failed to update time');
+      }
     } catch (err) {
-       alert(err.message || 'Failed to update time');
+      alert(err.message || 'Failed to update time');
     }
   };
 
@@ -455,141 +455,141 @@ const DataSync = () => {
                       {viewMode === 'detailed' ? (
                         <table className="w-full text-left text-xs whitespace-nowrap">
                           <thead className="bg-slate-100 dark:bg-slate-800/50 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 sticky top-0">
-                          <tr>
-                            <th className="px-3 py-2 w-10 text-center">Type</th>
-                            <th className="px-3 py-2">Panel Name</th>
-                            <th className="px-3 py-2">Details</th>
-                            <th className="px-3 py-2 text-right">Date</th>
-                            <th className="px-3 py-2 text-center">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
-                          {paginatedList.map((item, idx) => (
-                            <tr key={`${item.discrepancyType}-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                              <td className="px-3 py-2 text-center">
-                                {item.discrepancyType === 'missing' ? (
-                                  <span className="text-[10px] bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 dark:border dark:border-rose-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Missing</span>
-                                ) : (
-                                  <span className="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 dark:border dark:border-amber-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Mismatch</span>
-                                )}
-                              </td>
-                              <td className="px-3 py-2 font-medium text-slate-900 dark:text-white">{item.panelName}</td>
-                              <td className="px-3 py-2">
-                                {item.discrepancyType === 'missing' ? (
-                                  <>Missing <span className="font-bold text-slate-800 dark:text-slate-200">{item.apiCount}</span> entries</>
-                                ) : (
-                                  <>API: {item.apiCount} <span className="text-slate-300 dark:text-slate-600">|</span> DB: {item.dbQuantity} <span className="text-slate-400">({item.difference > 0 ? '+' : ''}{item.difference})</span></>
-                                )}
-                                {item.relatedDbEntries && item.relatedDbEntries.length > 0 && (
-                                  <div className="mt-2 text-[10px] bg-slate-100 dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700">
-                                    <div className="font-semibold text-slate-500 dark:text-slate-400 mb-1">Other entries on this date:</div>
-                                    <ul className="space-y-1">
-                                      {item.relatedDbEntries.map((rel, rIdx) => (
-                                        <li key={rIdx} className="text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2">
-                                          <span className="font-mono">{rel.time}</span>
-                                          <div className="flex items-center gap-2">
-                                            <span>Qty: {rel.quantity || rel.amount}</span>
-                                            <button 
-                                              onClick={() => updateDbTime(rel.id, item.originalDate, typePrefix)}
-                                              disabled={loading || fixing}
-                                              className="px-1.5 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 rounded transition-colors border border-indigo-200 dark:border-indigo-500/20"
-                                              title="Update DB time to match API time"
-                                            >
-                                              Match Time
-                                            </button>
-                                          </div>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-                              </td>
-                              <td className="px-3 py-2 font-mono text-[10px] text-slate-500 text-right">{item.date}</td>
-                              <td className="px-3 py-2 text-center">
-                                <button
-                                  onClick={() => openSpecificCaptchaFor(`${typePrefix}-specific`, item)}
-                                  disabled={fixing || loading}
-                                  className="text-[10px] px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 font-bold rounded-md transition-colors border border-blue-200 dark:border-blue-500/20"
-                                >
-                                  Fix
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                          {paginatedList.length === 0 && (
                             <tr>
-                              <td colSpan="5" className="px-3 py-6 text-center text-slate-400 italic">No detailed discrepancies match your criteria.</td>
+                              <th className="px-3 py-2 w-10 text-center">Type</th>
+                              <th className="px-3 py-2">Panel Name</th>
+                              <th className="px-3 py-2">Details</th>
+                              <th className="px-3 py-2 text-right">Date</th>
+                              <th className="px-3 py-2 text-center">Action</th>
                             </tr>
-                          )}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
+                            {paginatedList.map((item, idx) => (
+                              <tr key={`${item.discrepancyType}-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                <td className="px-3 py-2 text-center">
+                                  {item.discrepancyType === 'missing' ? (
+                                    <span className="text-[10px] bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 dark:border dark:border-rose-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Missing</span>
+                                  ) : (
+                                    <span className="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 dark:border dark:border-amber-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Mismatch</span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2 font-medium text-slate-900 dark:text-white">{item.panelName}</td>
+                                <td className="px-3 py-2">
+                                  {item.discrepancyType === 'missing' ? (
+                                    <>Missing <span className="font-bold text-slate-800 dark:text-slate-200">{item.apiCount}</span> entries</>
+                                  ) : (
+                                    <>API: {item.apiCount} <span className="text-slate-300 dark:text-slate-600">|</span> DB: {item.dbQuantity} <span className="text-slate-400">({item.difference > 0 ? '+' : ''}{item.difference})</span></>
+                                  )}
+                                  {item.relatedDbEntries && item.relatedDbEntries.length > 0 && (
+                                    <div className="mt-2 text-[10px] bg-slate-100 dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700">
+                                      <div className="font-semibold text-slate-500 dark:text-slate-400 mb-1">Other entries on this date:</div>
+                                      <ul className="space-y-1">
+                                        {item.relatedDbEntries.map((rel, rIdx) => (
+                                          <li key={rIdx} className="text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2">
+                                            <span className="font-mono">{rel.time}</span>
+                                            <div className="flex items-center gap-2">
+                                              <span>Qty: {rel.quantity || rel.amount}</span>
+                                              <button
+                                                onClick={() => updateDbTime(rel.id, item.originalDate, typePrefix)}
+                                                disabled={loading || fixing}
+                                                className="px-1.5 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 rounded transition-colors border border-indigo-200 dark:border-indigo-500/20"
+                                                title="Update DB time to match API time"
+                                              >
+                                                Match Time
+                                              </button>
+                                            </div>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2 font-mono text-[10px] text-slate-500 text-right">{item.date}</td>
+                                <td className="px-3 py-2 text-center">
+                                  <button
+                                    onClick={() => openSpecificCaptchaFor(`${typePrefix}-specific`, item)}
+                                    disabled={fixing || loading}
+                                    className="text-[10px] px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 font-bold rounded-md transition-colors border border-blue-200 dark:border-blue-500/20"
+                                  >
+                                    Fix
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                            {paginatedList.length === 0 && (
+                              <tr>
+                                <td colSpan="5" className="px-3 py-6 text-center text-slate-400 italic">No detailed discrepancies match your criteria.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
                       ) : (
-                      <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className="bg-slate-100 dark:bg-slate-800/50 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 sticky top-0">
-                          <tr>
-                            <th className="px-3 py-2">Panel Name</th>
-                            <th className="px-3 py-2 text-center">API Total Count</th>
-                            <th className="px-3 py-2 text-center">DB Total Count</th>
-                            <th className="px-3 py-2 text-center">Difference</th>
-                            <th className="px-3 py-2 text-center">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
-                          {data.panelSummaries && data.panelSummaries
-                            .filter(i => !search || i.panelName.toLowerCase().includes(search.toLowerCase()))
-                            .sort((a, b) => b.difference - a.difference)
-                            .slice((page - 1) * 10, page * 10)
-                            .map((item, idx) => (
-                            <tr key={`summary-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                              <td className="px-3 py-2 font-semibold">{item.panelName}</td>
-                              <td className="px-3 py-2 text-center text-indigo-600 dark:text-indigo-400 font-bold">{item.totalApi}</td>
-                              <td className="px-3 py-2 text-center text-blue-600 dark:text-blue-400 font-bold">{item.totalDb}</td>
-                              <td className="px-3 py-2 text-center font-bold">
-                                {item.difference === 0 ? (
-                                  <span className="text-slate-400">-</span>
-                                ) : item.difference > 0 ? (
-                                  <span className="text-amber-500">+{item.difference}</span>
-                                ) : (
-                                  <span className="text-rose-500">{item.difference}</span>
-                                )}
-                              </td>
-                              <td className="px-3 py-2 text-center">
-                                {item.difference === 0 ? (
-                                  <span className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border dark:border-emerald-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Matched</span>
-                                ) : (
-                                  <span className="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 dark:border dark:border-amber-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Mismatch</span>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                          {(!data.panelSummaries || data.panelSummaries.filter(i => !search || i.panelName.toLowerCase().includes(search.toLowerCase())).length === 0) && (
+                        <table className="w-full text-left text-xs whitespace-nowrap">
+                          <thead className="bg-slate-100 dark:bg-slate-800/50 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 sticky top-0">
                             <tr>
-                              <td colSpan="5" className="px-3 py-6 text-center text-slate-400 italic">No panel summaries match your criteria.</td>
+                              <th className="px-3 py-2">Panel Name</th>
+                              <th className="px-3 py-2 text-center">API Total Count</th>
+                              <th className="px-3 py-2 text-center">DB Total Count</th>
+                              <th className="px-3 py-2 text-center">Difference</th>
+                              <th className="px-3 py-2 text-center">Status</th>
                             </tr>
-                          )}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
+                            {data.panelSummaries && data.panelSummaries
+                              .filter(i => !search || i.panelName.toLowerCase().includes(search.toLowerCase()))
+                              .sort((a, b) => b.difference - a.difference)
+                              .slice((page - 1) * 10, page * 10)
+                              .map((item, idx) => (
+                                <tr key={`summary-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                  <td className="px-3 py-2 font-semibold">{item.panelName}</td>
+                                  <td className="px-3 py-2 text-center text-indigo-600 dark:text-indigo-400 font-bold">{item.totalApi}</td>
+                                  <td className="px-3 py-2 text-center text-blue-600 dark:text-blue-400 font-bold">{item.totalDb}</td>
+                                  <td className="px-3 py-2 text-center font-bold">
+                                    {item.difference === 0 ? (
+                                      <span className="text-slate-400">-</span>
+                                    ) : item.difference > 0 ? (
+                                      <span className="text-amber-500">+{item.difference}</span>
+                                    ) : (
+                                      <span className="text-rose-500">{item.difference}</span>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-2 text-center">
+                                    {item.difference === 0 ? (
+                                      <span className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border dark:border-emerald-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Matched</span>
+                                    ) : (
+                                      <span className="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 dark:border dark:border-amber-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Mismatch</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            {(!data.panelSummaries || data.panelSummaries.filter(i => !search || i.panelName.toLowerCase().includes(search.toLowerCase())).length === 0) && (
+                              <tr>
+                                <td colSpan="5" className="px-3 py-6 text-center text-slate-400 italic">No panel summaries match your criteria.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
                       )}
                     </div>
 
                     <div className="flex justify-between items-center p-3 border-t border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/30">
-                        <button
-                          onClick={() => setPage(p => Math.max(1, p - 1))}
-                          disabled={page === 1}
-                          className="px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                        >
-                          Previous
-                        </button>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">Page {page} of {totalPages}</span>
-                        <button
-                          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                          disabled={page === totalPages}
-                          className="px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                        >
-                          Next
-                        </button>
-                      </div>
-                    )}
+                      <button
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                        className="px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                      >
+                        Previous
+                      </button>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">Page {page} of {totalPages}</span>
+                      <button
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                        className="px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                      >
+                        Next
+                      </button>
+                    </div>
+
                   </div>
                 </>
               )}
@@ -633,11 +633,11 @@ const DataSync = () => {
           <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden md:block"></div>
 
           <label className="flex items-center gap-2 cursor-pointer tooltip-trigger" title="Match only by Date/Month/Year and ignore the exact Time">
-            <input 
-              type="checkbox" 
-              checked={ignoreTime} 
-              onChange={(e) => setIgnoreTime(e.target.checked)} 
-              className="accent-indigo-600 w-4 h-4 rounded border-slate-300" 
+            <input
+              type="checkbox"
+              checked={ignoreTime}
+              onChange={(e) => setIgnoreTime(e.target.checked)}
+              className="accent-indigo-600 w-4 h-4 rounded border-slate-300"
             />
             <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Ignore Time</span>
           </label>
@@ -819,7 +819,7 @@ const DataSync = () => {
                                                     <span className="font-mono">{rel.time}</span>
                                                     <div className="flex items-center gap-2">
                                                       <span className="font-bold">₹{rel.amount}</span>
-                                                      <button 
+                                                      <button
                                                         onClick={() => updateDbTime(rel.id, match.sopItem["Payment Date"], 'sop')}
                                                         disabled={sopLoading || sopFixing}
                                                         className="px-1.5 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 rounded transition-colors border border-indigo-200 dark:border-indigo-500/20"
@@ -922,11 +922,11 @@ const DataSync = () => {
         onSuccess={handleCaptchaSuccess}
       />
 
-      <EditPaymentModal 
-        isOpen={editModal.isOpen} 
-        onClose={() => setEditModal({ isOpen: false, entryId: null, type: '' })} 
-        onSuccess={handleEditPaymentSuccess} 
-        paymentId={editModal.entryId} 
+      <EditPaymentModal
+        isOpen={editModal.isOpen}
+        onClose={() => setEditModal({ isOpen: false, entryId: null, type: '' })}
+        onSuccess={handleEditPaymentSuccess}
+        paymentId={editModal.entryId}
       />
     </div>
   );
