@@ -290,7 +290,41 @@ export default function Payments() {
         try {
           const data = await apiRequest(`/payments/unpaid/${selectedPanelId}`);
           if (data.success) {
-            setUnpaidBills(data.bills || []);
+            const panel = panels.find(p => p._id === selectedPanelId);
+            const outstanding = panel?.outstanding || 0;
+            let finalBills = [];
+
+            if (outstanding > 0) {
+              // Sort raw bills newest first
+              const sortedBills = (data.bills || []).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+              let accumulated = 0;
+              
+              for (const bill of sortedBills) {
+                if (accumulated >= outstanding) break;
+                
+                const originalRemaining = (bill.billAmount || 0) - (bill.billDiscount || 0) - (bill.paidAmount || 0);
+                if (originalRemaining <= 0) continue;
+
+                if (accumulated + originalRemaining > outstanding) {
+                  // Adjust this bill so it only covers the exact deficit
+                  const allowedRemaining = outstanding - accumulated;
+                  const mockPaidAmount = (bill.billAmount || 0) - (bill.billDiscount || 0) - allowedRemaining;
+                  
+                  finalBills.push({
+                    ...bill,
+                    paidAmount: mockPaidAmount
+                  });
+                  accumulated += allowedRemaining;
+                } else {
+                  finalBills.push(bill);
+                  accumulated += originalRemaining;
+                }
+              }
+              // Re-sort them oldest first for proper auto-allocation flow
+              finalBills.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            }
+
+            setUnpaidBills(finalBills);
             setSelectedAllocations({});
           }
         } catch (err) {
@@ -302,7 +336,7 @@ export default function Payments() {
       setUnpaidBills([]);
       setSelectedAllocations({});
     }
-  }, [selectedPanelId]);
+  }, [selectedPanelId, panels]);
 
   // Auto-bump Amount Received if it's less than the sum of selected allocations
   useEffect(() => {
