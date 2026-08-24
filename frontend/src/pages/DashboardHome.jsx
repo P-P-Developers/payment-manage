@@ -169,6 +169,21 @@ export default function DashboardHome() {
   const [modalInfo, setModalInfo] = useState(null);
   const [tableSearch, setTableSearch] = useState('');
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [unpaidModal, setUnpaidModal] = useState({ isOpen: false, panelName: '', loading: false, bills: [] });
+
+  const handleViewUnpaid = async (panelId, panelName, outstanding) => {
+    if (outstanding <= 0) return;
+    setUnpaidModal({ isOpen: true, panelName, loading: true, bills: [] });
+    try {
+      const data = await apiRequest(`/payments/unpaid/${panelId}`);
+      if (data.success) {
+        setUnpaidModal({ isOpen: true, panelName, loading: false, bills: data.bills || [] });
+      }
+    } catch (err) {
+      setUnpaidModal({ isOpen: true, panelName, loading: false, bills: [] });
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -1800,8 +1815,18 @@ export default function DashboardHome() {
                                 </span>
                               </td>
                               <td className="px-4 py-3 text-right font-mono font-semibold text-slate-700 dark:text-slate-300">₹{p.totalBilled.toLocaleString()}</td>
-                              <td className="px-4 py-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">₹{p.totalPaid.toLocaleString()}</td>
-                              <td className="px-4 py-3 text-right font-mono font-bold text-rose-600 dark:text-rose-400">₹{p.outstanding.toLocaleString()}</td>
+                              <td className="px-4 py-3 text-right font-mono font-bold text-green-500 dark:text-green-400">₹{p.totalPaid.toLocaleString()}</td>
+                              <td className="px-4 py-3 text-right font-mono font-bold">
+                                {p.outstanding > 0 ? (
+                                  <button onClick={() => handleViewUnpaid(p._id, p.panelName, p.outstanding)} className="text-red-500 dark:text-red-400 hover:underline hover:text-red-600 transition-colors">
+                                    ₹{p.outstanding.toLocaleString()}
+                                  </button>
+                                ) : (
+                                  <span className={p.outstanding < 0 ? 'text-green-500 dark:text-green-400' : 'text-slate-500 dark:text-slate-400'}>
+                                    ₹{p.outstanding.toLocaleString()}
+                                  </span>
+                                )}
+                              </td>
                               <td className="px-4 py-3 text-center">
                                 <div className="flex flex-col items-center gap-1">
                                   <span className="font-mono font-bold text-slate-700 dark:text-slate-200 text-xs">{p.recoveryRate}%</span>
@@ -1947,6 +1972,52 @@ export default function DashboardHome() {
                   >
                     Close Breakdown
                   </button>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+
+          {/* Unpaid Bills Modal */}
+          {unpaidModal.isOpen && createPortal(
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200 !mt-0">
+              <div onClick={() => setUnpaidModal({ isOpen: false, panelName: '', loading: false, bills: [] })} className="fixed inset-0 bg-black/85 backdrop-blur-md"></div>
+              <div className="relative w-full max-w-lg rounded-3xl glass-card border border-slate-200 dark:border-slate-800 p-6 shadow-2xl z-10 animate-in zoom-in-95 duration-200 flex flex-col max-h-[80vh]">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-[16px] font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                      <AlertCircle className="h-5 w-5 text-red-500" /> Pending Bills
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{unpaidModal.panelName}</p>
+                  </div>
+                  <button onClick={() => setUnpaidModal({ isOpen: false, panelName: '', loading: false, bills: [] })} className="h-8 w-8 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center transition-all">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
+                  {unpaidModal.loading ? (
+                    <div className="py-10 text-center text-slate-500 dark:text-slate-400 text-xs font-semibold animate-pulse">Loading pending bills...</div>
+                  ) : unpaidModal.bills.length === 0 ? (
+                    <div className="py-10 text-center text-slate-500 dark:text-slate-400 text-xs font-semibold">No pending bills found.</div>
+                  ) : (
+                    unpaidModal.bills.map(bill => {
+                      const remaining = (bill.billAmount || 0) - (bill.billDiscount || 0) - (bill.paidAmount || 0);
+                      if (remaining <= 0) return null;
+                      return (
+                        <div key={bill._id} className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
+                          <div>
+                            <div className="text-sm font-bold text-slate-800 dark:text-slate-200">{bill.paymentType || 'Other'}</div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{new Date(bill.timestamp).toLocaleDateString('en-GB')}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-mono font-bold text-red-500">₹{remaining.toLocaleString()}</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">Total: ₹{(bill.billAmount || 0).toLocaleString()}</div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             </div>,
