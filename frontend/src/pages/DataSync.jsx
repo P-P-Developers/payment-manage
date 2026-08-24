@@ -32,9 +32,11 @@ const DataSync = () => {
   const [syncMode, setSyncMode] = useState('all');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [ignoreTime, setIgnoreTime] = useState(false);
+  const [viewMode, setViewMode] = useState('detailed'); // 'detailed' | 'totals'
 
   useEffect(() => {
     setPage(1);
+    setViewMode('detailed');
   }, [activeTab]);
 
   const [isCaptchaOpen, setIsCaptchaOpen] = useState(false);
@@ -418,7 +420,28 @@ const DataSync = () => {
                 <>
                   <div className="mt-1 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-800 p-0 flex-1 overflow-hidden flex flex-col">
                     <div className="flex justify-between items-center p-3 border-b border-slate-200 dark:border-slate-700/50">
-                      <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Discrepancy Logs</h5>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-medium text-slate-500 mr-2">
+                          Page {page} of {viewMode === 'detailed' ? totalPages : Math.ceil((data.panelSummaries?.filter(i => !search || i.panelName.toLowerCase().includes(search.toLowerCase())).length || 0) / 10)}
+                        </span>
+                        <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                          {viewMode === 'detailed' ? 'Discrepancy Logs' : 'Panel Totals Summary'}
+                        </h5>
+                        <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
+                          <button
+                            onClick={() => { setViewMode('detailed'); setPage(1); }}
+                            className={`px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-colors ${viewMode === 'detailed' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                          >
+                            Detailed
+                          </button>
+                          <button
+                            onClick={() => { setViewMode('totals'); setPage(1); }}
+                            className={`px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-colors ${viewMode === 'totals' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                          >
+                            Totals
+                          </button>
+                        </div>
+                      </div>
                       <input
                         type="text"
                         placeholder="Search panel..."
@@ -429,8 +452,9 @@ const DataSync = () => {
                     </div>
 
                     <div className="overflow-hidden">
-                      <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className="bg-slate-100 dark:bg-slate-800/50 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 sticky top-0">
+                      {viewMode === 'detailed' ? (
+                        <table className="w-full text-left text-xs whitespace-nowrap">
+                          <thead className="bg-slate-100 dark:bg-slate-800/50 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 sticky top-0">
                           <tr>
                             <th className="px-3 py-2 w-10 text-center">Type</th>
                             <th className="px-3 py-2">Panel Name</th>
@@ -492,11 +516,63 @@ const DataSync = () => {
                               </td>
                             </tr>
                           ))}
+                          {paginatedList.length === 0 && (
+                            <tr>
+                              <td colSpan="5" className="px-3 py-6 text-center text-slate-400 italic">No detailed discrepancies match your criteria.</td>
+                            </tr>
+                          )}
                         </tbody>
                       </table>
+                      ) : (
+                      <table className="w-full text-left text-xs whitespace-nowrap">
+                        <thead className="bg-slate-100 dark:bg-slate-800/50 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 sticky top-0">
+                          <tr>
+                            <th className="px-3 py-2">Panel Name</th>
+                            <th className="px-3 py-2 text-center">API Total Count</th>
+                            <th className="px-3 py-2 text-center">DB Total Count</th>
+                            <th className="px-3 py-2 text-center">Difference</th>
+                            <th className="px-3 py-2 text-center">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300">
+                          {data.panelSummaries && data.panelSummaries
+                            .filter(i => !search || i.panelName.toLowerCase().includes(search.toLowerCase()))
+                            .sort((a, b) => b.difference - a.difference)
+                            .slice((page - 1) * 10, page * 10)
+                            .map((item, idx) => (
+                            <tr key={`summary-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                              <td className="px-3 py-2 font-semibold">{item.panelName}</td>
+                              <td className="px-3 py-2 text-center text-indigo-600 dark:text-indigo-400 font-bold">{item.totalApi}</td>
+                              <td className="px-3 py-2 text-center text-blue-600 dark:text-blue-400 font-bold">{item.totalDb}</td>
+                              <td className="px-3 py-2 text-center font-bold">
+                                {item.difference === 0 ? (
+                                  <span className="text-slate-400">-</span>
+                                ) : item.difference > 0 ? (
+                                  <span className="text-amber-500">+{item.difference}</span>
+                                ) : (
+                                  <span className="text-rose-500">{item.difference}</span>
+                                )}
+                              </td>
+                              <td className="px-3 py-2 text-center">
+                                {item.difference === 0 ? (
+                                  <span className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border dark:border-emerald-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Matched</span>
+                                ) : (
+                                  <span className="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 dark:border dark:border-amber-500/20 px-1.5 py-0.5 rounded uppercase font-bold">Mismatch</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                          {(!data.panelSummaries || data.panelSummaries.filter(i => !search || i.panelName.toLowerCase().includes(search.toLowerCase())).length === 0) && (
+                            <tr>
+                              <td colSpan="5" className="px-3 py-6 text-center text-slate-400 italic">No panel summaries match your criteria.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                      )}
                     </div>
-                    {totalPages > 1 && (
-                      <div className="flex justify-between items-center p-3 border-t border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/30">
+
+                    <div className="flex justify-between items-center p-3 border-t border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/30">
                         <button
                           onClick={() => setPage(p => Math.max(1, p - 1))}
                           disabled={page === 1}

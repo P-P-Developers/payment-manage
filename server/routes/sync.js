@@ -157,14 +157,12 @@ async function getIpReport(targetDate = null, ignoreTime = false) {
             }
         }
 
-        if (totalApiForPanel !== totalDbForPanel) {
-            report.panelSummaries.push({
-                panelName: panelIdToName[panelId],
-                totalApi: totalApiForPanel,
-                totalDb: totalDbForPanel,
-                difference: totalApiForPanel - totalDbForPanel
-            });
-        }
+        report.panelSummaries.push({
+            panelName: panelIdToName[panelId],
+            totalApi: totalApiForPanel,
+            totalDb: totalDbForPanel,
+            difference: totalApiForPanel - totalDbForPanel
+        });
     }
     return report;
 }
