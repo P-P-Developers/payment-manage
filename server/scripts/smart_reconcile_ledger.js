@@ -96,13 +96,23 @@ async function run() {
   }
   
   // 9. Cleanup any remaining System Credit payments
-  const deleted = await Payment.deleteMany({
+  const recordsToDelete = await Payment.find({
     $or: [
       { bankName: { $in: ['System Credit', 'system credit'] } },
       { remark: /system credit/i }
     ]
-  });
-  console.log(`Deleted ${deleted.deletedCount} internal System Credit records.`);
+  }).populate('panelId', 'panelName');
+
+  if (recordsToDelete.length > 0) {
+    console.log(`\n--- DELETING ${recordsToDelete.length} SYSTEM CREDIT DUMMY RECORDS ---`);
+    for (const record of recordsToDelete) {
+      console.log(`[DELETE] ID: ${record._id} | Panel: ${record.panelId ? record.panelId.panelName : 'Unknown'} | Type: ${record.paymentType} | Amt: ${record.amountReceived || record.billAmount} | Remark: ${record.remark}`);
+      await Payment.deleteOne({ _id: record._id });
+    }
+    console.log(`--- FINISHED DELETING ---\n`);
+  } else {
+    console.log('No internal System Credit records found to delete.');
+  }
   
   console.log(`Smart Reconciliation complete. Processed ${totalBillsReconciled} bills across ${panels.length} panels.`);
   process.exit(0);
