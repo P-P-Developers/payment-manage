@@ -308,16 +308,18 @@ export default function Payments() {
   useEffect(() => {
     if (modalMode === 'receive') {
       const sum = Object.values(selectedAllocations).reduce((acc, cur) => acc + (Number(cur) || 0), 0);
-      if (sum > 0 && (!amountReceived || Number(amountReceived) < sum)) {
-        setAmountReceived(sum.toString());
+      const totalAvailable = (Number(amountReceived) || 0) + (Number(paymentDiscount) || 0);
+      if (sum > 0 && totalAvailable < sum) {
+        const deficit = sum - (Number(paymentDiscount) || 0);
+        setAmountReceived(deficit > 0 ? deficit.toString() : '0');
       }
     }
-  }, [selectedAllocations, modalMode, amountReceived]);
+  }, [selectedAllocations, modalMode, amountReceived, paymentDiscount]);
 
   // Auto-allocate Amount Received to unpaid bills (oldest first) dynamically as amount changes
   useEffect(() => {
     if (modalMode === 'receive' && unpaidBills.length > 0) {
-      const numAmt = Number(amountReceived) || 0;
+      const numAmt = (Number(amountReceived) || 0) + (Number(paymentDiscount) || 0);
       if (numAmt > 0) {
         const nextAlloc = {};
         let remainingLimit = numAmt;
@@ -333,7 +335,7 @@ export default function Payments() {
         setSelectedAllocations({});
       }
     }
-  }, [amountReceived, unpaidBills, modalMode]);
+  }, [amountReceived, paymentDiscount, unpaidBills, modalMode]);
 
   const [userEmail, setUserEmail] = useState('');
 
@@ -429,6 +431,9 @@ export default function Payments() {
     setPaymentDate(getTodayDateString());
     setShowBillDiscount(false);
     setShowPaymentDiscount(false);
+    setSelectedAllocations({});
+    setError('');
+    setSuccess('');
     setIsModalOpen(true);
   };
 
@@ -1252,28 +1257,56 @@ export default function Payments() {
 
               {/* Outstanding dues info box */}
               {selectedPanelDetails && (
-                <div className="rounded-xl bg-slate-100/60 dark:bg-slate-900/60 p-4 border border-slate-300 dark:border-slate-800 flex items-center justify-between text-xs">
+                <div className="rounded-xl bg-slate-100/60 dark:bg-slate-900/60 p-4 border border-slate-300 dark:border-slate-800 flex flex-wrap sm:flex-nowrap items-center justify-between text-xs gap-4">
                   <div>
                     <p className="text-slate-600 dark:text-slate-400">Client Owner:</p>
-                    <p className=" text-slate-900 dark:text-white text-sm mt-0.5">{selectedPanelDetails.ownerName}</p>
+                    <p className=" text-slate-900 dark:text-white text-sm mt-0.5 font-semibold">{selectedPanelDetails.ownerName}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-slate-600 dark:text-slate-400">{(selectedPanelDetails?.outstanding || 0) < 0 ? 'Advance Credit Balance:' : 'Ledger Outstanding Dues:'}</p>
-                    <p className={` text-sm mt-0.5 ${(selectedPanelDetails?.outstanding || 0) > 0
-                      ? 'text-rose-400'
-                      : (selectedPanelDetails?.outstanding || 0) < 0
-                        ? 'text-emerald-400'
-                        : 'text-slate-600 dark:text-slate-400'
-                      }`}>
-                      {(selectedPanelDetails?.outstanding || 0) < 0
-                        ? `₹${Math.abs(selectedPanelDetails.outstanding).toLocaleString()}`
-                        : `₹${(selectedPanelDetails?.outstanding || 0).toLocaleString()}`
-                      }
-                    </p>
-                    {selectedPanelDetails.creditBalance > 0 && (
-                      <p className="text-[10px] text-emerald-400 font-bold mt-1">
-                        Available User Credit: ₹{selectedPanelDetails.creditBalance.toLocaleString()}
+                  
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-6 sm:gap-8 justify-end w-full sm:w-auto">
+                    <div className="text-right">
+                      <p className="text-slate-600 dark:text-slate-400">{(selectedPanelDetails?.outstanding || 0) < 0 ? 'Advance Credit Balance:' : 'Ledger Outstanding Dues:'}</p>
+                      <p className={` text-sm mt-0.5 font-bold ${(selectedPanelDetails?.outstanding || 0) > 0
+                        ? 'text-rose-500'
+                        : (selectedPanelDetails?.outstanding || 0) < 0
+                          ? 'text-emerald-500'
+                          : 'text-slate-600 dark:text-slate-400'
+                        }`}>
+                        {(selectedPanelDetails?.outstanding || 0) < 0
+                          ? `₹${Math.abs(selectedPanelDetails.outstanding).toLocaleString()}`
+                          : `₹${(selectedPanelDetails?.outstanding || 0).toLocaleString()}`
+                        }
                       </p>
+                      {selectedPanelDetails.creditBalance > 0 && (
+                        <p className="text-[10px] text-emerald-500 dark:text-emerald-400 font-bold mt-1">
+                          Available User Credit: ₹{selectedPanelDetails.creditBalance.toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+
+                    {modalMode === 'receive' && (Number(amountReceived) > 0 || Number(paymentDiscount) > 0) && (
+                      <div className="text-right border-l pl-6 sm:pl-8 border-slate-200 dark:border-slate-700/50">
+                        <p className="text-slate-600 dark:text-slate-400 font-bold">Remaining After Payment:</p>
+                        {(() => {
+                          const currentOutstanding = selectedPanelDetails?.outstanding || 0;
+                          const paid = Number(amountReceived) || 0;
+                          const discount = Number(paymentDiscount) || 0;
+                          const newOutstanding = currentOutstanding - paid - discount;
+                          return (
+                            <p className={`text-sm mt-0.5 font-extrabold ${newOutstanding > 0
+                              ? 'text-amber-500'
+                              : newOutstanding < 0
+                                ? 'text-emerald-500'
+                                : 'text-emerald-600 dark:text-emerald-400'
+                              }`}>
+                              {newOutstanding < 0
+                                ? `Advance: ₹${Math.abs(newOutstanding).toLocaleString()}`
+                                : `₹${newOutstanding.toLocaleString()}`
+                              }
+                            </p>
+                          );
+                        })()}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1294,7 +1327,7 @@ export default function Payments() {
                           const checked = e.target.checked;
                           const nextAlloc = {};
                           if (checked) {
-                            const maxLimit = Number(amountReceived) || 0;
+                            const maxLimit = (Number(amountReceived) || 0) + (Number(paymentDiscount) || 0);
                             let remainingLimit = maxLimit;
                             unpaidBills.forEach(b => {
                               if (remainingLimit <= 0) return;
@@ -1324,7 +1357,7 @@ export default function Payments() {
                       const currentAllocatedSum = Object.entries(selectedAllocations).reduce((acc, [id, amt]) => {
                         return acc + (Number(amt) || 0);
                       }, 0);
-                      const maxLimit = Number(amountReceived) || 0;
+                      const maxLimit = (Number(amountReceived) || 0) + (Number(paymentDiscount) || 0);
                       const isLimitReached = maxLimit > 0 && currentAllocatedSum >= maxLimit;
 
                       return (
@@ -1420,7 +1453,6 @@ export default function Payments() {
                       value={paymentType}
                       onChange={(e) => setPaymentType(e.target.value)}
                       className="w-full rounded-xl px-4 py-3 text-sm glass-input bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white cursor-pointer"
-                      required
                     >
                       {(paymentTypes.length > 0 ? paymentTypes : FALLBACK_PAYMENT_TYPES.map(name => ({ _id: name, name }))).map((pt) => (
                         <option key={pt._id} value={pt.name} className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white">{pt.name}</option>
