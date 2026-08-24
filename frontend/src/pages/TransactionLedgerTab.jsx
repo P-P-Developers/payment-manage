@@ -67,6 +67,10 @@ export default function TransactionLedgerTab({
   setDiscountOnly,
   gstOnly,
   setGstOnly,
+  advanceOnly,
+  setAdvanceOnly,
+  unpaidOnly,
+  setUnpaidOnly,
   startDate,
   setStartDate,
   endDate,
@@ -213,15 +217,39 @@ export default function TransactionLedgerTab({
                 />
                 <span className="text-[11px] font-bold">GST</span>
               </label>
+
+              <div className="w-px h-3.5 bg-slate-300 dark:bg-slate-700"></div>
+
+              <label className="flex items-center gap-1.5 cursor-pointer text-blue-700 dark:text-blue-400 hover:opacity-80 transition-opacity">
+                <input
+                  type="checkbox"
+                  checked={advanceOnly}
+                  onChange={(e) => setAdvanceOnly(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-blue-300 dark:border-blue-600/50 text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-800 cursor-pointer"
+                />
+                <span className="text-[11px] font-bold">Advance</span>
+              </label>
+
+              <div className="w-px h-3.5 bg-slate-300 dark:bg-slate-700"></div>
+
+              <label className="flex items-center gap-1.5 cursor-pointer text-red-700 dark:text-red-400 hover:opacity-80 transition-opacity">
+                <input
+                  type="checkbox"
+                  checked={unpaidOnly}
+                  onChange={(e) => setUnpaidOnly(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-red-300 dark:border-red-600/50 text-red-500 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-slate-800 cursor-pointer"
+                />
+                <span className="text-[11px] font-bold">Unpaid</span>
+              </label>
             </div>
 
             {/* Reset Button */}
-            {(startDate || endDate || transactionTypeFilter !== 'all' || typeFilter !== 'All' || modeFilter !== 'All' || categoryFilter !== 'All' || searchQuery || showDuplicates || discountOnly || gstOnly) && (
+            {(startDate || endDate || transactionTypeFilter !== 'all' || typeFilter !== 'All' || modeFilter !== 'All' || categoryFilter !== 'All' || searchQuery || showDuplicates || discountOnly || gstOnly || advanceOnly || unpaidOnly) && (
               <button
                 onClick={() => {
                   setStartDate(''); setEndDate(''); setTransactionTypeFilter('all');
                   setTypeFilter('All'); setModeFilter('All'); setCategoryFilter('All'); setSearchQuery('');
-                  setShowDuplicates(false); setDiscountOnly(false); setGstOnly(false);
+                  setShowDuplicates(false); setDiscountOnly(false); setGstOnly(false); setAdvanceOnly(false); setUnpaidOnly(false);
                 }}
                 className="shrink-0 flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-rose-500 hover:text-white bg-rose-50 hover:bg-rose-500 dark:bg-rose-500/10 dark:hover:bg-rose-600 px-3 py-1.5 rounded-lg transition-all border border-rose-200 dark:border-rose-500/20 hover:border-transparent shadow-sm h-[32px]"
               >

@@ -105,6 +105,8 @@ export default function Payments() {
   const [showDuplicates, setShowDuplicates] = useState(false);
   const [discountOnly, setDiscountOnly] = useState(false);
   const [gstOnly, setGstOnly] = useState(false);
+  const [advanceOnly, setAdvanceOnly] = useState(false);
+  const [unpaidOnly, setUnpaidOnly] = useState(false);
 
   // Debouncing Search Query
   useEffect(() => {
@@ -416,6 +418,8 @@ export default function Payments() {
       if (showDuplicates) url += `&duplicates=true`;
       if (discountOnly) url += `&discountOnly=true`;
       if (gstOnly) url += `&gstOnly=true`;
+      if (advanceOnly) url += `&advanceOnly=true`;
+      if (unpaidOnly) url += `&unpaidOnly=true`;
       if (startDate) url += `&startDate=${encodeURIComponent(startDate)}`;
       if (endDate) url += `&endDate=${encodeURIComponent(endDate)}`;
 
@@ -445,7 +449,7 @@ export default function Payments() {
 
   useEffect(() => {
     fetchPaymentsAndPanels(currentPage);
-  }, [currentPage, debouncedSearchQuery, typeFilter, modeFilter, categoryFilter, transactionTypeFilter, showDuplicates, discountOnly, gstOnly, startDate, endDate, pageSize]);
+  }, [currentPage, debouncedSearchQuery, typeFilter, modeFilter, categoryFilter, transactionTypeFilter, showDuplicates, discountOnly, gstOnly, advanceOnly, unpaidOnly, startDate, endDate, pageSize]);
 
   const handleOpenReceiveModal = () => {
     setModalMode('receive');
@@ -1072,6 +1076,10 @@ export default function Payments() {
           setDiscountOnly={setDiscountOnly}
           gstOnly={gstOnly}
           setGstOnly={setGstOnly}
+          advanceOnly={advanceOnly}
+          setAdvanceOnly={setAdvanceOnly}
+          unpaidOnly={unpaidOnly}
+          setUnpaidOnly={setUnpaidOnly}
           startDate={startDate}
           setStartDate={setStartDate}
           endDate={endDate}

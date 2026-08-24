@@ -227,7 +227,23 @@ router.get('/', protect, hasPermission('view_panels'), async (req, res) => {
       }
     }
 
-    // Filter by GST Only
+                // Filter by Unpaid Bills Only
+      if (req.query.unpaidOnly === 'true') {
+        filterQuery.billAmount = { $gt: 0 };
+        filterQuery.$expr = {
+          $gt: [
+            { $subtract: ["$billAmount", { $ifNull: ["$billDiscount", 0] }] },
+            { $ifNull: ["$paidAmount", 0] }
+          ]
+        };
+      }
+
+      // Filter by Advance Only
+      if (req.query.advanceOnly === 'true') {
+        filterQuery.paymentType = 'Advance';
+      }
+
+      // Filter by GST Only
     if (req.query.gstOnly === 'true') {
       filterQuery.isGstApplied = true;
     }
